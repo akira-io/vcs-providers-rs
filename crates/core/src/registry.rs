@@ -1,7 +1,10 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use crate::{Capability, Provider, ProviderDescriptor, ProviderId, VcsResult, error};
+use crate::{
+    Capability, Provider, ProviderDescriptor, ProviderDescriptorBuilder, ProviderId, VcsResult,
+    error,
+};
 
 #[derive(Clone, Default)]
 pub struct ProviderRegistry {
@@ -51,6 +54,10 @@ pub struct ProviderRegistryBuilder {
 }
 
 impl ProviderRegistryBuilder {
+    pub fn descriptor(&self, id: impl Into<String>) -> ProviderDescriptorBuilder {
+        ProviderDescriptorBuilder::make(id)
+    }
+
     pub fn register(mut self, provider: impl Provider + 'static) -> VcsResult<Self> {
         let descriptor = provider.descriptor();
         let id = descriptor.id().clone();

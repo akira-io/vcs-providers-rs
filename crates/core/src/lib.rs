@@ -11,7 +11,9 @@ mod pagination;
 mod rate_limit;
 mod registry;
 mod repos;
+mod runtime;
 mod telemetry;
+mod testing;
 mod transport;
 mod url;
 
@@ -22,7 +24,7 @@ pub use auth::{
 pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
 pub use helpers::{
     CapabilitySetBuilder, auth, branch, capabilities, commit, error, middleware, pagination,
-    provider, rate_limit, repo, request, telemetry, url,
+    provider, rate_limit, repo, request, response, runtime, telemetry, url,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
@@ -44,15 +46,21 @@ pub use repos::{
     RepoQueryBuilder, Repos, Repository, RepositoryBuilder, RepositoryListQuery, RepositoryName,
     RepositorySearchQuery, TransportNotConfiguredRepos, Visibility,
 };
+pub use runtime::{
+    IntoProvider, MissingProviderTransport, ProvidedProviderTransport, ProviderRequestBuilder,
+    ProviderRuntime, ProviderRuntimeBuilder, ProviderRuntimeWithProviderBuilder,
+    RuntimeConfiguredProvider, RuntimeProviderConfigurationBuilder, transport_status_error,
+};
 pub use telemetry::{
     MissingTelemetrySink, ProvidedTelemetrySink, ProvidedTelemetryTransport, RequestTelemetry,
     RequestTelemetryBuilder, ResponseTelemetry, ResponseTelemetryBuilder, TelemetryBuilder,
     TelemetryEvent, TelemetryRecorder, TelemetrySink, TelemetryTransport,
     TelemetryTransportBuilder,
 };
+pub use testing::EchoTransport;
 pub use transport::{
     Request, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue, RequestMethod,
-    Response, ResponseStatus, Transport,
+    Response, ResponseBuilder, ResponseStatus, Transport,
 };
 pub use url::{RequestUrl, RequestUrlBuilder};
 
@@ -105,6 +113,41 @@ impl ProviderDescriptor {
 
     pub fn capabilities(&self) -> &CapabilitySet {
         &self.capabilities
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProviderDescriptorBuilder {
+    id: ProviderId,
+    display_name: String,
+    capabilities: CapabilitySet,
+}
+
+impl ProviderDescriptorBuilder {
+    pub fn make(id: impl Into<String>) -> Self {
+        Self {
+            id: ProviderId::make(id),
+            display_name: String::new(),
+            capabilities: CapabilitySet::default(),
+        }
+    }
+
+    pub fn display_name(mut self, display_name: impl Into<String>) -> Self {
+        self.display_name = display_name.into();
+        self
+    }
+
+    pub fn capabilities(mut self, capabilities: CapabilitySet) -> Self {
+        self.capabilities = capabilities;
+        self
+    }
+
+    pub fn build(self) -> ProviderDescriptor {
+        ProviderDescriptor {
+            id: self.id,
+            display_name: self.display_name,
+            capabilities: self.capabilities,
+        }
     }
 }
 

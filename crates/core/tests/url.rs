@@ -13,6 +13,19 @@ fn url_builder_appends_query_parameters() {
 }
 
 #[test]
+fn url_builder_joins_base_url_and_path() {
+    let request_url = url("https://api.example.test")
+        .path("/repos")
+        .query_param("per_page", "100")
+        .build();
+
+    assert_eq!(
+        request_url.as_str(),
+        "https://api.example.test/repos?per_page=100"
+    );
+}
+
+#[test]
 fn url_builder_accepts_optional_and_multiple_query_parameters() {
     let request_url = url("https://api.example.test/items?sort=updated")
         .optional_query_param("cursor", Some("next page"))

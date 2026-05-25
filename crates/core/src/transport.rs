@@ -166,6 +166,10 @@ impl ResponseStatus {
     pub fn code(&self) -> u16 {
         self.0
     }
+
+    pub fn is_success(&self) -> bool {
+        (200..=299).contains(&self.0)
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -185,6 +189,31 @@ impl Response {
 
     pub fn headers(&self) -> &[RequestHeader] {
         &self.headers
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct ResponseBuilder {
+    status: Option<ResponseStatus>,
+    headers: Vec<RequestHeader>,
+}
+
+impl ResponseBuilder {
+    pub fn status(mut self, code: u16) -> Self {
+        self.status = Some(ResponseStatus::make(code));
+        self
+    }
+
+    pub fn header(mut self, name: impl Into<String>, value: impl Into<String>) -> Self {
+        self.headers.push(RequestHeader::make(name, value));
+        self
+    }
+
+    pub fn build(self) -> Response {
+        Response {
+            status: self.status.unwrap_or_else(|| ResponseStatus::make(200)),
+            headers: self.headers,
+        }
     }
 }
 
