@@ -1,9 +1,12 @@
+mod support;
+
 use std::sync::{Arc, Mutex};
 
 use vcs_provider_core::{
-    BoxFuture, HeaderMiddleware, Middleware, Request, Response, ResponseStatus, Transport,
-    VcsResult, middleware, request,
+    BoxFuture, HeaderMiddleware, Middleware, Request, Transport, VcsResult, middleware, request,
 };
+
+use support::EchoTransport;
 
 #[derive(Clone, Debug)]
 struct RecordingMiddleware {
@@ -25,20 +28,6 @@ impl Middleware for RecordingMiddleware {
         Box::pin(async move {
             calls.lock().map(|mut calls| calls.push(name)).ok();
             Ok(request)
-        })
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default)]
-struct EchoTransport;
-
-impl Transport for EchoTransport {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
-        Box::pin(async move {
-            Ok(Response::make(
-                ResponseStatus::make(200),
-                request.headers().to_vec(),
-            ))
         })
     }
 }

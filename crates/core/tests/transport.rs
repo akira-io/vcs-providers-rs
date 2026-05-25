@@ -1,6 +1,8 @@
-use vcs_provider_core::{
-    AuthHeaderStyle, RequestMethod, Response, ResponseStatus, Transport, VcsResult, auth, request,
-};
+mod support;
+
+use vcs_provider_core::{AuthHeaderStyle, RequestMethod, Transport, VcsResult, auth, request};
+
+use support::EchoTransport;
 
 #[test]
 fn request_builder_creates_get_request() {
@@ -27,23 +29,6 @@ fn request_builder_applies_auth_header() {
     assert_eq!(request.headers().len(), 1);
     assert_eq!(request.headers()[0].name().as_str(), "authorization");
     assert_eq!(request.headers()[0].value().as_str(), "Bearer test-token");
-}
-
-#[derive(Clone, Copy, Debug, Default)]
-struct EchoTransport;
-
-impl Transport for EchoTransport {
-    fn send(
-        &self,
-        request: vcs_provider_core::Request,
-    ) -> vcs_provider_core::BoxFuture<'_, VcsResult<Response>> {
-        Box::pin(async move {
-            Ok(Response::make(
-                ResponseStatus::make(200),
-                request.headers().to_vec(),
-            ))
-        })
-    }
 }
 
 #[test]

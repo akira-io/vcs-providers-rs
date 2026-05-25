@@ -9,6 +9,7 @@ mod middleware;
 mod rate_limit;
 mod registry;
 mod repos;
+mod telemetry;
 mod transport;
 
 pub use auth::{
@@ -17,6 +18,7 @@ pub use auth::{
 };
 pub use helpers::{
     CapabilitySetBuilder, auth, capabilities, middleware, provider, rate_limit, repo, request,
+    telemetry,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
@@ -32,6 +34,12 @@ pub use repos::{
     BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repo, RepoBuilder, Repos,
     Repository, RepositoryBuilder, RepositoryListQuery, RepositoryName, RepositorySearchQuery,
     TransportNotConfiguredRepos, Visibility,
+};
+pub use telemetry::{
+    MissingTelemetrySink, ProvidedTelemetrySink, ProvidedTelemetryTransport, RequestTelemetry,
+    RequestTelemetryBuilder, ResponseTelemetry, ResponseTelemetryBuilder, TelemetryBuilder,
+    TelemetryEvent, TelemetryRecorder, TelemetrySink, TelemetryTransport,
+    TelemetryTransportBuilder,
 };
 pub use transport::{
     Request, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue, RequestMethod,
