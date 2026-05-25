@@ -9,7 +9,7 @@ mod repos;
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use repos::{
     BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repo, RepoBuilder, Repos,
-    Repository, RepositoryListQuery, RepositoryName, RepositorySearchQuery,
+    Repository, RepositoryBuilder, RepositoryListQuery, RepositoryName, RepositorySearchQuery,
     TransportNotConfiguredRepos, Visibility, repo,
 };
 

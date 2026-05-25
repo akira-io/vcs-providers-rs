@@ -1,14 +1,14 @@
-use vcs_provider_core::{LifecycleState, ProviderId, Repository, Visibility, repo};
+use vcs_provider_core::{LifecycleState, Visibility, repo};
 
 #[test]
 fn repository_resource_uses_order_independent_repo_builder() {
-    let repo = repo().name("vcs-providers-rs").owner("akira-io").build();
-    let repository = Repository::make(
-        ProviderId::make("github"),
-        repo,
-        Visibility::Public,
-        LifecycleState::Active,
-    );
+    let repository = repo()
+        .name("vcs-providers-rs")
+        .owner("akira-io")
+        .provider("github")
+        .visibility(Visibility::Public)
+        .lifecycle(LifecycleState::Active)
+        .build();
 
     assert_eq!(repository.provider().as_str(), "github");
     assert_eq!(repository.repo().owner().as_str(), "akira-io");

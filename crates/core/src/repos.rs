@@ -117,6 +117,41 @@ impl RepoBuilder<ProvidedOwnerName, ProvidedRepositoryName> {
             name: self.repository_name.repository_name,
         }
     }
+
+    pub fn provider(
+        self,
+        provider: impl Into<String>,
+    ) -> RepositoryBuilder<MissingVisibility, MissingLifecycleState> {
+        RepositoryBuilder {
+            repo: self.build(),
+            provider: ProvidedProviderId(ProviderId::make(provider)),
+            visibility: MissingVisibility,
+            lifecycle_state: MissingLifecycleState,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingVisibility;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedVisibility(Visibility);
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingLifecycleState;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedLifecycleState(LifecycleState);
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedProviderId(ProviderId);
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RepositoryBuilder<VisibilityState, LifecycleStateState> {
+    repo: Repo,
+    provider: ProvidedProviderId,
+    visibility: VisibilityState,
+    lifecycle_state: LifecycleStateState,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -141,21 +176,46 @@ pub struct Repository {
     lifecycle_state: LifecycleState,
 }
 
-impl Repository {
-    pub fn make(
-        provider: ProviderId,
-        repo: Repo,
+impl<LifecycleStateState> RepositoryBuilder<MissingVisibility, LifecycleStateState> {
+    pub fn visibility(
+        self,
         visibility: Visibility,
-        lifecycle_state: LifecycleState,
-    ) -> Self {
-        Self {
-            provider,
-            repo,
-            visibility,
-            lifecycle_state,
+    ) -> RepositoryBuilder<ProvidedVisibility, LifecycleStateState> {
+        RepositoryBuilder {
+            repo: self.repo,
+            provider: self.provider,
+            visibility: ProvidedVisibility(visibility),
+            lifecycle_state: self.lifecycle_state,
         }
     }
+}
 
+impl<VisibilityState> RepositoryBuilder<VisibilityState, MissingLifecycleState> {
+    pub fn lifecycle(
+        self,
+        lifecycle_state: LifecycleState,
+    ) -> RepositoryBuilder<VisibilityState, ProvidedLifecycleState> {
+        RepositoryBuilder {
+            repo: self.repo,
+            provider: self.provider,
+            visibility: self.visibility,
+            lifecycle_state: ProvidedLifecycleState(lifecycle_state),
+        }
+    }
+}
+
+impl RepositoryBuilder<ProvidedVisibility, ProvidedLifecycleState> {
+    pub fn build(self) -> Repository {
+        Repository {
+            provider: self.provider.0,
+            repo: self.repo,
+            visibility: self.visibility.0,
+            lifecycle_state: self.lifecycle_state.0,
+        }
+    }
+}
+
+impl Repository {
     pub fn provider(&self) -> &ProviderId {
         &self.provider
     }
