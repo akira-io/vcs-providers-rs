@@ -1,3 +1,5 @@
+use std::future::Future;
+
 use crate::{BoxFuture, Request, Response, ResponseBuilder, Transport, VcsResult, response};
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -91,4 +93,8 @@ impl ProviderResponseTransportBuilder {
 
 pub fn provider_response() -> ProviderResponseBuilder {
     ProviderResponseBuilder
+}
+
+pub fn run_async_test<T>(future: impl Future<Output = VcsResult<T>>) -> VcsResult<T> {
+    futures::executor::block_on(future)
 }

@@ -103,7 +103,7 @@ pub use telemetry::{
 };
 pub use testing::{
     EchoTransport, ProviderResponseBuilder, ProviderResponseTransportBuilder,
-    SingleResponseTransport, provider_response,
+    SingleResponseTransport, provider_response, run_async_test,
 };
 pub use transport::{
     Request, RequestBody, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue,

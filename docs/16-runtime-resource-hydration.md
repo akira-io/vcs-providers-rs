@@ -1,6 +1,6 @@
 # Runtime Resource Hydration
 
-Provider request builders create provider-specific HTTP requests. Runtime-backed provider clients execute those requests through the configured request transport and hydrate provider-neutral resources.
+Provider request builders create provider-specific HTTP requests. Runtime-backed provider clients execute those requests through a configured HTTP transport and hydrate provider-neutral resources.
 
 ```rust
 let repository = github()
@@ -11,6 +11,8 @@ let repository = github()
 ```
 
 The returned value is a universal `Repository`. GitHub, GitLab, and Bitbucket response fields are mapped inside their provider crates.
+
+Application code should not need to construct a response transport. The transport is an infrastructure dependency: production clients use a real HTTP transport, and tests can replace it with a deterministic fixture.
 
 ## Core Boundary
 
@@ -41,16 +43,20 @@ Provider payload structs remain private. Public APIs expose only universal resou
 
 ## Response Body Fixtures
 
-`Response` carries an optional `ResponseBody`. Tests can use `provider_response()` to provide one response without exposing the low-level transport implementation:
+`Response` carries an optional `ResponseBody`. Tests can use `provider_response()` to provide one response without exposing the low-level transport implementation in each test:
 
 ```rust
-let repository = github()
-    .client(provider_response()
-        .body(r#"{"full_name":"akira-io/vcs-providers-rs"}"#)
-        .get())
-    .repos()
-    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
-    .await?;
+run_async_test(async {
+    let repository = github()
+        .client(provider_response()
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs"}"#)
+            .get())
+        .repos()
+        .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+        .await?;
+
+    Ok(())
+})?;
 ```
 
 The body is plain text at the client boundary. Providers choose the parser privately and must map parse failures into `VcsError`.
