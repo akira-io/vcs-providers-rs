@@ -44,6 +44,6 @@ impl Provider for BitbucketProvider {
     }
 }
 
-pub fn provider() -> BitbucketProvider {
+pub fn bitbucket() -> BitbucketProvider {
     BitbucketProvider
 }

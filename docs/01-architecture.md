@@ -78,10 +78,10 @@ Provider crates own the mapping from provider endpoints to universal `Repository
 Applications compose the registry explicitly:
 
 ```rust
-let registry = ProviderRegistry::builder()
-    .register(vcs_provider_github::provider())?
-    .register(vcs_provider_gitlab::provider())?
-    .register(vcs_provider_bitbucket::provider())?
+let registry = provider()
+    .register(vcs_provider_github::github())?
+    .register(vcs_provider_gitlab::gitlab())?
+    .register(vcs_provider_bitbucket::bitbucket())?
     .build();
 ```
 

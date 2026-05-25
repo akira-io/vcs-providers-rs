@@ -47,6 +47,6 @@ impl Provider for GitHubProvider {
     }
 }
 
-pub fn provider() -> GitHubProvider {
+pub fn github() -> GitHubProvider {
     GitHubProvider
 }
