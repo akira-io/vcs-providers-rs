@@ -1,9 +1,35 @@
 use vcs_provider_core::{
-    CodeReviews, IssueId, Issues, Pipelines, ReleaseId, Releases,
+    CodeReviews, IssueId, Issues, Pipelines, ReleaseId, Releases, Repos,
     TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
-    TransportNotConfiguredPipelines, TransportNotConfiguredReleases, VcsError, VcsResult,
-    code_review, issue, pipeline, release, repo,
+    TransportNotConfiguredPipelines, TransportNotConfiguredReleases, TransportNotConfiguredRepos,
+    VcsError, VcsResult, Visibility, code_review, issue, pipeline, release, repo,
 };
+
+#[test]
+fn repo_contract_reports_unconfigured_transport() -> VcsResult<()> {
+    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+    let draft = vcs_provider_core::RepositoryDraftBuilder::make(repo.clone())
+        .visibility(Visibility::Private)
+        .get();
+    let patch = vcs_provider_core::RepositoryPatchBuilder::make(repo.clone())
+        .visibility(Visibility::Public)
+        .get();
+
+    assert_eq!(
+        futures::executor::block_on(TransportNotConfiguredRepos.create(draft)),
+        Err(VcsError::TransportNotConfigured)
+    );
+    assert_eq!(
+        futures::executor::block_on(TransportNotConfiguredRepos.update(patch)),
+        Err(VcsError::TransportNotConfigured)
+    );
+    assert_eq!(
+        futures::executor::block_on(TransportNotConfiguredRepos.delete(repo)),
+        Err(VcsError::TransportNotConfigured)
+    );
+
+    Ok(())
+}
 
 #[test]
 fn issue_contract_reports_unconfigured_transport() -> VcsResult<()> {

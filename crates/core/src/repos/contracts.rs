@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::repos::{BoxFuture, Branch, Commit, Repo, RepositoryListQuery, RepositorySearchQuery};
+use crate::repos::{
+    BoxFuture, Branch, Commit, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
+    RepositorySearchQuery,
+};
 use crate::{
     ManagedProvider, Page, Repository, Request, RequestHeader, Response, Transport, VcsResult,
     error, request, transport_not_configured,
@@ -12,6 +15,12 @@ pub trait Repos: Send + Sync {
     fn list(&self, query: RepositoryListQuery) -> BoxFuture<'_, VcsResult<Page<Repository>>>;
 
     fn search(&self, query: RepositorySearchQuery) -> BoxFuture<'_, VcsResult<Page<Repository>>>;
+
+    fn create(&self, draft: RepositoryDraft) -> BoxFuture<'_, VcsResult<Repository>>;
+
+    fn update(&self, patch: RepositoryPatch) -> BoxFuture<'_, VcsResult<Repository>>;
+
+    fn delete(&self, repo: Repo) -> BoxFuture<'_, VcsResult<()>>;
 
     fn branches(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Page<Branch>>>;
 
@@ -31,6 +40,18 @@ impl Repos for TransportNotConfiguredRepos {
     }
 
     fn search(&self, _query: RepositorySearchQuery) -> BoxFuture<'_, VcsResult<Page<Repository>>> {
+        transport_not_configured()
+    }
+
+    fn create(&self, _draft: RepositoryDraft) -> BoxFuture<'_, VcsResult<Repository>> {
+        transport_not_configured()
+    }
+
+    fn update(&self, _patch: RepositoryPatch) -> BoxFuture<'_, VcsResult<Repository>> {
+        transport_not_configured()
+    }
+
+    fn delete(&self, _repo: Repo) -> BoxFuture<'_, VcsResult<()>> {
         transport_not_configured()
     }
 
@@ -133,6 +154,33 @@ where
             let response = self.send_request(request).await?;
 
             self.mapper.repositories(&response)
+        })
+    }
+
+    fn create(&self, draft: RepositoryDraft) -> BoxFuture<'_, VcsResult<Repository>> {
+        Box::pin(async move {
+            let request = self.driver.repo_create_request(&draft);
+            let response = self.send_request(request).await?;
+
+            self.mapper.repository(draft.repo(), &response)
+        })
+    }
+
+    fn update(&self, patch: RepositoryPatch) -> BoxFuture<'_, VcsResult<Repository>> {
+        Box::pin(async move {
+            let request = self.driver.repo_update_request(&patch);
+            let response = self.send_request(request).await?;
+
+            self.mapper.repository(patch.repo(), &response)
+        })
+    }
+
+    fn delete(&self, repo: Repo) -> BoxFuture<'_, VcsResult<()>> {
+        Box::pin(async move {
+            let request = self.driver.repo_delete_request(&repo);
+            self.send_request(request).await?;
+
+            Ok(())
         })
     }
 

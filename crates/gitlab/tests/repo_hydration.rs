@@ -52,6 +52,61 @@ fn gitlab_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> 
 }
 
 #[test]
+fn gitlab_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let repository = gitlab()
+            .client(provider_response_body(
+                r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"private","archived":false}"#,
+            ))
+            .repos()
+            .create(
+                vcs_provider_core::RepositoryDraftBuilder::make(repository_location())
+                    .visibility(Visibility::Private)
+                    .get(),
+            )
+            .await?;
+
+        assert_eq!(repository.provider().as_str(), "gitlab");
+        assert_eq!(repository.visibility(), &Visibility::Private);
+
+        Ok(())
+    })
+}
+
+#[test]
+fn gitlab_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let repository = gitlab()
+            .client(provider_response_body(
+                r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public","archived":false}"#,
+            ))
+            .repos()
+            .update(
+                vcs_provider_core::RepositoryPatchBuilder::make(repository_location())
+                    .visibility(Visibility::Public)
+                    .get(),
+            )
+            .await?;
+
+        assert_eq!(repository.provider().as_str(), "gitlab");
+        assert_eq!(repository.visibility(), &Visibility::Public);
+
+        Ok(())
+    })
+}
+
+#[test]
+fn gitlab_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        gitlab()
+            .client(provider_response().status(202).get())
+            .repos()
+            .delete(repository_location())
+            .await
+    })
+}
+
+#[test]
 fn gitlab_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let branch_page = gitlab()
