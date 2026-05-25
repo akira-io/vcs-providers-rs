@@ -49,15 +49,15 @@ The provider describes:
 - Provider identity.
 - Display name.
 - Capabilities.
-- Repositories contract.
+- Repos contract.
 - Default endpoint.
 - Supported authentication modes.
 
 Applications and managers consume providers through `Provider`, not through concrete provider types.
 
-## Repositories Contract
+## Repos Contract
 
-`Repositories` is the provider-neutral contract for repository operations.
+`Repos` is the provider-neutral contract for repository operations.
 
 It exposes:
 
@@ -69,7 +69,7 @@ It exposes:
 
 The contract is async-first and object-safe. Provider crates return futures through the shared `BoxFuture` type, so applications can consume repository operations through trait objects without depending on provider-specific types.
 
-Provider crates own the mapping from provider endpoints to universal `Repository`, `Branch`, and `Commit` resources. Until transport is configured, repositories return `VcsError::TransportNotConfigured` instead of generating placeholder data.
+Provider crates own the mapping from provider endpoints to universal `Repository`, `Branch`, and `Commit` resources. Until transport is configured, repos return `VcsError::TransportNotConfigured` instead of generating placeholder data.
 
 ## Registry Contract
 

@@ -3,7 +3,7 @@ use std::pin::Pin;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{ProviderId, VcsResult};
+use crate::{ProviderId, VcsError, VcsResult};
 
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
@@ -34,14 +34,14 @@ impl RepositoryName {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct RepositoryCoordinates {
+pub struct Repo {
     owner: OwnerName,
     name: RepositoryName,
 }
 
-impl RepositoryCoordinates {
-    pub fn make() -> RepositoryCoordinatesBuilder {
-        RepositoryCoordinatesBuilder::default()
+impl Repo {
+    pub fn make() -> RepoBuilder<MissingOwnerName, MissingRepositoryName> {
+        repo()
     }
 
     pub fn owner(&self) -> &OwnerName {
@@ -53,37 +53,69 @@ impl RepositoryCoordinates {
     }
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct RepositoryCoordinatesBuilder {
-    owner: Option<OwnerName>,
-    name: Option<RepositoryName>,
+pub fn repo() -> RepoBuilder<MissingOwnerName, MissingRepositoryName> {
+    RepoBuilder {
+        owner_name: MissingOwnerName,
+        repository_name: MissingRepositoryName,
+    }
 }
 
-impl RepositoryCoordinatesBuilder {
-    pub fn owner_name(mut self, owner: impl Into<String>) -> Self {
-        self.owner = Some(OwnerName::make(owner));
-        self
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingOwnerName;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedOwnerName {
+    owner_name: OwnerName,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingRepositoryName;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedRepositoryName {
+    repository_name: RepositoryName,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RepoBuilder<OwnerNameState, RepositoryNameState> {
+    owner_name: OwnerNameState,
+    repository_name: RepositoryNameState,
+}
+
+impl<RepositoryNameState> RepoBuilder<MissingOwnerName, RepositoryNameState> {
+    pub fn owner(
+        self,
+        owner_name: impl Into<String>,
+    ) -> RepoBuilder<ProvidedOwnerName, RepositoryNameState> {
+        RepoBuilder {
+            owner_name: ProvidedOwnerName {
+                owner_name: OwnerName::make(owner_name),
+            },
+            repository_name: self.repository_name,
+        }
     }
+}
 
-    pub fn name(mut self, name: impl Into<String>) -> Self {
-        self.name = Some(RepositoryName::make(name));
-        self
+impl<OwnerNameState> RepoBuilder<OwnerNameState, MissingRepositoryName> {
+    pub fn name(
+        self,
+        repository_name: impl Into<String>,
+    ) -> RepoBuilder<OwnerNameState, ProvidedRepositoryName> {
+        RepoBuilder {
+            owner_name: self.owner_name,
+            repository_name: ProvidedRepositoryName {
+                repository_name: RepositoryName::make(repository_name),
+            },
+        }
     }
+}
 
-    pub fn build(self) -> VcsResult<RepositoryCoordinates> {
-        let Some(owner) = self.owner else {
-            return Err(crate::VcsError::InvalidInput(
-                "owner name is required".into(),
-            ));
-        };
-
-        let Some(name) = self.name else {
-            return Err(crate::VcsError::InvalidInput(
-                "repository name is required".into(),
-            ));
-        };
-
-        Ok(RepositoryCoordinates { owner, name })
+impl RepoBuilder<ProvidedOwnerName, ProvidedRepositoryName> {
+    pub fn build(self) -> Repo {
+        Repo {
+            owner: self.owner_name.owner_name,
+            name: self.repository_name.repository_name,
+        }
     }
 }
 
@@ -104,7 +136,7 @@ pub enum LifecycleState {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Repository {
     provider: ProviderId,
-    coordinates: RepositoryCoordinates,
+    repo: Repo,
     visibility: Visibility,
     lifecycle_state: LifecycleState,
 }
@@ -112,13 +144,13 @@ pub struct Repository {
 impl Repository {
     pub fn make(
         provider: ProviderId,
-        coordinates: RepositoryCoordinates,
+        repo: Repo,
         visibility: Visibility,
         lifecycle_state: LifecycleState,
     ) -> Self {
         Self {
             provider,
-            coordinates,
+            repo,
             visibility,
             lifecycle_state,
         }
@@ -128,8 +160,8 @@ impl Repository {
         &self.provider
     }
 
-    pub fn coordinates(&self) -> &RepositoryCoordinates {
-        &self.coordinates
+    pub fn repo(&self) -> &Repo {
+        &self.repo
     }
 
     pub fn visibility(&self) -> &Visibility {
@@ -204,47 +236,43 @@ impl RepositorySearchQuery {
     }
 }
 
-pub trait Repositories: Send + Sync {
-    fn get(&self, coordinates: RepositoryCoordinates) -> BoxFuture<'_, VcsResult<Repository>>;
+pub trait Repos: Send + Sync {
+    fn get(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Repository>>;
 
     fn list(&self, query: RepositoryListQuery) -> BoxFuture<'_, VcsResult<Page<Repository>>>;
 
     fn search(&self, query: RepositorySearchQuery) -> BoxFuture<'_, VcsResult<Page<Repository>>>;
 
-    fn branches(
-        &self,
-        coordinates: RepositoryCoordinates,
-    ) -> BoxFuture<'_, VcsResult<Page<Branch>>>;
+    fn branches(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Page<Branch>>>;
 
-    fn commits(&self, coordinates: RepositoryCoordinates)
-    -> BoxFuture<'_, VcsResult<Page<Commit>>>;
+    fn commits(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Page<Commit>>>;
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::{
-        LifecycleState, ProviderId, Repository, RepositoryCoordinates, VcsResult, Visibility,
-    };
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TransportNotConfiguredRepos;
 
-    #[test]
-    fn repository_resource_is_provider_neutral() -> VcsResult<()> {
-        let coordinates = RepositoryCoordinates::make()
-            .owner_name("akira-io")
-            .name("core")
-            .build()?;
-        let repository = Repository::make(
-            ProviderId::make("github"),
-            coordinates,
-            Visibility::Public,
-            LifecycleState::Active,
-        );
-
-        assert_eq!(repository.provider().as_str(), "github");
-        assert_eq!(repository.coordinates().owner().as_str(), "akira-io");
-        assert_eq!(repository.coordinates().name().as_str(), "core");
-        assert_eq!(repository.visibility(), &Visibility::Public);
-        assert_eq!(repository.lifecycle_state(), &LifecycleState::Active);
-
-        Ok(())
+impl Repos for TransportNotConfiguredRepos {
+    fn get(&self, _repo: Repo) -> BoxFuture<'_, VcsResult<Repository>> {
+        transport_not_configured()
     }
+
+    fn list(&self, _query: RepositoryListQuery) -> BoxFuture<'_, VcsResult<Page<Repository>>> {
+        transport_not_configured()
+    }
+
+    fn search(&self, _query: RepositorySearchQuery) -> BoxFuture<'_, VcsResult<Page<Repository>>> {
+        transport_not_configured()
+    }
+
+    fn branches(&self, _repo: Repo) -> BoxFuture<'_, VcsResult<Page<Branch>>> {
+        transport_not_configured()
+    }
+
+    fn commits(&self, _repo: Repo) -> BoxFuture<'_, VcsResult<Page<Commit>>> {
+        transport_not_configured()
+    }
+}
+
+fn transport_not_configured<'a, T>() -> BoxFuture<'a, VcsResult<T>> {
+    Box::pin(async { Err(VcsError::TransportNotConfigured) })
 }

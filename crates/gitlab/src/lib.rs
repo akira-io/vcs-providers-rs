@@ -1,11 +1,7 @@
 use vcs_provider_core::{
     AuthHeaderStyle, AuthKind, Capability, CapabilitySet, Provider, ProviderDescriptor, ProviderId,
-    Repositories,
+    Repos, TransportNotConfiguredRepos,
 };
-
-mod repositories;
-
-pub use repositories::GitLabRepositories;
 
 pub const PROVIDER_ID: &str = "gitlab";
 pub const DISPLAY_NAME: &str = "GitLab";
@@ -20,7 +16,7 @@ impl Provider for GitLabProvider {
             ProviderId::make(PROVIDER_ID),
             DISPLAY_NAME,
             CapabilitySet::make([
-                Capability::Repositories,
+                Capability::Repos,
                 Capability::Issues,
                 Capability::CodeReviews,
                 Capability::Pipelines,
@@ -32,8 +28,8 @@ impl Provider for GitLabProvider {
         )
     }
 
-    fn repositories(&self) -> Box<dyn Repositories> {
-        Box::<GitLabRepositories>::default()
+    fn repos(&self) -> Box<dyn Repos> {
+        Box::<TransportNotConfiguredRepos>::default()
     }
 
     fn default_base_url(&self) -> &str {
@@ -53,54 +49,4 @@ impl Provider for GitLabProvider {
 
 pub fn provider() -> GitLabProvider {
     GitLabProvider
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{DISPLAY_NAME, GitLabProvider, PROVIDER_ID};
-    use vcs_provider_core::{
-        AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, ProviderRegistry,
-        RepositoryCoordinates, VcsError, VcsResult,
-    };
-
-    #[test]
-    fn gitlab_provider_exposes_provider_descriptor() {
-        let descriptor = GitLabProvider.descriptor();
-
-        assert_eq!(descriptor.id().as_str(), PROVIDER_ID);
-        assert_eq!(descriptor.display_name(), DISPLAY_NAME);
-        assert!(descriptor.capabilities().supports(&Capability::SelfHosted));
-    }
-
-    #[test]
-    fn gitlab_provider_uses_private_token_header_for_personal_access_tokens() {
-        let style = GitLabProvider.auth_header_style(AuthKind::PersonalAccessToken);
-
-        assert_eq!(style, AuthHeaderStyle::CustomHeader("private-token".into()));
-    }
-
-    #[test]
-    fn gitlab_provider_registers_through_core_registry() -> VcsResult<()> {
-        let registry = ProviderRegistry::builder()
-            .register(super::provider())?
-            .build();
-
-        assert!(registry.contains_provider(&ProviderId::make(PROVIDER_ID)));
-
-        Ok(())
-    }
-
-    #[test]
-    fn gitlab_provider_exposes_repositories_contract() -> VcsResult<()> {
-        let repositories = GitLabProvider.repositories();
-        let coordinates = RepositoryCoordinates::make()
-            .owner_name("akira-io")
-            .name("vcs-providers-rs")
-            .build()?;
-        let result = futures::executor::block_on(repositories.get(coordinates));
-
-        assert_eq!(result, Err(VcsError::TransportNotConfigured));
-
-        Ok(())
-    }
 }

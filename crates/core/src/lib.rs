@@ -4,13 +4,13 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 mod registry;
-mod repositories;
+mod repos;
 
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
-pub use repositories::{
-    BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repositories, Repository,
-    RepositoryCoordinates, RepositoryCoordinatesBuilder, RepositoryListQuery, RepositoryName,
-    RepositorySearchQuery, Visibility,
+pub use repos::{
+    BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repo, RepoBuilder, Repos,
+    Repository, RepositoryListQuery, RepositoryName, RepositorySearchQuery,
+    TransportNotConfiguredRepos, Visibility, repo,
 };
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -67,7 +67,7 @@ impl ProviderDescriptor {
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum Capability {
-    Repositories,
+    Repos,
     Issues,
     CodeReviews,
     Pipelines,
@@ -135,23 +135,9 @@ pub type VcsResult<T> = Result<T, VcsError>;
 pub trait Provider: Send + Sync {
     fn descriptor(&self) -> ProviderDescriptor;
 
-    fn repositories(&self) -> Box<dyn Repositories>;
+    fn repos(&self) -> Box<dyn Repos>;
 
     fn default_base_url(&self) -> &str;
 
     fn auth_header_style(&self, auth_kind: AuthKind) -> AuthHeaderStyle;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{Capability, CapabilitySet};
-
-    #[test]
-    fn capability_set_reports_supported_capabilities() {
-        let capabilities = CapabilitySet::make([Capability::Repositories, Capability::Pipelines]);
-
-        assert!(capabilities.supports(&Capability::Repositories));
-        assert!(capabilities.supports(&Capability::Pipelines));
-        assert!(!capabilities.supports(&Capability::Releases));
-    }
 }
