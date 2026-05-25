@@ -4,13 +4,17 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 mod auth;
+mod code_reviews;
 mod errors;
 mod helpers;
+mod issues;
 mod manager;
 mod middleware;
 mod pagination;
+mod pipelines;
 mod rate_limit;
 mod registry;
+mod releases;
 mod repos;
 mod runtime;
 mod telemetry;
@@ -22,11 +26,16 @@ pub use auth::{
     AuthBuilder, AuthCredential, AuthHeader, AuthHeaderName, AuthHeaderStyle, AuthHeaderValue,
     AuthKind, AuthToken,
 };
+pub use code_reviews::{
+    CodeReview, CodeReviewDraft, CodeReviewId, CodeReviews, TransportNotConfiguredCodeReviews,
+};
+pub(crate) use errors::transport_not_configured;
 pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
 pub use helpers::{
     CapabilitySetBuilder, auth, branch, capabilities, commit, error, middleware, pagination,
     provider, rate_limit, repo, request, response, runtime, telemetry, url, vcs,
 };
+pub use issues::{Issue, IssueId, Issues, TransportNotConfiguredIssues};
 pub use manager::{
     ManagedProvider, ManagedRepo, ManagedRepoBuilder, ManagedRepoCollection, VcsManager,
     VcsManagerBuilder, VcsManagerWithDriverBuilder,
@@ -38,12 +47,14 @@ pub use middleware::{
 pub use pagination::{
     Page, PageBuilder, PageCursor, PageLimit, PageRequest, PageRequestBuilder, PaginationBuilder,
 };
+pub use pipelines::{Pipeline, PipelineId, Pipelines, TransportNotConfiguredPipelines};
 pub use rate_limit::{
     RateLimitBuilder, RateLimitCost, RateLimitHeaderName, RateLimitHeaderProfile,
     RateLimitHeaderProfileBuilder, RateLimitObservation, RateLimitQuota, RateLimitReset,
     RetryAfter,
 };
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
+pub use releases::{Release, ReleaseId, Releases, TransportNotConfiguredReleases};
 pub use repos::{
     BoxFuture, Branch, Commit, LifecycleState, MissingLifecycleState, MissingOwnerName,
     MissingRepositoryName, MissingVisibility, OwnerName, ProvidedLifecycleState, ProvidedOwnerName,
@@ -194,6 +205,18 @@ pub trait Provider: Send + Sync {
     fn descriptor(&self) -> ProviderDescriptor;
 
     fn repos(&self) -> Box<dyn Repos>;
+
+    fn issues(&self) -> Box<dyn Issues>;
+
+    fn code_reviews(&self) -> Box<dyn CodeReviews>;
+
+    fn pipelines(&self) -> Box<dyn Pipelines>;
+
+    fn releases(&self) -> Box<dyn Releases>;
+
+    fn capabilities(&self) -> CapabilitySet {
+        self.descriptor().capabilities().clone()
+    }
 
     fn default_base_url(&self) -> &str;
 

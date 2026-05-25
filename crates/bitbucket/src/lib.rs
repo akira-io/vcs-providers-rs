@@ -1,7 +1,9 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, ManagedProvider, MissingOwnerName,
-    MissingRepositoryName, Provider, ProviderDescriptor, ProviderId, Repos,
-    TransportNotConfiguredRepos, capabilities,
+    AuthHeaderStyle, AuthKind, Capability, CodeReviews, Issues, ManagedProvider, MissingOwnerName,
+    MissingRepositoryName, Pipelines, Provider, ProviderDescriptor, ProviderId, Releases, Repos,
+    TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
+    TransportNotConfiguredPipelines, TransportNotConfiguredReleases, TransportNotConfiguredRepos,
+    capabilities,
 };
 
 mod repos;
@@ -80,6 +82,22 @@ impl Provider for BitbucketProvider {
 
     fn repos(&self) -> Box<dyn Repos> {
         Box::<TransportNotConfiguredRepos>::default()
+    }
+
+    fn issues(&self) -> Box<dyn Issues> {
+        Box::<TransportNotConfiguredIssues>::default()
+    }
+
+    fn code_reviews(&self) -> Box<dyn CodeReviews> {
+        Box::<TransportNotConfiguredCodeReviews>::default()
+    }
+
+    fn pipelines(&self) -> Box<dyn Pipelines> {
+        Box::<TransportNotConfiguredPipelines>::default()
+    }
+
+    fn releases(&self) -> Box<dyn Releases> {
+        Box::<TransportNotConfiguredReleases>::default()
     }
 
     fn default_base_url(&self) -> &str {

@@ -14,6 +14,18 @@ fn gitlab_provider_exposes_provider_descriptor() {
 }
 
 #[test]
+fn gitlab_provider_exposes_universal_contracts() {
+    let provider = gitlab();
+
+    assert!(provider.capabilities().supports(&Capability::Repos));
+    drop(provider.repos());
+    drop(provider.issues());
+    drop(provider.code_reviews());
+    drop(provider.pipelines());
+    drop(provider.releases());
+}
+
+#[test]
 fn gitlab_provider_uses_private_token_header_for_personal_access_tokens() {
     let style = gitlab().auth_header_style(AuthKind::PersonalAccessToken);
 

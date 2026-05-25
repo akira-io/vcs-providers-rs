@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{Response, ResponseStatus};
+use crate::{BoxFuture, Response, ResponseStatus};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum VcsError {
@@ -34,6 +34,10 @@ impl VcsError {
 }
 
 pub type VcsResult<T> = Result<T, VcsError>;
+
+pub(crate) fn transport_not_configured<'a, T>() -> BoxFuture<'a, VcsResult<T>> {
+    Box::pin(async { Err(VcsError::TransportNotConfigured) })
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ErrorKind {

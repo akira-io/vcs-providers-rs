@@ -14,6 +14,18 @@ fn bitbucket_provider_exposes_provider_descriptor() {
 }
 
 #[test]
+fn bitbucket_provider_exposes_universal_contracts() {
+    let provider = bitbucket();
+
+    assert!(provider.capabilities().supports(&Capability::Repos));
+    drop(provider.repos());
+    drop(provider.issues());
+    drop(provider.code_reviews());
+    drop(provider.pipelines());
+    drop(provider.releases());
+}
+
+#[test]
 fn bitbucket_provider_uses_bearer_auth_for_oauth() {
     let style = bitbucket().auth_header_style(AuthKind::OAuth);
 

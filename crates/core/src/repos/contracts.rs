@@ -1,5 +1,5 @@
 use crate::repos::{BoxFuture, Branch, Commit, Repo, RepositoryListQuery, RepositorySearchQuery};
-use crate::{Page, Repository, VcsError, VcsResult};
+use crate::{Page, Repository, VcsResult, transport_not_configured};
 
 pub trait Repos: Send + Sync {
     fn get(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Repository>>;
@@ -36,8 +36,4 @@ impl Repos for TransportNotConfiguredRepos {
     fn commits(&self, _repo: Repo) -> BoxFuture<'_, VcsResult<Page<Commit>>> {
         transport_not_configured()
     }
-}
-
-fn transport_not_configured<'a, T>() -> BoxFuture<'a, VcsResult<T>> {
-    Box::pin(async { Err(VcsError::TransportNotConfigured) })
 }

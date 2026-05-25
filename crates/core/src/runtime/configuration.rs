@@ -99,6 +99,22 @@ impl Provider for RuntimeConfiguredProvider {
         Box::new(crate::TransportNotConfiguredRepos)
     }
 
+    fn issues(&self) -> Box<dyn crate::Issues> {
+        Box::new(crate::TransportNotConfiguredIssues)
+    }
+
+    fn code_reviews(&self) -> Box<dyn crate::CodeReviews> {
+        Box::new(crate::TransportNotConfiguredCodeReviews)
+    }
+
+    fn pipelines(&self) -> Box<dyn crate::Pipelines> {
+        Box::new(crate::TransportNotConfiguredPipelines)
+    }
+
+    fn releases(&self) -> Box<dyn crate::Releases> {
+        Box::new(crate::TransportNotConfiguredReleases)
+    }
+
     fn default_base_url(&self) -> &str {
         &self.base_url
     }
