@@ -1,0 +1,53 @@
+# Runtime Resource Hydration
+
+Provider request builders create provider-specific HTTP requests. Runtime-backed provider clients execute those requests through the configured transport and hydrate provider-neutral resources.
+
+```rust
+let repository = github()
+    .transport(my_transport)
+    .repos()
+    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .await?;
+```
+
+The returned value is a universal `Repository`. GitHub, GitLab, and Bitbucket response fields are mapped inside their provider crates.
+
+## Core Boundary
+
+Core owns the reusable execution contract:
+
+```rust
+pub trait RepositoryResponseMapper {
+    fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository>;
+    fn repositories(&self, response: &Response) -> VcsResult<Page<Repository>>;
+    fn branches(&self, response: &Response) -> VcsResult<Page<Branch>>;
+    fn commits(&self, response: &Response) -> VcsResult<Page<Commit>>;
+}
+```
+
+Core does not parse provider JSON. `TransportBackedRepos` only sends requests, maps HTTP status errors, and delegates resource hydration to the provider mapper.
+
+## Provider Boundary
+
+Provider crates own response shapes:
+
+| Provider | Repository identity | Visibility | Lifecycle |
+| --- | --- | --- | --- |
+| GitHub | `full_name` | `private` | `archived`, `disabled` |
+| GitLab | `path_with_namespace` | `visibility` | `archived` |
+| Bitbucket | `full_name` | `is_private` | always active |
+
+Provider payload structs remain private. Public APIs expose only universal resources and typed errors.
+
+## Response Body
+
+`Response` carries an optional `ResponseBody`:
+
+```rust
+let response = response()
+    .status(200)
+    .body(r#"{"full_name":"akira-io/vcs-providers-rs"}"#)
+    .build();
+```
+
+The body is plain text at the transport boundary. Providers choose the parser privately and must map parse failures into `VcsError`.

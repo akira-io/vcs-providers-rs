@@ -7,9 +7,12 @@ use vcs_provider_core::{
     capabilities,
 };
 
+mod client;
 mod code_reviews;
+mod mappers;
 mod repos;
 
+pub use client::BitbucketClient;
 pub use code_reviews::{BitbucketCodeReview, BitbucketCodeReviewCollection};
 pub use repos::{BitbucketRepo, BitbucketRepoCollection};
 

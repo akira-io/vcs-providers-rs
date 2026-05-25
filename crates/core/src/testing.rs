@@ -16,3 +16,22 @@ impl Transport for EchoTransport {
         })
     }
 }
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SingleResponseTransport {
+    response: Response,
+}
+
+impl SingleResponseTransport {
+    pub fn make(response: Response) -> Self {
+        Self { response }
+    }
+}
+
+impl Transport for SingleResponseTransport {
+    fn send(&self, _request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+        let response = self.response.clone();
+
+        Box::pin(async move { Ok(response) })
+    }
+}
