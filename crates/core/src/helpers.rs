@@ -1,7 +1,7 @@
 use crate::repos::{MissingOwnerName, MissingRepositoryName};
 use crate::{
     AuthBuilder, Capability, CapabilitySet, ProviderRegistry, ProviderRegistryBuilder, RepoBuilder,
-    RequestBuilder,
+    RequestBuilder, TransportPipeline, TransportPipelineBuilder,
 };
 
 pub fn auth() -> AuthBuilder {
@@ -25,6 +25,10 @@ pub fn provider() -> ProviderRegistryBuilder {
 
 pub fn request() -> RequestBuilder {
     RequestBuilder::default()
+}
+
+pub fn middleware() -> TransportPipelineBuilder<crate::middleware::MissingTransport> {
+    TransportPipeline::builder()
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]

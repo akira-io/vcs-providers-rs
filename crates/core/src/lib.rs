@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 mod auth;
 mod helpers;
+mod middleware;
 mod registry;
 mod repos;
 mod transport;
@@ -13,7 +14,11 @@ pub use auth::{
     AuthBuilder, AuthCredential, AuthHeader, AuthHeaderName, AuthHeaderStyle, AuthHeaderValue,
     AuthKind, AuthToken,
 };
-pub use helpers::{CapabilitySetBuilder, auth, capabilities, provider, repo, request};
+pub use helpers::{CapabilitySetBuilder, auth, capabilities, middleware, provider, repo, request};
+pub use middleware::{
+    HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
+    TransportPipelineBuilder,
+};
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use repos::{
     BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repo, RepoBuilder, Repos,
