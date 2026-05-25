@@ -18,19 +18,32 @@ let url = issue.url();
 Use the collection builder for list URLs:
 
 ```rust
-let page = gitlab()
-    .pagination()
-    .request()
-    .limit(50)
-    .build();
-
 let issues = gitlab()
     .repo()
     .owner("akira-io")
     .name("vcs-providers-rs")
-    .issues();
+    .issues()
+    .pagination()
+    .limit(50)
+    .build();
 
-let url = issues.url(Some(&page));
+let url = issues.url();
+```
+
+If the provider uses cursor pagination, keep the pagination in the same chain:
+
+```rust
+let issues = github()
+    .repo()
+    .owner("akira-io")
+    .name("vcs-providers-rs")
+    .issues()
+    .pagination()
+    .limit(50)
+    .cursor("2")
+    .build();
+
+let url = issues.url();
 ```
 
 If the repo already exists as a variable, pass it into the issue builder:

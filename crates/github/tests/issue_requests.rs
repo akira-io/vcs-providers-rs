@@ -2,12 +2,6 @@ use vcs_provider_github::github;
 
 #[test]
 fn github_issue_urls_target_repository_endpoints() {
-    let page = github()
-        .pagination()
-        .request()
-        .limit(50)
-        .cursor("2")
-        .build();
     let issue_resource = github()
         .repo()
         .owner("akira-io")
@@ -18,14 +12,18 @@ fn github_issue_urls_target_repository_endpoints() {
         .repo()
         .owner("akira-io")
         .name("vcs-providers-rs")
-        .issues();
+        .issues()
+        .pagination()
+        .limit(50)
+        .cursor("2")
+        .build();
 
     assert_eq!(
         issue_resource.url().value(),
         "https://api.github.com/repos/akira-io/vcs-providers-rs/issues/42"
     );
     assert_eq!(
-        issues.url(Some(&page)).value(),
+        issues.url().value(),
         "https://api.github.com/repos/akira-io/vcs-providers-rs/issues?per_page=50&page=2"
     );
 }

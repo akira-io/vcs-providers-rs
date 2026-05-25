@@ -1,6 +1,6 @@
 use crate::{
     Issue, IssueBuilder, IssueListQuery, IssueQueryBuilder, MissingIssueId, MissingIssueRepo,
-    PageRequest, ProvidedIssueId, ProvidedIssueRepo, Repo, RequestUrl,
+    PageRequest, PageRequestBuilder, ProvidedIssueId, ProvidedIssueRepo, Repo, RequestUrl,
 };
 
 use super::{ManagedIssueProvider, ManagedRepo, VcsManager};
@@ -115,19 +115,65 @@ where
 pub struct ManagedRepoIssues<Driver> {
     pub(super) manager: VcsManager<Driver>,
     pub(super) repo: Repo,
+    pub(super) page: Option<PageRequest>,
 }
 
 impl<Driver> ManagedRepoIssues<Driver>
 where
     Driver: ManagedIssueProvider,
 {
-    pub fn url(&self, page: Option<&PageRequest>) -> RequestUrl {
-        let query = IssueQueryBuilder.list(self.repo.clone(), page.cloned());
-
+    pub fn url(&self) -> RequestUrl {
+        let query = self.query();
         self.manager.driver.issue_list_url(&query)
+    }
+
+    pub fn pagination(self) -> ManagedRepoIssuesPagination<Driver> {
+        ManagedRepoIssuesPagination {
+            manager: self.manager,
+            repo: self.repo,
+            page: PageRequestBuilder::default(),
+        }
     }
 
     pub fn repo(&self) -> &Repo {
         &self.repo
+    }
+
+    fn query(&self) -> IssueListQuery {
+        IssueQueryBuilder.list(self.repo.clone(), self.page.clone())
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ManagedRepoIssuesPagination<Driver> {
+    manager: VcsManager<Driver>,
+    repo: Repo,
+    page: PageRequestBuilder,
+}
+
+impl<Driver> ManagedRepoIssuesPagination<Driver>
+where
+    Driver: ManagedIssueProvider,
+{
+    pub fn limit(mut self, limit: u16) -> Self {
+        self.page = self.page.limit(limit);
+        self
+    }
+
+    pub fn cursor(mut self, cursor: impl Into<String>) -> Self {
+        self.page = self.page.cursor(cursor);
+        self
+    }
+
+    pub fn build(self) -> ManagedRepoIssues<Driver> {
+        ManagedRepoIssues {
+            manager: self.manager,
+            repo: self.repo,
+            page: Some(self.page.build()),
+        }
+    }
+
+    pub fn url(self) -> RequestUrl {
+        self.build().url()
     }
 }

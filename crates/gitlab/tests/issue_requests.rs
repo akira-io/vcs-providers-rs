@@ -2,12 +2,6 @@ use vcs_provider_gitlab::gitlab;
 
 #[test]
 fn gitlab_issue_urls_target_repository_endpoints() {
-    let page = gitlab()
-        .pagination()
-        .request()
-        .limit(50)
-        .cursor("2")
-        .build();
     let issue_resource = gitlab()
         .repo()
         .owner("akira-io")
@@ -18,14 +12,18 @@ fn gitlab_issue_urls_target_repository_endpoints() {
         .repo()
         .owner("akira-io")
         .name("vcs-providers-rs")
-        .issues();
+        .issues()
+        .pagination()
+        .limit(50)
+        .cursor("2")
+        .build();
 
     assert_eq!(
         issue_resource.url().value(),
         "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/issues/42"
     );
     assert_eq!(
-        issues.url(Some(&page)).value(),
+        issues.url().value(),
         "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/issues?per_page=50&page=2"
     );
 }

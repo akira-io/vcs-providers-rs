@@ -8,7 +8,10 @@ use crate::{
 
 mod issues;
 
-pub use issues::{ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedRepoIssues};
+pub use issues::{
+    ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedRepoIssues,
+    ManagedRepoIssuesPagination,
+};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VcsManager<Driver> {
@@ -172,6 +175,7 @@ where
         ManagedRepoIssues {
             manager: self.manager,
             repo: self.repo.build(),
+            page: None,
         }
     }
 }
