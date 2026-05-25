@@ -57,3 +57,18 @@ jobs:
             --title "${{ github.ref_name }}" \
             --notes "${{ steps.notes.outputs.body }}" \
             --latest
+
+      - name: Send GitHub Release to Discord
+        uses: SethCohen/github-releases-to-discord@v1.20.0
+        with:
+          webhook_url: ${{ secrets.DISCORD }}
+          release_name: ${{ github.ref_name }}
+          release_body: ${{ steps.notes.outputs.body }}
+          release_html_url: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}
+          color: "3447003"
+          username: "GitHub Releases"
+          avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          content: "New vcs-providers-rs release published."
+          footer_title: "akira-io/vcs-providers-rs"
+          footer_icon_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+          footer_timestamp: true
