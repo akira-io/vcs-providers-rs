@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 mod auth;
 mod errors;
 mod helpers;
+mod manager;
 mod middleware;
 mod pagination;
 mod rate_limit;
@@ -24,7 +25,11 @@ pub use auth::{
 pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
 pub use helpers::{
     CapabilitySetBuilder, auth, branch, capabilities, commit, error, middleware, pagination,
-    provider, rate_limit, repo, request, response, runtime, telemetry, url,
+    provider, rate_limit, repo, request, response, runtime, telemetry, url, vcs,
+};
+pub use manager::{
+    ManagedProvider, ManagedRepo, ManagedRepoBuilder, ManagedRepoCollection, VcsManager,
+    VcsManagerBuilder, VcsManagerWithDriverBuilder,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,

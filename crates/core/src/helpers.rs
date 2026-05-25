@@ -3,7 +3,7 @@ use crate::{
     AuthBuilder, Branch, Capability, CapabilitySet, Commit, ErrorBuilder, PaginationBuilder,
     ProviderRegistry, ProviderRegistryBuilder, ProviderRuntimeBuilder, RateLimitBuilder,
     RepoBuilder, RequestBuilder, RequestUrlBuilder, ResponseBuilder, TelemetryBuilder,
-    TransportPipeline, TransportPipelineBuilder,
+    TransportPipeline, TransportPipelineBuilder, VcsManagerBuilder,
 };
 
 pub fn auth() -> AuthBuilder {
@@ -35,6 +35,13 @@ pub fn commit(id: impl Into<String>) -> Commit {
 
 pub fn provider() -> ProviderRegistryBuilder {
     ProviderRegistry::builder()
+}
+
+pub fn vcs<Driver>(driver: Driver) -> crate::VcsManager<Driver>
+where
+    Driver: crate::ManagedProvider,
+{
+    VcsManagerBuilder.driver(driver).build()
 }
 
 pub fn runtime() -> ProviderRuntimeBuilder {

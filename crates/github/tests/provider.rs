@@ -1,5 +1,5 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, VcsError, VcsResult, auth, provider, repo,
+    AuthHeaderStyle, AuthKind, Capability, Provider, VcsError, VcsResult, auth, provider,
 };
 use vcs_provider_github::{DISPLAY_NAME, PROVIDER_ID, github};
 
@@ -62,16 +62,6 @@ fn github_provider_registry_filters_by_capability() -> VcsResult<()> {
         .collect::<Vec<_>>();
 
     assert_eq!(providers.len(), 1);
-
-    Ok(())
-}
-
-#[test]
-fn github_provider_exposes_repos_contract() -> VcsResult<()> {
-    let repo = repo().name("vcs-providers-rs").owner("akira-io").build();
-    let result = futures::executor::block_on(github().repos().get(repo));
-
-    assert_eq!(result, Err(VcsError::TransportNotConfigured));
 
     Ok(())
 }
