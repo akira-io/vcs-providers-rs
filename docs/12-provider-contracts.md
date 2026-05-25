@@ -29,6 +29,43 @@ The core `Provider` trait exposes small domain contracts instead of one large in
 
 Provider crates implement the universal trait surface and keep provider-specific endpoint routing inside their own crates.
 
+## Resource Builders
+
+Universal resources use fluent builders so construction order stays explicit and predictable:
+
+```rust
+let repo = repo()
+    .owner("akira-io")
+    .name("vcs-providers-rs")
+    .build();
+
+let issue = issue()
+    .repo(repo.clone())
+    .id("42")
+    .build();
+
+let code_review = code_review()
+    .repo(repo.clone())
+    .id("17")
+    .build();
+
+let draft = code_review()
+    .draft()
+    .repo(repo.clone())
+    .title("Add provider contracts")
+    .build();
+
+let pipeline = pipeline()
+    .repo(repo.clone())
+    .id("build-100")
+    .build();
+
+let release = release()
+    .repo(repo)
+    .id("v1.0.0")
+    .build();
+```
+
 ## Capabilities
 
 Capabilities are runtime information, not compile-time assumptions:

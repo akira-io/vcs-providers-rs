@@ -22,6 +22,13 @@ pub struct Pipeline {
 }
 
 impl Pipeline {
+    pub fn builder() -> PipelineBuilder<MissingPipelineRepo, MissingPipelineId> {
+        PipelineBuilder {
+            repo: MissingPipelineRepo,
+            id: MissingPipelineId,
+        }
+    }
+
     pub fn make(repo: Repo, id: PipelineId) -> Self {
         Self { repo, id }
     }
@@ -32,6 +39,57 @@ impl Pipeline {
 
     pub fn id(&self) -> &PipelineId {
         &self.id
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingPipelineRepo;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedPipelineRepo {
+    repo: Repo,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingPipelineId;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedPipelineId {
+    id: PipelineId,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PipelineBuilder<RepoState, PipelineIdState> {
+    repo: RepoState,
+    id: PipelineIdState,
+}
+
+impl<PipelineIdState> PipelineBuilder<MissingPipelineRepo, PipelineIdState> {
+    pub fn repo(self, repo: Repo) -> PipelineBuilder<ProvidedPipelineRepo, PipelineIdState> {
+        PipelineBuilder {
+            repo: ProvidedPipelineRepo { repo },
+            id: self.id,
+        }
+    }
+}
+
+impl<RepoState> PipelineBuilder<RepoState, MissingPipelineId> {
+    pub fn id(self, id: impl Into<String>) -> PipelineBuilder<RepoState, ProvidedPipelineId> {
+        PipelineBuilder {
+            repo: self.repo,
+            id: ProvidedPipelineId {
+                id: PipelineId::make(id),
+            },
+        }
+    }
+}
+
+impl PipelineBuilder<ProvidedPipelineRepo, ProvidedPipelineId> {
+    pub fn build(self) -> Pipeline {
+        Pipeline {
+            repo: self.repo.repo,
+            id: self.id.id,
+        }
     }
 }
 

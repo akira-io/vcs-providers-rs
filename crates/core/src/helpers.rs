@@ -1,9 +1,12 @@
 use crate::repos::{MissingOwnerName, MissingRepositoryName};
 use crate::{
-    AuthBuilder, Branch, Capability, CapabilitySet, Commit, ErrorBuilder, PaginationBuilder,
-    ProviderRegistry, ProviderRegistryBuilder, ProviderRuntimeBuilder, RateLimitBuilder,
-    RepoBuilder, RequestBuilder, RequestUrlBuilder, ResponseBuilder, TelemetryBuilder,
-    TransportPipeline, TransportPipelineBuilder, VcsManagerBuilder,
+    AuthBuilder, Branch, Capability, CapabilitySet, CodeReviewBuilder, Commit, ErrorBuilder,
+    IssueBuilder, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId, MissingIssueRepo,
+    MissingPipelineId, MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo,
+    PaginationBuilder, PipelineBuilder, ProviderRegistry, ProviderRegistryBuilder,
+    ProviderRuntimeBuilder, RateLimitBuilder, ReleaseBuilder, RepoBuilder, RequestBuilder,
+    RequestUrlBuilder, ResponseBuilder, TelemetryBuilder, TransportPipeline,
+    TransportPipelineBuilder, VcsManagerBuilder,
 };
 
 pub fn auth() -> AuthBuilder {
@@ -23,6 +26,22 @@ pub fn repo() -> RepoBuilder<MissingOwnerName, MissingRepositoryName> {
         owner_name: MissingOwnerName,
         repository_name: MissingRepositoryName,
     }
+}
+
+pub fn issue() -> IssueBuilder<MissingIssueRepo, MissingIssueId> {
+    crate::Issue::builder()
+}
+
+pub fn code_review() -> CodeReviewBuilder<MissingCodeReviewRepo, MissingCodeReviewId> {
+    crate::CodeReview::builder()
+}
+
+pub fn pipeline() -> PipelineBuilder<MissingPipelineRepo, MissingPipelineId> {
+    crate::Pipeline::builder()
+}
+
+pub fn release() -> ReleaseBuilder<MissingReleaseRepo, MissingReleaseId> {
+    crate::Release::builder()
 }
 
 pub fn branch(name: impl Into<String>) -> Branch {

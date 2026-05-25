@@ -22,6 +22,13 @@ pub struct Issue {
 }
 
 impl Issue {
+    pub fn builder() -> IssueBuilder<MissingIssueRepo, MissingIssueId> {
+        IssueBuilder {
+            repo: MissingIssueRepo,
+            id: MissingIssueId,
+        }
+    }
+
     pub fn make(repo: Repo, id: IssueId) -> Self {
         Self { repo, id }
     }
@@ -32,6 +39,57 @@ impl Issue {
 
     pub fn id(&self) -> &IssueId {
         &self.id
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingIssueRepo;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedIssueRepo {
+    repo: Repo,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingIssueId;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedIssueId {
+    id: IssueId,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IssueBuilder<RepoState, IssueIdState> {
+    repo: RepoState,
+    id: IssueIdState,
+}
+
+impl<IssueIdState> IssueBuilder<MissingIssueRepo, IssueIdState> {
+    pub fn repo(self, repo: Repo) -> IssueBuilder<ProvidedIssueRepo, IssueIdState> {
+        IssueBuilder {
+            repo: ProvidedIssueRepo { repo },
+            id: self.id,
+        }
+    }
+}
+
+impl<RepoState> IssueBuilder<RepoState, MissingIssueId> {
+    pub fn id(self, id: impl Into<String>) -> IssueBuilder<RepoState, ProvidedIssueId> {
+        IssueBuilder {
+            repo: self.repo,
+            id: ProvidedIssueId {
+                id: IssueId::make(id),
+            },
+        }
+    }
+}
+
+impl IssueBuilder<ProvidedIssueRepo, ProvidedIssueId> {
+    pub fn build(self) -> Issue {
+        Issue {
+            repo: self.repo.repo,
+            id: self.id.id,
+        }
     }
 }
 
