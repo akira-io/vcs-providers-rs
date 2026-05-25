@@ -173,6 +173,10 @@ where
     }
 
     pub fn build(self) -> ManagedRepoReleases<Driver> {
+        self.get()
+    }
+
+    pub fn get(self) -> ManagedRepoReleases<Driver> {
         ManagedRepoReleases {
             manager: self.manager,
             repo: self.repo,
@@ -181,6 +185,6 @@ where
     }
 
     pub fn url(self) -> RequestUrl {
-        self.build().url()
+        self.get().url()
     }
 }

@@ -25,7 +25,7 @@ let code_reviews = gitlab()
     .code_reviews()
     .pagination()
     .limit(50)
-    .build();
+    .get();
 
 let url = code_reviews.url();
 ```
@@ -41,7 +41,7 @@ let code_reviews = bitbucket()
     .pagination()
     .limit(50)
     .cursor("2")
-    .build();
+    .get();
 
 let url = code_reviews.url();
 ```

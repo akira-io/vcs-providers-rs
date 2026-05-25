@@ -25,7 +25,7 @@ let releases = gitlab()
     .releases()
     .pagination()
     .limit(50)
-    .build();
+    .get();
 
 let url = releases.url();
 ```

@@ -25,7 +25,7 @@ let issues = gitlab()
     .issues()
     .pagination()
     .limit(50)
-    .build();
+    .get();
 
 let url = issues.url();
 ```
@@ -41,7 +41,7 @@ let issues = github()
     .pagination()
     .limit(50)
     .cursor("2")
-    .build();
+    .get();
 
 let url = issues.url();
 ```

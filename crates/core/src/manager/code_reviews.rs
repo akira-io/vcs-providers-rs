@@ -176,6 +176,10 @@ where
     }
 
     pub fn build(self) -> ManagedRepoCodeReviews<Driver> {
+        self.get()
+    }
+
+    pub fn get(self) -> ManagedRepoCodeReviews<Driver> {
         ManagedRepoCodeReviews {
             manager: self.manager,
             repo: self.repo,
@@ -184,6 +188,6 @@ where
     }
 
     pub fn url(self) -> RequestUrl {
-        self.build().url()
+        self.get().url()
     }
 }

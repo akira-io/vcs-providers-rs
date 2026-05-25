@@ -17,7 +17,7 @@ fn gitlab_issue_urls_target_repository_endpoints() {
         .pagination()
         .limit(50)
         .cursor("2")
-        .build();
+        .get();
 
     assert_eq!(
         issue_resource.url().value(),
