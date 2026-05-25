@@ -1,12 +1,27 @@
 use vcs_provider_bitbucket::bitbucket;
+use vcs_provider_core::{RepositoryPatchBuilder, RequestMethod, Visibility};
 
 #[test]
-fn bitbucket_repo_urls_target_repository_endpoints() {
+fn bitbucket_repo_get_targets_repository_endpoint() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
         .name("vcs-providers-rs")
-        .build();
+        .get();
+
+    assert_eq!(
+        repo.url().value(),
+        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs"
+    );
+}
+
+#[test]
+fn bitbucket_repo_branch_list_targets_repository_endpoint() {
+    let repo = bitbucket()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
     let page = bitbucket()
         .pagination()
         .request()
@@ -15,13 +30,19 @@ fn bitbucket_repo_urls_target_repository_endpoints() {
         .build();
 
     assert_eq!(
-        repo.url().value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs"
-    );
-    assert_eq!(
         repo.branches(Some(&page)).value(),
         "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches?pagelen=50&page=2"
     );
+}
+
+#[test]
+fn bitbucket_repo_commit_list_targets_repository_endpoint() {
+    let repo = bitbucket()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+
     assert_eq!(
         repo.commits(None).value(),
         "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/commits"
@@ -29,19 +50,71 @@ fn bitbucket_repo_urls_target_repository_endpoints() {
 }
 
 #[test]
-fn bitbucket_repo_urls_target_collection_endpoints() {
+fn bitbucket_repo_list_targets_collection_endpoint() {
     let page = bitbucket().pagination().request().limit(25).build();
     let repo = bitbucket().repo();
     let collection = repo.collection();
     let list_query = repo.query().list(Some(page.clone()));
-    let search_query = repo.query().search("vcs provider", Some(page));
 
     assert_eq!(
         collection.list(&list_query).value(),
         "https://api.bitbucket.org/2.0/repositories?pagelen=25"
     );
+}
+
+#[test]
+fn bitbucket_repo_search_targets_collection_endpoint() {
+    let page = bitbucket().pagination().request().limit(25).build();
+    let repo = bitbucket().repo();
+    let collection = repo.collection();
+    let search_query = repo.query().search("vcs provider", Some(page));
+
     assert_eq!(
         collection.search(&search_query).value(),
         "https://api.bitbucket.org/2.0/repositories?q=name~%22vcs%20provider%22&pagelen=25"
     );
+}
+
+#[test]
+fn bitbucket_repo_create_builds_put_request() {
+    let repo = bitbucket()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+    let create_request = bitbucket()
+        .repo()
+        .draft(repo.clone())
+        .visibility(Visibility::Private)
+        .create();
+
+    assert_eq!(create_request.method(), &RequestMethod::Put);
+    assert!(create_request.body().is_some());
+}
+
+#[test]
+fn bitbucket_repo_update_builds_put_request() {
+    let repo = bitbucket()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+    let repository_patch = RepositoryPatchBuilder::make(repo.clone().into())
+        .visibility(Visibility::Public)
+        .get();
+    let update_request = repo.update(&repository_patch);
+
+    assert_eq!(update_request.method(), &RequestMethod::Put);
+    assert!(update_request.body().is_some());
+}
+
+#[test]
+fn bitbucket_repo_delete_builds_delete_request() {
+    let repo = bitbucket()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+
+    assert_eq!(repo.delete().method(), &RequestMethod::Delete);
 }

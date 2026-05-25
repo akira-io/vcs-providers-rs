@@ -2,6 +2,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configured};
 
+#[path = "code_reviews/drafts.rs"]
+mod drafts;
+#[path = "code_reviews/patches.rs"]
+mod patches;
+
+pub use drafts::{
+    CodeReviewDraftBuilder, MissingCodeReviewDraftRepo, MissingCodeReviewTitle,
+    ProvidedCodeReviewDraftRepo, ProvidedCodeReviewTitle,
+};
+pub use patches::CodeReviewPatchBuilder;
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CodeReviewId(String);
 
@@ -97,6 +108,10 @@ impl<RepoState> CodeReviewBuilder<RepoState, MissingCodeReviewId> {
 
 impl CodeReviewBuilder<ProvidedCodeReviewRepo, ProvidedCodeReviewId> {
     pub fn build(self) -> CodeReview {
+        self.get()
+    }
+
+    pub fn get(self) -> CodeReview {
         CodeReview {
             repo: self.repo.repo,
             id: self.id.id,
@@ -139,6 +154,9 @@ impl CodeReviewListQuery {
 pub struct CodeReviewDraft {
     repo: Repo,
     title: String,
+    source: Option<String>,
+    target: Option<String>,
+    body: Option<String>,
 }
 
 impl CodeReviewDraft {
@@ -146,6 +164,9 @@ impl CodeReviewDraft {
         CodeReviewDraftBuilder {
             repo: MissingCodeReviewDraftRepo,
             title: MissingCodeReviewTitle,
+            source: None,
+            target: None,
+            body: None,
         }
     }
 
@@ -153,6 +174,9 @@ impl CodeReviewDraft {
         Self {
             repo,
             title: title.into(),
+            source: None,
+            target: None,
+            body: None,
         }
     }
 
@@ -163,62 +187,43 @@ impl CodeReviewDraft {
     pub fn title(&self) -> &str {
         &self.title
     }
-}
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MissingCodeReviewDraftRepo;
+    pub fn source(&self) -> Option<&str> {
+        self.source.as_deref()
+    }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ProvidedCodeReviewDraftRepo {
-    repo: Repo,
-}
+    pub fn target(&self) -> Option<&str> {
+        self.target.as_deref()
+    }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct MissingCodeReviewTitle;
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ProvidedCodeReviewTitle {
-    title: String,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct CodeReviewDraftBuilder<RepoState, TitleState> {
-    repo: RepoState,
-    title: TitleState,
-}
-
-impl<TitleState> CodeReviewDraftBuilder<MissingCodeReviewDraftRepo, TitleState> {
-    pub fn repo(
-        self,
-        repo: impl Into<Repo>,
-    ) -> CodeReviewDraftBuilder<ProvidedCodeReviewDraftRepo, TitleState> {
-        CodeReviewDraftBuilder {
-            repo: ProvidedCodeReviewDraftRepo { repo: repo.into() },
-            title: self.title,
-        }
+    pub fn body(&self) -> Option<&str> {
+        self.body.as_deref()
     }
 }
 
-impl<RepoState> CodeReviewDraftBuilder<RepoState, MissingCodeReviewTitle> {
-    pub fn title(
-        self,
-        title: impl Into<String>,
-    ) -> CodeReviewDraftBuilder<RepoState, ProvidedCodeReviewTitle> {
-        CodeReviewDraftBuilder {
-            repo: self.repo,
-            title: ProvidedCodeReviewTitle {
-                title: title.into(),
-            },
-        }
-    }
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct CodeReviewPatch {
+    code_review: CodeReview,
+    title: Option<String>,
+    body: Option<String>,
+    closed: Option<bool>,
 }
 
-impl CodeReviewDraftBuilder<ProvidedCodeReviewDraftRepo, ProvidedCodeReviewTitle> {
-    pub fn build(self) -> CodeReviewDraft {
-        CodeReviewDraft {
-            repo: self.repo.repo,
-            title: self.title.title,
-        }
+impl CodeReviewPatch {
+    pub fn code_review(&self) -> &CodeReview {
+        &self.code_review
+    }
+
+    pub fn title(&self) -> Option<&str> {
+        self.title.as_deref()
+    }
+
+    pub fn body(&self) -> Option<&str> {
+        self.body.as_deref()
+    }
+
+    pub fn closed(&self) -> Option<bool> {
+        self.closed
     }
 }
 

@@ -2,6 +2,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configured};
 
+#[path = "issues/drafts.rs"]
+mod drafts;
+#[path = "issues/patches.rs"]
+mod patches;
+
+pub use drafts::{IssueDraftBuilder, MissingIssueTitle, ProvidedIssueTitle};
+pub use patches::IssuePatchBuilder;
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IssueId(String);
 
@@ -19,6 +27,27 @@ impl IssueId {
 pub struct Issue {
     repo: Repo,
     id: IssueId,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct IssueDraft {
+    repo: Repo,
+    title: String,
+    body: Option<String>,
+}
+
+impl IssueDraft {
+    pub fn repo(&self) -> &Repo {
+        &self.repo
+    }
+
+    pub fn title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn body(&self) -> Option<&str> {
+        self.body.as_deref()
+    }
 }
 
 impl Issue {
@@ -39,6 +68,32 @@ impl Issue {
 
     pub fn id(&self) -> &IssueId {
         &self.id
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct IssuePatch {
+    issue: Issue,
+    title: Option<String>,
+    body: Option<String>,
+    closed: Option<bool>,
+}
+
+impl IssuePatch {
+    pub fn issue(&self) -> &Issue {
+        &self.issue
+    }
+
+    pub fn title(&self) -> Option<&str> {
+        self.title.as_deref()
+    }
+
+    pub fn body(&self) -> Option<&str> {
+        self.body.as_deref()
+    }
+
+    pub fn closed(&self) -> Option<bool> {
+        self.closed
     }
 }
 
@@ -86,6 +141,10 @@ impl<RepoState> IssueBuilder<RepoState, MissingIssueId> {
 
 impl IssueBuilder<ProvidedIssueRepo, ProvidedIssueId> {
     pub fn build(self) -> Issue {
+        self.get()
+    }
+
+    pub fn get(self) -> Issue {
         Issue {
             repo: self.repo.repo,
             id: self.id.id,
@@ -96,6 +155,14 @@ impl IssueBuilder<ProvidedIssueRepo, ProvidedIssueId> {
 impl IssueBuilder<MissingIssueRepo, MissingIssueId> {
     pub fn query(self) -> IssueQueryBuilder {
         IssueQueryBuilder
+    }
+
+    pub fn draft(self) -> IssueDraftBuilder<MissingIssueRepo, MissingIssueTitle> {
+        IssueDraftBuilder {
+            repo: MissingIssueRepo,
+            title: MissingIssueTitle,
+            body: None,
+        }
     }
 }
 

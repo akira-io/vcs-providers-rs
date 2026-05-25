@@ -73,6 +73,24 @@ impl ManagedProvider for BitbucketProvider {
     ) -> vcs_provider_core::RequestUrl {
         BitbucketRepoCollection::make(DEFAULT_BASE_URL).search(query)
     }
+
+    fn repo_create_request(
+        &self,
+        draft: &vcs_provider_core::RepositoryDraft,
+    ) -> vcs_provider_core::Request {
+        BitbucketRepo::make(DEFAULT_BASE_URL, draft.repo().clone()).create(draft)
+    }
+
+    fn repo_update_request(
+        &self,
+        patch: &vcs_provider_core::RepositoryPatch,
+    ) -> vcs_provider_core::Request {
+        BitbucketRepo::make(DEFAULT_BASE_URL, patch.repo().clone()).update(patch)
+    }
+
+    fn repo_delete_request(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::Request {
+        BitbucketRepo::make(DEFAULT_BASE_URL, repo.clone()).delete()
+    }
 }
 
 impl ManagedCodeReviewProvider for BitbucketProvider {
@@ -88,6 +106,27 @@ impl ManagedCodeReviewProvider for BitbucketProvider {
         query: &vcs_provider_core::CodeReviewListQuery,
     ) -> vcs_provider_core::RequestUrl {
         BitbucketCodeReviewCollection::make(DEFAULT_BASE_URL).list(query)
+    }
+
+    fn code_review_create_request(
+        &self,
+        draft: &vcs_provider_core::CodeReviewDraft,
+    ) -> vcs_provider_core::Request {
+        BitbucketCodeReviewCollection::make(DEFAULT_BASE_URL).create(draft)
+    }
+
+    fn code_review_update_request(
+        &self,
+        patch: &vcs_provider_core::CodeReviewPatch,
+    ) -> vcs_provider_core::Request {
+        BitbucketCodeReview::make(DEFAULT_BASE_URL, patch.code_review().clone()).update(patch)
+    }
+
+    fn code_review_close_request(
+        &self,
+        code_review: &vcs_provider_core::CodeReview,
+    ) -> vcs_provider_core::Request {
+        BitbucketCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).close()
     }
 }
 

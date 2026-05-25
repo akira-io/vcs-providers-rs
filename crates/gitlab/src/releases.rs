@@ -1,26 +1,26 @@
 use vcs_provider_core::{
-    CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, PageRequest, Request,
-    RequestBody, RequestUrl, RequestUrlBuilder, request, url,
+    PageRequest, Release, ReleaseDraft, ReleaseListQuery, ReleasePatch, Request, RequestBody,
+    RequestUrl, RequestUrlBuilder, request, url,
 };
 
 use crate::DEFAULT_BASE_URL;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct GitLabCodeReview {
+pub struct GitLabRelease {
     base_url: String,
-    code_review: CodeReview,
+    release: Release,
 }
 
-impl GitLabCodeReview {
-    pub fn make(base_url: impl Into<String>, code_review: CodeReview) -> Self {
+impl GitLabRelease {
+    pub fn make(base_url: impl Into<String>, release: Release) -> Self {
         Self {
             base_url: base_url.into(),
-            code_review,
+            release,
         }
     }
 
     pub fn url(&self) -> RequestUrl {
-        let project_path = project_path(self.code_review.repo());
+        let project_path = project_path(self.release.repo());
 
         url(&self.base_url)
             .path_segments([
@@ -28,16 +28,16 @@ impl GitLabCodeReview {
                 "v4",
                 "projects",
                 project_path.as_str(),
-                "merge_requests",
-                self.code_review.id().as_str(),
+                "releases",
+                self.release.id().as_str(),
             ])
             .build()
     }
 
-    pub fn update(&self, patch: &CodeReviewPatch) -> Request {
+    pub fn update(&self, patch: &ReleasePatch) -> Request {
         request()
             .put(self.url().value())
-            .body(code_review_patch_body(patch))
+            .body(release_patch_body(patch))
             .build()
     }
 
@@ -47,18 +47,18 @@ impl GitLabCodeReview {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct GitLabCodeReviewCollection {
+pub struct GitLabReleaseCollection {
     base_url: String,
 }
 
-impl GitLabCodeReviewCollection {
+impl GitLabReleaseCollection {
     pub fn make(base_url: impl Into<String>) -> Self {
         Self {
             base_url: base_url.into(),
         }
     }
 
-    pub fn list(&self, query: &CodeReviewListQuery) -> RequestUrl {
+    pub fn list(&self, query: &ReleaseListQuery) -> RequestUrl {
         let project_path = project_path(query.repo());
 
         apply_page(
@@ -67,35 +67,29 @@ impl GitLabCodeReviewCollection {
                 "v4",
                 "projects",
                 project_path.as_str(),
-                "merge_requests",
+                "releases",
             ]),
             query.page(),
         )
         .build()
     }
 
-    pub fn create(&self, draft: &CodeReviewDraft) -> Request {
+    pub fn create(&self, draft: &ReleaseDraft) -> Request {
         let project_path = project_path(draft.repo());
 
         request()
             .post(
                 url(&self.base_url)
-                    .path_segments([
-                        "api",
-                        "v4",
-                        "projects",
-                        project_path.as_str(),
-                        "merge_requests",
-                    ])
+                    .path_segments(["api", "v4", "projects", project_path.as_str(), "releases"])
                     .build()
                     .value(),
             )
-            .body(code_review_draft_body(draft))
+            .body(release_draft_body(draft))
             .build()
     }
 }
 
-impl Default for GitLabCodeReviewCollection {
+impl Default for GitLabReleaseCollection {
     fn default() -> Self {
         Self::make(DEFAULT_BASE_URL)
     }
@@ -120,14 +114,10 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
     }
 }
 
-fn code_review_draft_body(draft: &CodeReviewDraft) -> RequestBody {
-    RequestBody::make(format!("{{\"title\":\"{}\"}}", draft.title()))
+fn release_draft_body(draft: &ReleaseDraft) -> RequestBody {
+    RequestBody::make(format!("{{\"tag_name\":\"{}\"}}", draft.tag()))
 }
 
-fn code_review_patch_body(patch: &CodeReviewPatch) -> RequestBody {
-    match patch.closed() {
-        Some(true) => RequestBody::make("{\"state_event\":\"close\"}"),
-        Some(false) => RequestBody::make("{\"state_event\":\"reopen\"}"),
-        None => RequestBody::make("{}"),
-    }
+fn release_patch_body(_patch: &ReleasePatch) -> RequestBody {
+    RequestBody::make("{}")
 }

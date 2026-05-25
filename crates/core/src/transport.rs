@@ -65,6 +65,7 @@ pub struct Request {
     method: RequestMethod,
     url: RequestUrl,
     headers: Vec<RequestHeader>,
+    body: Option<RequestBody>,
 }
 
 impl Request {
@@ -80,6 +81,10 @@ impl Request {
         &self.headers
     }
 
+    pub fn body(&self) -> Option<&RequestBody> {
+        self.body.as_ref()
+    }
+
     pub fn with_header(mut self, header: RequestHeader) -> Self {
         self.headers.push(header);
         self
@@ -91,6 +96,7 @@ pub struct RequestBuilder {
     method: RequestMethod,
     url: RequestUrl,
     headers: Vec<RequestHeader>,
+    body: Option<RequestBody>,
 }
 
 impl RequestBuilder {
@@ -130,11 +136,17 @@ impl RequestBuilder {
         self
     }
 
+    pub fn body(mut self, body: RequestBody) -> Self {
+        self.body = Some(body);
+        self
+    }
+
     pub fn build(self) -> Request {
         Request {
             method: self.method,
             url: self.url,
             headers: self.headers,
+            body: self.body,
         }
     }
 
@@ -151,7 +163,29 @@ impl Default for RequestBuilder {
             method: RequestMethod::Get,
             url: RequestUrl::make(""),
             headers: Vec::new(),
+            body: None,
         }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct RequestBody {
+    content: String,
+}
+
+impl RequestBody {
+    pub fn make(content: impl Into<String>) -> Self {
+        Self {
+            content: content.into(),
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.content.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.content.is_empty()
     }
 }
 

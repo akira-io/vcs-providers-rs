@@ -86,6 +86,10 @@ impl<RepoState> PipelineBuilder<RepoState, MissingPipelineId> {
 
 impl PipelineBuilder<ProvidedPipelineRepo, ProvidedPipelineId> {
     pub fn build(self) -> Pipeline {
+        self.get()
+    }
+
+    pub fn get(self) -> Pipeline {
         Pipeline {
             repo: self.repo.repo,
             id: self.id.id,

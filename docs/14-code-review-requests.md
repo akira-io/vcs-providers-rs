@@ -10,7 +10,7 @@ let code_review = github()
     .owner("akira-io")
     .name("vcs-providers-rs")
     .code_review("42")
-    .build();
+    .get();
 
 let url = code_review.url();
 ```
@@ -25,7 +25,7 @@ let code_reviews = gitlab()
     .code_reviews()
     .pagination()
     .limit(50)
-    .build();
+    .list();
 
 let url = code_reviews.url();
 ```
@@ -41,7 +41,7 @@ let code_reviews = bitbucket()
     .pagination()
     .limit(50)
     .cursor("2")
-    .build();
+    .list();
 
 let url = code_reviews.url();
 ```
@@ -53,13 +53,13 @@ let repo = github()
     .repo()
     .owner("akira-io")
     .name("vcs-providers-rs")
-    .build();
+    .get();
 
 let code_review = github()
     .code_review()
     .repo(repo)
     .id("42")
-    .build();
+    .get();
 ```
 
 Use `vcs(driver)` when the provider is injected:
@@ -72,7 +72,7 @@ let code_review = provider
     .owner("akira-io")
     .name("vcs-providers-rs")
     .code_review("42")
-    .build();
+    .get();
 ```
 
 ## Provider Support
@@ -99,3 +99,42 @@ Bitbucket maps code reviews to pull requests:
 ```
 
 Pagination remains provider-neutral in the caller. Providers map it to their own query names.
+
+## Create, Update, Close, Delete
+
+Use `CodeReviewDraft` to create code reviews and `CodeReviewPatch` to update or close them:
+
+```rust
+let repo = gitlab()
+    .repo()
+    .owner("akira-io")
+    .name("vcs-providers-rs")
+    .get();
+
+let create_request = gitlab()
+    .code_review()
+    .draft()
+    .repo(repo.clone())
+    .title("Add release mutations")
+    .source("feature/releases")
+    .target("main")
+    .body("Adds release request builders.")
+    .create();
+
+let code_review = gitlab().code_review().repo(repo).id("42").get();
+let code_review_patch = CodeReviewPatchBuilder::make(code_review.code_review().clone())
+    .closed()
+    .get();
+
+let update_request = code_review.update(&code_review_patch);
+let close_request = code_review.close();
+let delete_request = code_review.delete();
+```
+
+Provider support:
+
+| Provider | Create | Update | Close | Delete |
+| --- | --- | --- | --- | --- |
+| GitHub | supported | supported | supported | unsupported |
+| GitLab | supported | supported | supported | supported |
+| Bitbucket | supported | supported | supported | unsupported |

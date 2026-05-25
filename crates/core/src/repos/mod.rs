@@ -15,7 +15,7 @@ pub use queries::{RepoQueryBuilder, RepositoryListQuery, RepositorySearchQuery};
 pub use resources::{
     Branch, Commit, LifecycleState, MissingLifecycleState, MissingVisibility,
     ProvidedLifecycleState, ProvidedProviderId, ProvidedVisibility, Repository, RepositoryBuilder,
-    Visibility,
+    RepositoryDraft, RepositoryDraftBuilder, RepositoryPatch, RepositoryPatchBuilder, Visibility,
 };
 
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;

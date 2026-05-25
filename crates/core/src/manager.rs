@@ -1,23 +1,32 @@
 use crate::Provider;
 use crate::{
-    CodeReview, CodeReviewListQuery, Issue, IssueListQuery, MissingCodeReviewId,
-    MissingCodeReviewRepo, MissingIssueId, MissingIssueRepo, MissingOwnerName,
-    MissingRepositoryName, PageRequest, ProvidedCodeReviewId, ProvidedCodeReviewRepo,
-    ProvidedIssueId, ProvidedIssueRepo, ProvidedOwnerName, ProvidedRepositoryName, Repo,
-    RepoBuilder, RepoQueryBuilder, RepositoryListQuery, RepositorySearchQuery, RequestUrl,
-    code_review, issue, repo,
+    CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, Issue, IssueDraft,
+    IssueListQuery, IssuePatch, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId,
+    MissingIssueRepo, MissingOwnerName, MissingReleaseId, MissingReleaseRepo,
+    MissingRepositoryName, PageRequest, Release, ReleaseDraft, ReleaseListQuery, ReleasePatch,
+    Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch, RepositorySearchQuery, RequestUrl,
+    code_review, issue, release, repo,
 };
 
 mod code_reviews;
 mod issues;
+mod releases;
+mod repos;
 
 pub use code_reviews::{
     ManagedCodeReview, ManagedCodeReviewBuilder, ManagedCodeReviewCollection,
-    ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination,
+    ManagedCodeReviewDraftBuilder, ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination,
 };
 pub use issues::{
-    ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedRepoIssues,
-    ManagedRepoIssuesPagination,
+    ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDraftBuilder,
+    ManagedRepoIssues, ManagedRepoIssuesPagination,
+};
+pub use releases::{
+    ManagedRelease, ManagedReleaseBuilder, ManagedReleaseCollection, ManagedReleaseDraftBuilder,
+    ManagedRepoReleases, ManagedRepoReleasesPagination,
+};
+pub use repos::{
+    ManagedRepo, ManagedRepoBuilder, ManagedRepoCollection, ManagedRepositoryDraftBuilder,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -58,6 +67,16 @@ where
         }
     }
 
+    pub fn release(&self) -> ManagedReleaseBuilder<Driver, MissingReleaseRepo, MissingReleaseId>
+    where
+        Driver: ManagedReleaseProvider,
+    {
+        ManagedReleaseBuilder {
+            manager: self.clone(),
+            release: release(),
+        }
+    }
+
     pub fn driver(&self) -> &Driver {
         &self.driver
     }
@@ -77,18 +96,58 @@ pub trait ManagedProvider: Clone + Provider {
     fn repo_list_url(&self, query: &RepositoryListQuery) -> RequestUrl;
 
     fn repo_search_url(&self, query: &RepositorySearchQuery) -> RequestUrl;
+
+    fn repo_create_request(&self, draft: &RepositoryDraft) -> crate::Request;
+
+    fn repo_update_request(&self, patch: &RepositoryPatch) -> crate::Request;
+
+    fn repo_delete_request(&self, repo: &Repo) -> crate::Request;
 }
 
 pub trait ManagedIssueProvider: ManagedProvider {
     fn issue_url(&self, issue: &Issue) -> RequestUrl;
 
     fn issue_list_url(&self, query: &IssueListQuery) -> RequestUrl;
+
+    fn issue_create_request(&self, draft: &IssueDraft) -> crate::Request;
+
+    fn issue_update_request(&self, patch: &IssuePatch) -> crate::Request;
+
+    fn issue_close_request(&self, patch: &IssuePatch) -> crate::Request {
+        self.issue_update_request(patch)
+    }
+}
+
+pub trait ManagedIssueDeleteProvider: ManagedIssueProvider {
+    fn issue_delete_request(&self, issue: &Issue) -> crate::Request;
 }
 
 pub trait ManagedCodeReviewProvider: ManagedProvider {
     fn code_review_url(&self, code_review: &CodeReview) -> RequestUrl;
 
     fn code_review_list_url(&self, query: &CodeReviewListQuery) -> RequestUrl;
+
+    fn code_review_create_request(&self, draft: &CodeReviewDraft) -> crate::Request;
+
+    fn code_review_update_request(&self, patch: &CodeReviewPatch) -> crate::Request;
+
+    fn code_review_close_request(&self, code_review: &CodeReview) -> crate::Request;
+}
+
+pub trait ManagedCodeReviewDeleteProvider: ManagedCodeReviewProvider {
+    fn code_review_delete_request(&self, code_review: &CodeReview) -> crate::Request;
+}
+
+pub trait ManagedReleaseProvider: ManagedProvider {
+    fn release_url(&self, release: &Release) -> RequestUrl;
+
+    fn release_list_url(&self, query: &ReleaseListQuery) -> RequestUrl;
+
+    fn release_create_request(&self, draft: &ReleaseDraft) -> crate::Request;
+
+    fn release_update_request(&self, patch: &ReleasePatch) -> crate::Request;
+
+    fn release_delete_request(&self, release: &Release) -> crate::Request;
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -116,161 +175,5 @@ where
         VcsManager {
             driver: self.driver,
         }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ManagedRepoBuilder<Driver, OwnerNameState, RepositoryNameState> {
-    manager: VcsManager<Driver>,
-    repo: RepoBuilder<OwnerNameState, RepositoryNameState>,
-}
-
-impl<Driver> ManagedRepoBuilder<Driver, MissingOwnerName, MissingRepositoryName>
-where
-    Driver: ManagedProvider,
-{
-    pub fn collection(&self) -> ManagedRepoCollection<Driver> {
-        ManagedRepoCollection {
-            manager: self.manager.clone(),
-        }
-    }
-
-    pub fn query(&self) -> crate::RepoQueryBuilder {
-        RepoQueryBuilder
-    }
-}
-
-impl<Driver, RepositoryNameState> ManagedRepoBuilder<Driver, MissingOwnerName, RepositoryNameState>
-where
-    Driver: ManagedProvider,
-{
-    pub fn owner(
-        self,
-        owner_name: impl Into<String>,
-    ) -> ManagedRepoBuilder<Driver, ProvidedOwnerName, RepositoryNameState> {
-        ManagedRepoBuilder {
-            manager: self.manager,
-            repo: self.repo.owner(owner_name),
-        }
-    }
-}
-
-impl<Driver, OwnerNameState> ManagedRepoBuilder<Driver, OwnerNameState, MissingRepositoryName>
-where
-    Driver: ManagedProvider,
-{
-    pub fn name(
-        self,
-        repository_name: impl Into<String>,
-    ) -> ManagedRepoBuilder<Driver, OwnerNameState, ProvidedRepositoryName> {
-        ManagedRepoBuilder {
-            manager: self.manager,
-            repo: self.repo.name(repository_name),
-        }
-    }
-}
-
-impl<Driver> ManagedRepoBuilder<Driver, ProvidedOwnerName, ProvidedRepositoryName>
-where
-    Driver: ManagedProvider,
-{
-    pub fn build(self) -> ManagedRepo<Driver> {
-        ManagedRepo {
-            manager: self.manager,
-            repo: self.repo.build(),
-        }
-    }
-}
-
-impl<Driver> ManagedRepoBuilder<Driver, ProvidedOwnerName, ProvidedRepositoryName>
-where
-    Driver: ManagedIssueProvider,
-{
-    pub fn issue(
-        self,
-        id: impl Into<String>,
-    ) -> ManagedIssueBuilder<Driver, ProvidedIssueRepo, ProvidedIssueId> {
-        ManagedIssueBuilder {
-            manager: self.manager,
-            issue: issue().repo(self.repo.build()).id(id),
-        }
-    }
-
-    pub fn issues(self) -> ManagedRepoIssues<Driver> {
-        ManagedRepoIssues {
-            manager: self.manager,
-            repo: self.repo.build(),
-            page: None,
-        }
-    }
-}
-
-impl<Driver> ManagedRepoBuilder<Driver, ProvidedOwnerName, ProvidedRepositoryName>
-where
-    Driver: ManagedCodeReviewProvider,
-{
-    pub fn code_review(
-        self,
-        id: impl Into<String>,
-    ) -> ManagedCodeReviewBuilder<Driver, ProvidedCodeReviewRepo, ProvidedCodeReviewId> {
-        ManagedCodeReviewBuilder {
-            manager: self.manager,
-            code_review: code_review().repo(self.repo.build()).id(id),
-        }
-    }
-
-    pub fn code_reviews(self) -> ManagedRepoCodeReviews<Driver> {
-        ManagedRepoCodeReviews {
-            manager: self.manager,
-            repo: self.repo.build(),
-            page: None,
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ManagedRepo<Driver> {
-    manager: VcsManager<Driver>,
-    repo: Repo,
-}
-
-impl<Driver> ManagedRepo<Driver>
-where
-    Driver: ManagedProvider,
-{
-    pub fn url(&self) -> RequestUrl {
-        self.manager.driver.repo_url(&self.repo)
-    }
-
-    pub fn branches(&self, page: Option<&PageRequest>) -> RequestUrl {
-        self.manager.driver.repo_branches_url(&self.repo, page)
-    }
-
-    pub fn commits(&self, page: Option<&PageRequest>) -> RequestUrl {
-        self.manager.driver.repo_commits_url(&self.repo, page)
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ManagedRepoCollection<Driver> {
-    manager: VcsManager<Driver>,
-}
-
-impl<Driver> ManagedRepoCollection<Driver>
-where
-    Driver: ManagedProvider,
-{
-    pub fn list(&self, query: &RepositoryListQuery) -> RequestUrl {
-        self.manager.driver.repo_list_url(query)
-    }
-
-    pub fn search(&self, query: &RepositorySearchQuery) -> RequestUrl {
-        self.manager.driver.repo_search_url(query)
-    }
-}
-
-impl<Driver> From<ManagedRepo<Driver>> for Repo {
-    fn from(managed_repo: ManagedRepo<Driver>) -> Self {
-        managed_repo.repo
     }
 }

@@ -1,6 +1,6 @@
 use vcs_provider_core::{
-    PageRequest, Repo, RepositoryListQuery, RepositorySearchQuery, RequestUrl, RequestUrlBuilder,
-    url,
+    PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
+    RepositorySearchQuery, Request, RequestBody, RequestUrl, RequestUrlBuilder, request, url,
 };
 
 use crate::DEFAULT_BASE_URL;
@@ -29,6 +29,17 @@ impl GitHubRepo {
 
     pub fn commits(&self, page: Option<&PageRequest>) -> RequestUrl {
         self.request_url(["commits"], page)
+    }
+
+    pub fn update(&self, patch: &RepositoryPatch) -> Request {
+        request()
+            .patch(self.url().value())
+            .body(repository_patch_body(patch))
+            .build()
+    }
+
+    pub fn delete(&self) -> Request {
+        request().delete(self.url().value()).build()
     }
 
     fn request_url<const SIZE: usize>(
@@ -76,6 +87,18 @@ impl GitHubRepoCollection {
         )
         .build()
     }
+
+    pub fn create(&self, draft: &RepositoryDraft) -> Request {
+        request()
+            .post(
+                url(&self.base_url)
+                    .path_segments(["orgs", draft.repo().owner().as_str(), "repos"])
+                    .build()
+                    .value(),
+            )
+            .body(repository_draft_body(draft))
+            .build()
+    }
 }
 
 impl Default for GitHubRepoCollection {
@@ -96,5 +119,24 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
                 page.cursor().map(|cursor| cursor.as_str().to_owned()),
             ),
         None => request_url,
+    }
+}
+
+fn repository_draft_body(draft: &RepositoryDraft) -> RequestBody {
+    RequestBody::make(format!(
+        "{{\"name\":\"{}\",\"private\":{}}}",
+        draft.repo().name().as_str(),
+        matches!(draft.visibility(), vcs_provider_core::Visibility::Private)
+    ))
+}
+
+fn repository_patch_body(patch: &RepositoryPatch) -> RequestBody {
+    let visibility = patch
+        .visibility()
+        .map(|visibility| matches!(visibility, vcs_provider_core::Visibility::Private));
+
+    match visibility {
+        Some(is_private) => RequestBody::make(format!("{{\"private\":{is_private}}}")),
+        None => RequestBody::make("{}"),
     }
 }

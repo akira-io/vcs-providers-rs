@@ -37,33 +37,33 @@ Universal resources use fluent builders so construction order stays explicit and
 let repo = repo()
     .owner("akira-io")
     .name("vcs-providers-rs")
-    .build();
+    .get();
 
 let issue = issue()
     .repo(repo.clone())
     .id("42")
-    .build();
+    .get();
 
 let code_review = code_review()
     .repo(repo.clone())
     .id("17")
-    .build();
+    .get();
 
 let draft = code_review()
     .draft()
     .repo(repo.clone())
     .title("Add provider contracts")
-    .build();
+    .get();
 
 let pipeline = pipeline()
     .repo(repo.clone())
     .id("build-100")
-    .build();
+    .get();
 
 let release = release()
     .repo(repo)
     .id("v1.0.0")
-    .build();
+    .get();
 ```
 
 List operations use query objects. That keeps the contracts stable when filters are added later:
@@ -72,7 +72,7 @@ List operations use query objects. That keeps the contracts stable when filters 
 let repo = repo()
     .owner("akira-io")
     .name("vcs-providers-rs")
-    .build();
+    .get();
 
 let page = pagination()
     .request()

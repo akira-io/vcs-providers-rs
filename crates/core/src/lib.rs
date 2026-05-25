@@ -28,10 +28,10 @@ pub use auth::{
 };
 pub use code_reviews::{
     CodeReview, CodeReviewBuilder, CodeReviewDraft, CodeReviewDraftBuilder, CodeReviewId,
-    CodeReviewListQuery, CodeReviewQueryBuilder, CodeReviews, MissingCodeReviewDraftRepo,
-    MissingCodeReviewId, MissingCodeReviewRepo, MissingCodeReviewTitle,
-    ProvidedCodeReviewDraftRepo, ProvidedCodeReviewId, ProvidedCodeReviewRepo,
-    ProvidedCodeReviewTitle, TransportNotConfiguredCodeReviews,
+    CodeReviewListQuery, CodeReviewPatch, CodeReviewPatchBuilder, CodeReviewQueryBuilder,
+    CodeReviews, MissingCodeReviewDraftRepo, MissingCodeReviewId, MissingCodeReviewRepo,
+    MissingCodeReviewTitle, ProvidedCodeReviewDraftRepo, ProvidedCodeReviewId,
+    ProvidedCodeReviewRepo, ProvidedCodeReviewTitle, TransportNotConfiguredCodeReviews,
 };
 pub(crate) use errors::transport_not_configured;
 pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
@@ -41,15 +41,21 @@ pub use helpers::{
     runtime, telemetry, url, vcs,
 };
 pub use issues::{
-    Issue, IssueBuilder, IssueId, IssueListQuery, IssueQueryBuilder, Issues, MissingIssueId,
-    MissingIssueRepo, ProvidedIssueId, ProvidedIssueRepo, TransportNotConfiguredIssues,
+    Issue, IssueBuilder, IssueDraft, IssueDraftBuilder, IssueId, IssueListQuery, IssuePatch,
+    IssuePatchBuilder, IssueQueryBuilder, Issues, MissingIssueId, MissingIssueRepo,
+    MissingIssueTitle, ProvidedIssueId, ProvidedIssueRepo, ProvidedIssueTitle,
+    TransportNotConfiguredIssues,
 };
 pub use manager::{
     ManagedCodeReview, ManagedCodeReviewBuilder, ManagedCodeReviewCollection,
-    ManagedCodeReviewProvider, ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection,
-    ManagedIssueProvider, ManagedProvider, ManagedRepo, ManagedRepoBuilder, ManagedRepoCodeReviews,
+    ManagedCodeReviewDeleteProvider, ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider,
+    ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDeleteProvider,
+    ManagedIssueDraftBuilder, ManagedIssueProvider, ManagedProvider, ManagedRelease,
+    ManagedReleaseBuilder, ManagedReleaseCollection, ManagedReleaseDraftBuilder,
+    ManagedReleaseProvider, ManagedRepo, ManagedRepoBuilder, ManagedRepoCodeReviews,
     ManagedRepoCodeReviewsPagination, ManagedRepoCollection, ManagedRepoIssues,
-    ManagedRepoIssuesPagination, VcsManager, VcsManagerBuilder, VcsManagerWithDriverBuilder,
+    ManagedRepoIssuesPagination, ManagedRepoReleases, ManagedRepoReleasesPagination,
+    ManagedRepositoryDraftBuilder, VcsManager, VcsManagerBuilder, VcsManagerWithDriverBuilder,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
@@ -70,16 +76,18 @@ pub use rate_limit::{
 };
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use releases::{
-    MissingReleaseId, MissingReleaseRepo, ProvidedReleaseId, ProvidedReleaseRepo, Release,
-    ReleaseBuilder, ReleaseId, ReleaseListQuery, ReleaseQueryBuilder, Releases,
-    TransportNotConfiguredReleases,
+    MissingReleaseId, MissingReleaseRepo, MissingReleaseTag, ProvidedReleaseId,
+    ProvidedReleaseRepo, ProvidedReleaseTag, Release, ReleaseBuilder, ReleaseDraft,
+    ReleaseDraftBuilder, ReleaseId, ReleaseListQuery, ReleasePatch, ReleasePatchBuilder,
+    ReleaseQueryBuilder, Releases, TransportNotConfiguredReleases,
 };
 pub use repos::{
     BoxFuture, Branch, Commit, LifecycleState, MissingLifecycleState, MissingOwnerName,
     MissingRepositoryName, MissingVisibility, OwnerName, ProvidedLifecycleState, ProvidedOwnerName,
     ProvidedProviderId, ProvidedRepositoryName, ProvidedVisibility, Repo, RepoBuilder,
-    RepoQueryBuilder, Repos, Repository, RepositoryBuilder, RepositoryListQuery, RepositoryName,
-    RepositorySearchQuery, TransportNotConfiguredRepos, Visibility,
+    RepoQueryBuilder, Repos, Repository, RepositoryBuilder, RepositoryDraft,
+    RepositoryDraftBuilder, RepositoryListQuery, RepositoryName, RepositoryPatch,
+    RepositoryPatchBuilder, RepositorySearchQuery, TransportNotConfiguredRepos, Visibility,
 };
 pub use runtime::{
     IntoProvider, MissingProviderTransport, ProvidedProviderTransport, ProviderRequestBuilder,
@@ -94,8 +102,8 @@ pub use telemetry::{
 };
 pub use testing::EchoTransport;
 pub use transport::{
-    Request, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue, RequestMethod,
-    Response, ResponseBuilder, ResponseStatus, Transport,
+    Request, RequestBody, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue,
+    RequestMethod, Response, ResponseBuilder, ResponseStatus, Transport,
 };
 pub use url::{RequestUrl, RequestUrlBuilder};
 

@@ -10,7 +10,7 @@ let issue = github()
     .owner("akira-io")
     .name("vcs-providers-rs")
     .issue("42")
-    .build();
+    .get();
 
 let url = issue.url();
 ```
@@ -25,7 +25,7 @@ let issues = gitlab()
     .issues()
     .pagination()
     .limit(50)
-    .build();
+    .list();
 
 let url = issues.url();
 ```
@@ -41,7 +41,7 @@ let issues = github()
     .pagination()
     .limit(50)
     .cursor("2")
-    .build();
+    .list();
 
 let url = issues.url();
 ```
@@ -53,13 +53,13 @@ let repo = github()
     .repo()
     .owner("akira-io")
     .name("vcs-providers-rs")
-    .build();
+    .get();
 
 let issue = github()
     .issue()
     .repo(repo)
     .id("42")
-    .build();
+    .get();
 ```
 
 Use `vcs(driver)` when the provider is injected:
@@ -72,7 +72,7 @@ let issue = provider
     .owner("akira-io")
     .name("vcs-providers-rs")
     .issue("42")
-    .build();
+    .get();
 ```
 
 ## Provider Support
@@ -99,3 +99,39 @@ native Bitbucket Cloud Issues are being removed in August 2026. The Bitbucket pr
 advertise `Capability::Issues` and does not implement `ManagedIssueProvider`. Jira-backed work
 tracking should be modeled as a separate extension instead of leaking Jira behavior into the
 provider-neutral issue contract.
+
+## Create, Update, Close
+
+Use `IssueDraft` to create issues and `IssuePatch` to update or close them:
+
+```rust
+let repo = github()
+    .repo()
+    .owner("akira-io")
+    .name("vcs-providers-rs")
+    .get();
+
+let create_request = github()
+    .issue()
+    .draft()
+    .repo(repo.clone())
+    .title("Fix pagination")
+    .body("The cursor should be opaque.")
+    .create();
+
+let issue = github().issue().repo(repo).id("42").get();
+let issue_patch = IssuePatchBuilder::make(issue.issue().clone())
+    .closed()
+    .get();
+
+let update_request = issue.update(&issue_patch);
+let close_request = issue.close(&issue_patch);
+```
+
+Provider support:
+
+| Provider | Create | Update | Close | Delete |
+| --- | --- | --- | --- | --- |
+| GitHub | supported | supported | supported | unsupported |
+| GitLab | supported | supported | supported | supported |
+| Bitbucket | unsupported | unsupported | unsupported | unsupported |

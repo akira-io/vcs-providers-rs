@@ -110,6 +110,10 @@ impl<OwnerNameState> RepoBuilder<OwnerNameState, MissingRepositoryName> {
 
 impl RepoBuilder<ProvidedOwnerName, ProvidedRepositoryName> {
     pub fn build(self) -> Repo {
+        self.get()
+    }
+
+    pub fn get(self) -> Repo {
         Repo {
             owner: self.owner_name.owner_name,
             name: self.repository_name.repository_name,
@@ -121,7 +125,7 @@ impl RepoBuilder<ProvidedOwnerName, ProvidedRepositoryName> {
         provider: impl Into<String>,
     ) -> RepositoryBuilder<MissingVisibility, MissingLifecycleState> {
         RepositoryBuilder {
-            repo: self.build(),
+            repo: self.get(),
             provider: ProvidedProviderId(ProviderId::make(provider)),
             visibility: MissingVisibility,
             lifecycle_state: MissingLifecycleState,

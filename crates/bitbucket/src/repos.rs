@@ -1,6 +1,6 @@
 use vcs_provider_core::{
-    PageRequest, Repo, RepositoryListQuery, RepositorySearchQuery, RequestUrl, RequestUrlBuilder,
-    url,
+    PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
+    RepositorySearchQuery, Request, RequestBody, RequestUrl, RequestUrlBuilder, request, url,
 };
 
 use crate::DEFAULT_BASE_URL;
@@ -29,6 +29,24 @@ impl BitbucketRepo {
 
     pub fn commits(&self, page: Option<&PageRequest>) -> RequestUrl {
         self.request_url(["commits"], page)
+    }
+
+    pub fn create(&self, draft: &RepositoryDraft) -> Request {
+        request()
+            .put(self.url().value())
+            .body(repository_draft_body(draft))
+            .build()
+    }
+
+    pub fn update(&self, patch: &RepositoryPatch) -> Request {
+        request()
+            .put(self.url().value())
+            .body(repository_patch_body(patch))
+            .build()
+    }
+
+    pub fn delete(&self) -> Request {
+        request().delete(self.url().value()).build()
     }
 
     fn request_url<const SIZE: usize>(
@@ -97,4 +115,15 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
             ),
         None => request_url,
     }
+}
+
+fn repository_draft_body(draft: &RepositoryDraft) -> RequestBody {
+    RequestBody::make(format!(
+        "{{\"scm\":\"git\",\"is_private\":{}}}",
+        matches!(draft.visibility(), vcs_provider_core::Visibility::Private)
+    ))
+}
+
+fn repository_patch_body(_patch: &RepositoryPatch) -> RequestBody {
+    RequestBody::make("{}")
 }

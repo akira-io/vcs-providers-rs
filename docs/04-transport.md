@@ -16,8 +16,20 @@ Requests contain:
 - HTTP method
 - URL
 - headers
+- optional opaque body
 
 The core request model does not expose `reqwest` or any provider payload type.
+
+Mutation requests can carry an opaque body:
+
+```rust
+let request = request()
+    .post("https://api.example.test/repos")
+    .body(RequestBody::make("{}"))
+    .build();
+```
+
+Provider crates map typed drafts and patches into transport bodies without exposing raw provider payload structures.
 
 ## Transport Contract
 

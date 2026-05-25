@@ -8,7 +8,7 @@ fn repository_resource_uses_order_independent_repo_builder() {
         .provider("github")
         .visibility(Visibility::Public)
         .lifecycle(LifecycleState::Active)
-        .build();
+        .get();
 
     assert_eq!(repository.provider().as_str(), "github");
     assert_eq!(repository.repo().owner().as_str(), "akira-io");

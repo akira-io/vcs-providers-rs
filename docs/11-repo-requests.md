@@ -9,7 +9,7 @@ let repo = github()
     .repo()
     .owner("akira-io")
     .name("vcs-providers-rs")
-    .build();
+    .get();
 
 let url = repo.branches(None);
 ```
@@ -29,10 +29,45 @@ let repo = vcs(gitlab())
     .repo()
     .owner("akira-io")
     .name("vcs-providers-rs")
-    .build();
+    .get();
 ```
 
 The core crate only provides neutral primitives: `Repo`, pagination requests, request URLs, and transport requests.
+
+## Create, Update, Delete
+
+Use `RepositoryDraft` to create repositories and `RepositoryPatch` to update repository settings:
+
+```rust
+let repo = github()
+    .repo()
+    .owner("akira-io")
+    .name("vcs-providers-rs")
+    .get();
+
+let create_request = github()
+    .repo()
+    .draft(repo.clone())
+    .visibility(Visibility::Private)
+    .description("Universal VCS provider abstraction")
+    .create();
+
+let repository_patch = RepositoryPatchBuilder::make(repo.clone().into())
+    .visibility(Visibility::Public)
+    .description("Universal VCS provider abstraction")
+    .get();
+
+let update_request = repo.update(&repository_patch);
+let delete_request = repo.delete();
+```
+
+Provider support:
+
+| Provider | Create | Update | Delete |
+| --- | --- | --- | --- |
+| GitHub | supported | supported | supported |
+| GitLab | supported | supported | supported |
+| Bitbucket | supported | supported | supported |
 
 ## URL Access
 
@@ -43,7 +78,7 @@ let url = bitbucket()
     .repo()
     .owner("akira-io")
     .name("vcs-providers-rs")
-    .build()
+    .get()
     .url();
 
 assert_eq!(url.value(), "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs");
