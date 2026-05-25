@@ -92,6 +92,11 @@ impl Request {
     pub fn headers(&self) -> &[RequestHeader] {
         &self.headers
     }
+
+    pub fn with_header(mut self, header: RequestHeader) -> Self {
+        self.headers.push(header);
+        self
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
