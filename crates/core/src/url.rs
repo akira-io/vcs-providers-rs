@@ -8,8 +8,40 @@ impl RequestUrl {
         Self(value.into())
     }
 
-    pub fn as_str(&self) -> &str {
+    pub fn value(&self) -> &str {
         &self.0
+    }
+
+    pub fn scheme(&self) -> Option<&str> {
+        self.value().split_once("://").map(|(scheme, _url)| scheme)
+    }
+
+    pub fn domain(&self) -> Option<&str> {
+        self.url_without_scheme()
+            .split(['/', '?', '#'])
+            .next()
+            .filter(|domain| !domain.is_empty())
+    }
+
+    pub fn path(&self) -> &str {
+        let url = self.url_without_scheme();
+        let Some(path_start) = url.find('/') else {
+            return "";
+        };
+
+        let path = &url[path_start..];
+        path.split(['?', '#']).next().unwrap_or("")
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.value()
+    }
+
+    fn url_without_scheme(&self) -> &str {
+        self.value()
+            .split_once("://")
+            .map(|(_scheme, url)| url)
+            .unwrap_or_else(|| self.value())
     }
 }
 
@@ -34,6 +66,20 @@ impl RequestUrlBuilder {
 
     pub fn path(mut self, path: impl Into<String>) -> Self {
         self.base_url = join_path(self.base_url, path.into());
+        self
+    }
+
+    pub fn path_segments(
+        mut self,
+        path_segments: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
+        let path = path_segments
+            .into_iter()
+            .map(|path_segment| encode_url_part(&path_segment.into()))
+            .collect::<Vec<_>>()
+            .join("/");
+
+        self.base_url = join_path(self.base_url, path);
         self
     }
 
@@ -94,7 +140,7 @@ fn build_url(base_url: String, query_params: Vec<(String, String)>) -> String {
     let (url_without_fragment, fragment) = split_fragment(base_url);
     let query = query_params
         .into_iter()
-        .map(|(name, value)| format!("{}={}", encode_query_part(&name), encode_query_part(&value)))
+        .map(|(name, value)| format!("{}={}", encode_url_part(&name), encode_url_part(&value)))
         .collect::<Vec<_>>()
         .join("&");
 
@@ -134,9 +180,9 @@ fn query_separator(url: &str) -> &str {
     "?"
 }
 
-fn encode_query_part(value: &str) -> String {
+fn encode_url_part(value: &str) -> String {
     value.bytes().fold(String::new(), |mut encoded, byte| {
-        if is_unreserved_query_byte(byte) {
+        if is_unreserved_url_byte(byte) {
             encoded.push(char::from(byte));
             return encoded;
         }
@@ -146,6 +192,6 @@ fn encode_query_part(value: &str) -> String {
     })
 }
 
-fn is_unreserved_query_byte(byte: u8) -> bool {
+fn is_unreserved_url_byte(byte: u8) -> bool {
     byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~')
 }

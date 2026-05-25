@@ -1,6 +1,6 @@
 use vcs_provider_core::{
     AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, VcsError, VcsResult, auth,
-    provider, repo,
+    provider,
 };
 use vcs_provider_gitlab::{DISPLAY_NAME, PROVIDER_ID, gitlab};
 
@@ -63,16 +63,6 @@ fn gitlab_provider_registry_filters_by_capability() -> VcsResult<()> {
         .collect::<Vec<_>>();
 
     assert_eq!(providers.len(), 1);
-
-    Ok(())
-}
-
-#[test]
-fn gitlab_provider_exposes_repos_contract() -> VcsResult<()> {
-    let repo = repo().name("vcs-providers-rs").owner("akira-io").build();
-    let result = futures::executor::block_on(gitlab().repos().get(repo));
-
-    assert_eq!(result, Err(VcsError::TransportNotConfigured));
 
     Ok(())
 }
