@@ -1,7 +1,7 @@
 use vcs_provider_bitbucket::{DISPLAY_NAME, PROVIDER_ID, bitbucket};
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, VcsError, VcsResult, auth,
-    provider,
+    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, RecordingTransport, VcsError,
+    VcsResult, auth, provider, repo, response, run_async_test,
 };
 
 #[test]
@@ -45,6 +45,47 @@ fn bitbucket_provider_maps_oauth_header() {
         )),
         Some(("authorization".into(), "Bearer test-token".into()))
     );
+}
+
+#[test]
+fn bitbucket_client_sends_documented_headers_and_auth() -> VcsResult<()> {
+    let transport = RecordingTransport::make(
+        response()
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":true}"#)
+            .build(),
+    );
+
+    run_async_test(async {
+        bitbucket()
+            .client(transport.clone())
+            .auth(auth().oauth("test-token"))
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+
+        let requests = transport.requests();
+
+        assert_eq!(
+            requests.first().map(|request| request.headers().len()),
+            Some(2)
+        );
+        assert_eq!(
+            requests
+                .first()
+                .and_then(|request| request.headers().first())
+                .map(|header| header.value().as_str()),
+            Some("application/json")
+        );
+        assert_eq!(
+            requests
+                .first()
+                .and_then(|request| request.headers().get(1))
+                .map(|header| header.value().as_str()),
+            Some("Bearer test-token")
+        );
+
+        Ok(())
+    })
 }
 
 #[test]

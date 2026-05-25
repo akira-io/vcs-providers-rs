@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use crate::repos::{BoxFuture, Branch, Commit, Repo, RepositoryListQuery, RepositorySearchQuery};
 use crate::{
-    ManagedProvider, Page, Repository, Request, Response, Transport, VcsResult, error, request,
-    transport_not_configured,
+    ManagedProvider, Page, Repository, Request, RequestHeader, Response, Transport, VcsResult,
+    error, request, transport_not_configured,
 };
 
 pub trait Repos: Send + Sync {
@@ -58,6 +58,7 @@ pub struct TransportBackedRepos<Driver, Mapper> {
     driver: Driver,
     transport: Arc<dyn Transport>,
     mapper: Mapper,
+    headers: Vec<RequestHeader>,
 }
 
 impl<Driver, Mapper> TransportBackedRepos<Driver, Mapper>
@@ -70,12 +71,18 @@ where
             driver,
             transport,
             mapper,
+            headers: Vec::new(),
         }
+    }
+
+    pub fn with_headers(mut self, headers: impl IntoIterator<Item = RequestHeader>) -> Self {
+        self.headers.extend(headers);
+        self
     }
 
     fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, VcsResult<Response>> {
         Box::pin(async move {
-            let response = self.transport.send(request).await?;
+            let response = self.transport.send(self.apply_headers(request)).await?;
 
             if let Some(error) = error().from_response(&response) {
                 return Err(error);
@@ -83,6 +90,13 @@ where
 
             Ok(response)
         })
+    }
+
+    fn apply_headers(&self, request: Request) -> Request {
+        self.headers
+            .iter()
+            .cloned()
+            .fold(request, Request::with_header)
     }
 }
 

@@ -1,6 +1,6 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, VcsError, VcsResult, auth,
-    provider,
+    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, RecordingTransport, VcsError,
+    VcsResult, auth, provider, repo, response, run_async_test,
 };
 use vcs_provider_gitlab::{DISPLAY_NAME, PROVIDER_ID, gitlab};
 
@@ -44,6 +44,49 @@ fn gitlab_provider_maps_personal_access_token_header() {
         )),
         Some(("private-token".into(), "test-token".into()))
     );
+}
+
+#[test]
+fn gitlab_client_sends_documented_headers_and_auth() -> VcsResult<()> {
+    let transport = RecordingTransport::make(
+        response()
+            .body(
+                r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"private","archived":false}"#,
+            )
+            .build(),
+    );
+
+    run_async_test(async {
+        gitlab()
+            .client(transport.clone())
+            .auth(auth().personal_access_token("test-token"))
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+
+        let requests = transport.requests();
+
+        assert_eq!(
+            requests.first().map(|request| request.headers().len()),
+            Some(2)
+        );
+        assert_eq!(
+            requests
+                .first()
+                .and_then(|request| request.headers().first())
+                .map(|header| header.value().as_str()),
+            Some("application/json")
+        );
+        assert_eq!(
+            requests
+                .first()
+                .and_then(|request| request.headers().get(1))
+                .map(|header| header.name().as_str()),
+            Some("private-token")
+        );
+
+        Ok(())
+    })
 }
 
 #[test]

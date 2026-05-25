@@ -1,4 +1,5 @@
 use std::future::Future;
+use std::sync::{Arc, Mutex};
 
 use crate::{BoxFuture, Request, Response, ResponseBuilder, Transport, VcsResult, response};
 
@@ -97,4 +98,42 @@ pub fn provider_response() -> ProviderResponseBuilder {
 
 pub fn run_async_test<T>(future: impl Future<Output = VcsResult<T>>) -> VcsResult<T> {
     futures::executor::block_on(future)
+}
+
+#[derive(Clone, Debug)]
+pub struct RecordingTransport {
+    response: Response,
+    requests: Arc<Mutex<Vec<Request>>>,
+}
+
+impl RecordingTransport {
+    pub fn make(response: Response) -> Self {
+        Self {
+            response,
+            requests: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
+    pub fn requests(&self) -> Vec<Request> {
+        self.requests
+            .lock()
+            .map(|requests| requests.clone())
+            .unwrap_or_default()
+    }
+}
+
+impl Transport for RecordingTransport {
+    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+        let response = self.response.clone();
+        let requests = Arc::clone(&self.requests);
+
+        Box::pin(async move {
+            requests
+                .lock()
+                .map(|mut recorded_requests| recorded_requests.push(request))
+                .ok();
+
+            Ok(response)
+        })
+    }
 }

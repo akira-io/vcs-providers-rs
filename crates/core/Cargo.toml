@@ -8,6 +8,7 @@ version.workspace = true
 
 [dependencies]
 futures.workspace = true
+reqwest.workspace = true
 serde.workspace = true
 
 [lints]

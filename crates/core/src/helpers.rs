@@ -1,8 +1,8 @@
 use crate::repos::{MissingOwnerName, MissingRepositoryName};
 use crate::{
     AuthBuilder, Branch, Capability, CapabilitySet, CodeReviewBuilder, Commit, ErrorBuilder,
-    IssueBuilder, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId, MissingIssueRepo,
-    MissingPipelineId, MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo,
+    HttpBuilder, IssueBuilder, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId,
+    MissingIssueRepo, MissingPipelineId, MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo,
     PaginationBuilder, PipelineBuilder, ProviderRegistry, ProviderRegistryBuilder,
     ProviderRuntimeBuilder, RateLimitBuilder, ReleaseBuilder, RepoBuilder, RequestBuilder,
     RequestUrlBuilder, ResponseBuilder, TelemetryBuilder, TransportPipeline,
@@ -30,6 +30,10 @@ pub fn repo() -> RepoBuilder<MissingOwnerName, MissingRepositoryName> {
 
 pub fn issue() -> IssueBuilder<MissingIssueRepo, MissingIssueId> {
     crate::Issue::builder()
+}
+
+pub fn http() -> HttpBuilder {
+    HttpBuilder
 }
 
 pub fn code_review() -> CodeReviewBuilder<MissingCodeReviewRepo, MissingCodeReviewId> {

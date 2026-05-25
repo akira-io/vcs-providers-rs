@@ -187,6 +187,10 @@ impl RequestBody {
     pub fn is_empty(&self) -> bool {
         self.content.is_empty()
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.content
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

@@ -1,5 +1,6 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, VcsError, VcsResult, auth, provider,
+    AuthHeaderStyle, AuthKind, Capability, Provider, RecordingTransport, VcsError, VcsResult, auth,
+    provider, repo, response, run_async_test,
 };
 use vcs_provider_github::{DISPLAY_NAME, PROVIDER_ID, github};
 
@@ -43,6 +44,49 @@ fn github_provider_maps_personal_access_token_header() {
         )),
         Some(("authorization".into(), "Bearer test-token".into()))
     );
+}
+
+#[test]
+fn github_client_sends_documented_headers_and_auth() -> VcsResult<()> {
+    let transport = RecordingTransport::make(
+        response()
+            .body(
+                r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
+            )
+            .build(),
+    );
+
+    run_async_test(async {
+        github()
+            .client(transport.clone())
+            .auth(auth().personal_access_token("test-token"))
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+
+        let requests = transport.requests();
+
+        assert_eq!(
+            requests.first().map(|request| request.headers().len()),
+            Some(3)
+        );
+        assert_eq!(
+            requests
+                .first()
+                .and_then(|request| request.headers().first())
+                .map(|header| header.name().as_str()),
+            Some("accept")
+        );
+        assert_eq!(
+            requests
+                .first()
+                .and_then(|request| request.headers().get(2))
+                .map(|header| header.value().as_str()),
+            Some("Bearer test-token")
+        );
+
+        Ok(())
+    })
 }
 
 #[test]

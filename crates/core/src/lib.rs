@@ -7,6 +7,7 @@ mod auth;
 mod code_reviews;
 mod errors;
 mod helpers;
+mod http;
 mod issues;
 mod manager;
 mod middleware;
@@ -36,10 +37,11 @@ pub use code_reviews::{
 pub(crate) use errors::transport_not_configured;
 pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
 pub use helpers::{
-    CapabilitySetBuilder, auth, branch, capabilities, code_review, commit, error, issue,
+    CapabilitySetBuilder, auth, branch, capabilities, code_review, commit, error, http, issue,
     middleware, pagination, pipeline, provider, rate_limit, release, repo, request, response,
     runtime, telemetry, url, vcs,
 };
+pub use http::{HttpBuilder, HttpTransport, HttpTransportBuilder};
 pub use issues::{
     Issue, IssueBuilder, IssueDraft, IssueDraftBuilder, IssueId, IssueListQuery, IssuePatch,
     IssuePatchBuilder, IssueQueryBuilder, Issues, MissingIssueId, MissingIssueRepo,
@@ -102,7 +104,7 @@ pub use telemetry::{
     TelemetryTransportBuilder,
 };
 pub use testing::{
-    EchoTransport, ProviderResponseBuilder, ProviderResponseTransportBuilder,
+    EchoTransport, ProviderResponseBuilder, ProviderResponseTransportBuilder, RecordingTransport,
     SingleResponseTransport, provider_response, run_async_test,
 };
 pub use transport::{
