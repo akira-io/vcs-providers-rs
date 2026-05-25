@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::repos::{
     MissingLifecycleState, MissingVisibility, ProvidedProviderId, RepoQueryBuilder,
-    RepositoryBuilder,
+    RepositoryBuilder, RepositoryDraftBuilder, RepositoryPatchBuilder,
 };
 use crate::{ProviderId, repo};
 
@@ -49,6 +49,14 @@ impl Repo {
 
     pub fn name(&self) -> &RepositoryName {
         &self.name
+    }
+
+    pub fn draft(&self) -> RepositoryDraftBuilder {
+        RepositoryDraftBuilder::make(self.clone())
+    }
+
+    pub fn patch(&self) -> RepositoryPatchBuilder {
+        RepositoryPatchBuilder::make(self.clone())
     }
 }
 

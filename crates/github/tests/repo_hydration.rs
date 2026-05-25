@@ -56,9 +56,7 @@ fn github_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()
             ))
             .repos()
             .create(
-                vcs_provider_core::RepositoryDraftBuilder::make(repository_location())
-                    .visibility(Visibility::Private)
-                    .get(),
+                repository_location().draft().visibility(Visibility::Private).get(),
             )
             .await?;
 
@@ -78,9 +76,7 @@ fn github_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()
             ))
             .repos()
             .update(
-                vcs_provider_core::RepositoryPatchBuilder::make(repository_location())
-                    .visibility(Visibility::Public)
-                    .get(),
+                repository_location().patch().visibility(Visibility::Public).get(),
             )
             .await?;
 

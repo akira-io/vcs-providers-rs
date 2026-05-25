@@ -52,7 +52,8 @@ fn bitbucket_client_hydrates_repository_create() -> vcs_provider_core::VcsResult
             ))
             .repos()
             .create(
-                vcs_provider_core::RepositoryDraftBuilder::make(repository_location())
+                repository_location()
+                    .draft()
                     .visibility(Visibility::Private)
                     .get(),
             )
@@ -74,7 +75,8 @@ fn bitbucket_client_hydrates_repository_update() -> vcs_provider_core::VcsResult
             ))
             .repos()
             .update(
-                vcs_provider_core::RepositoryPatchBuilder::make(repository_location())
+                repository_location()
+                    .patch()
                     .visibility(Visibility::Public)
                     .get(),
             )

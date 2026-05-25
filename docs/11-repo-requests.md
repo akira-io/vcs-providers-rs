@@ -52,7 +52,8 @@ let create_request = github()
     .description("Universal VCS provider abstraction")
     .create();
 
-let repository_patch = RepositoryPatchBuilder::make(repo.clone().into())
+let repository_patch = repo
+    .patch()
     .visibility(Visibility::Public)
     .description("Universal VCS provider abstraction")
     .get();

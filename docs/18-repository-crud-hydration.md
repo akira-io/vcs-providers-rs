@@ -3,17 +3,13 @@
 Repository runtime clients expose read and write operations through the universal `Repos` contract.
 
 ```rust
+let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+
 let repository = github()
     .client(http().transport().get()?)
     .auth(auth().personal_access_token("token"))
     .repos()
-    .create(
-        github()
-            .repo()
-            .draft(repo().owner("akira-io").name("vcs-providers-rs").get())
-            .visibility(Visibility::Private)
-            .get(),
-    )
+    .create(repo.draft().visibility(Visibility::Private).get())
     .await?;
 ```
 
