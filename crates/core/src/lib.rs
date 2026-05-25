@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 mod auth;
 mod helpers;
 mod middleware;
+mod rate_limit;
 mod registry;
 mod repos;
 mod transport;
@@ -14,10 +15,17 @@ pub use auth::{
     AuthBuilder, AuthCredential, AuthHeader, AuthHeaderName, AuthHeaderStyle, AuthHeaderValue,
     AuthKind, AuthToken,
 };
-pub use helpers::{CapabilitySetBuilder, auth, capabilities, middleware, provider, repo, request};
+pub use helpers::{
+    CapabilitySetBuilder, auth, capabilities, middleware, provider, rate_limit, repo, request,
+};
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
     TransportPipelineBuilder,
+};
+pub use rate_limit::{
+    RateLimitBuilder, RateLimitCost, RateLimitHeaderName, RateLimitHeaderProfile,
+    RateLimitHeaderProfileBuilder, RateLimitObservation, RateLimitQuota, RateLimitReset,
+    RetryAfter,
 };
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use repos::{
