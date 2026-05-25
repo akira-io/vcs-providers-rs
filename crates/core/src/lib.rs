@@ -87,7 +87,8 @@ pub use repos::{
     ProvidedProviderId, ProvidedRepositoryName, ProvidedVisibility, Repo, RepoBuilder,
     RepoQueryBuilder, Repos, Repository, RepositoryBuilder, RepositoryDraft,
     RepositoryDraftBuilder, RepositoryListQuery, RepositoryName, RepositoryPatch,
-    RepositoryPatchBuilder, RepositorySearchQuery, TransportNotConfiguredRepos, Visibility,
+    RepositoryPatchBuilder, RepositoryResponseMapper, RepositorySearchQuery, TransportBackedRepos,
+    TransportNotConfiguredRepos, Visibility,
 };
 pub use runtime::{
     IntoProvider, MissingProviderTransport, ProvidedProviderTransport, ProviderRequestBuilder,
@@ -100,10 +101,13 @@ pub use telemetry::{
     TelemetryEvent, TelemetryRecorder, TelemetrySink, TelemetryTransport,
     TelemetryTransportBuilder,
 };
-pub use testing::EchoTransport;
+pub use testing::{
+    EchoTransport, ProviderResponseBuilder, ProviderResponseTransportBuilder,
+    SingleResponseTransport, provider_response,
+};
 pub use transport::{
     Request, RequestBody, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue,
-    RequestMethod, Response, ResponseBuilder, ResponseStatus, Transport,
+    RequestMethod, Response, ResponseBody, ResponseBuilder, ResponseStatus, Transport,
 };
 pub use url::{RequestUrl, RequestUrlBuilder};
 

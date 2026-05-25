@@ -6,7 +6,9 @@ mod names;
 mod queries;
 mod resources;
 
-pub use contracts::{Repos, TransportNotConfiguredRepos};
+pub use contracts::{
+    Repos, RepositoryResponseMapper, TransportBackedRepos, TransportNotConfiguredRepos,
+};
 pub use names::{
     MissingOwnerName, MissingRepositoryName, OwnerName, ProvidedOwnerName, ProvidedRepositoryName,
     Repo, RepoBuilder, RepositoryName,

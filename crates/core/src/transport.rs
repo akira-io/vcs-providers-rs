@@ -210,11 +210,16 @@ impl ResponseStatus {
 pub struct Response {
     status: ResponseStatus,
     headers: Vec<RequestHeader>,
+    body: Option<ResponseBody>,
 }
 
 impl Response {
     pub fn make(status: ResponseStatus, headers: Vec<RequestHeader>) -> Self {
-        Self { status, headers }
+        Self {
+            status,
+            headers,
+            body: None,
+        }
     }
 
     pub fn status(&self) -> &ResponseStatus {
@@ -224,12 +229,17 @@ impl Response {
     pub fn headers(&self) -> &[RequestHeader] {
         &self.headers
     }
+
+    pub fn body(&self) -> Option<&ResponseBody> {
+        self.body.as_ref()
+    }
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ResponseBuilder {
     status: Option<ResponseStatus>,
     headers: Vec<RequestHeader>,
+    body: Option<ResponseBody>,
 }
 
 impl ResponseBuilder {
@@ -243,11 +253,38 @@ impl ResponseBuilder {
         self
     }
 
+    pub fn body(mut self, body: impl Into<String>) -> Self {
+        self.body = Some(ResponseBody::make(body));
+        self
+    }
+
     pub fn build(self) -> Response {
         Response {
             status: self.status.unwrap_or_else(|| ResponseStatus::make(200)),
             headers: self.headers,
+            body: self.body,
         }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ResponseBody {
+    content: String,
+}
+
+impl ResponseBody {
+    pub fn make(content: impl Into<String>) -> Self {
+        Self {
+            content: content.into(),
+        }
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.content
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.content.is_empty()
     }
 }
 

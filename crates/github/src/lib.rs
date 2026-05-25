@@ -7,11 +7,14 @@ use vcs_provider_core::{
     TransportNotConfiguredRepos, capabilities,
 };
 
+mod client;
 mod code_reviews;
 mod issues;
+mod mappers;
 mod releases;
 mod repos;
 
+pub use client::GitHubClient;
 pub use code_reviews::{GitHubCodeReview, GitHubCodeReviewCollection};
 pub use issues::{GitHubIssue, GitHubIssueCollection};
 pub use releases::{GitHubRelease, GitHubReleaseCollection};

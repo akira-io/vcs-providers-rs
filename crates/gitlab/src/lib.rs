@@ -8,11 +8,14 @@ use vcs_provider_core::{
     capabilities,
 };
 
+mod client;
 mod code_reviews;
 mod issues;
+mod mappers;
 mod releases;
 mod repos;
 
+pub use client::GitLabClient;
 pub use code_reviews::{GitLabCodeReview, GitLabCodeReviewCollection};
 pub use issues::{GitLabIssue, GitLabIssueCollection};
 pub use releases::{GitLabRelease, GitLabReleaseCollection};
