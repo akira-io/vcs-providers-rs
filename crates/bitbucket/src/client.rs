@@ -68,6 +68,10 @@ impl Provider for BitbucketClient {
 }
 
 impl BitbucketProvider {
+    pub fn client(self, transport: impl Transport + 'static) -> BitbucketClient {
+        BitbucketClient::make(transport)
+    }
+
     pub fn transport(self, transport: impl Transport + 'static) -> BitbucketClient {
         BitbucketClient::make(transport)
     }

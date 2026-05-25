@@ -68,6 +68,10 @@ impl Provider for GitLabClient {
 }
 
 impl GitLabProvider {
+    pub fn client(self, transport: impl Transport + 'static) -> GitLabClient {
+        GitLabClient::make(transport)
+    }
+
     pub fn transport(self, transport: impl Transport + 'static) -> GitLabClient {
         GitLabClient::make(transport)
     }

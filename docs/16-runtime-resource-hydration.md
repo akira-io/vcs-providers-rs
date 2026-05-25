@@ -1,10 +1,10 @@
 # Runtime Resource Hydration
 
-Provider request builders create provider-specific HTTP requests. Runtime-backed provider clients execute those requests through the configured transport and hydrate provider-neutral resources.
+Provider request builders create provider-specific HTTP requests. Runtime-backed provider clients execute those requests through the configured request transport and hydrate provider-neutral resources.
 
 ```rust
 let repository = github()
-    .transport(my_transport)
+    .client(my_http_transport)
     .repos()
     .get(repo().owner("akira-io").name("vcs-providers-rs").get())
     .await?;
@@ -39,15 +39,18 @@ Provider crates own response shapes:
 
 Provider payload structs remain private. Public APIs expose only universal resources and typed errors.
 
-## Response Body
+## Response Body Fixtures
 
-`Response` carries an optional `ResponseBody`:
+`Response` carries an optional `ResponseBody`. Tests can use `provider_response()` to provide one response without exposing the low-level transport implementation:
 
 ```rust
-let response = response()
-    .status(200)
-    .body(r#"{"full_name":"akira-io/vcs-providers-rs"}"#)
-    .build();
+let repository = github()
+    .client(provider_response()
+        .body(r#"{"full_name":"akira-io/vcs-providers-rs"}"#)
+        .get())
+    .repos()
+    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .await?;
 ```
 
-The body is plain text at the transport boundary. Providers choose the parser privately and must map parse failures into `VcsError`.
+The body is plain text at the client boundary. Providers choose the parser privately and must map parse failures into `VcsError`.

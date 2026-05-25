@@ -1,19 +1,17 @@
-use vcs_provider_core::{LifecycleState, SingleResponseTransport, Visibility, repo, response};
+use vcs_provider_core::{
+    LifecycleState, Repo, SingleResponseTransport, Visibility, provider_response, repo,
+};
 use vcs_provider_github::github;
 
 #[test]
-fn github_transport_backed_repos_hydrate_repository() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
     let repository = futures::executor::block_on(
         github()
-            .transport(SingleResponseTransport::make(
-                response()
-                    .body(
-                        r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
-                    )
-                    .build(),
+            .client(provider_response_body(
+                r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
             ))
             .repos()
-            .get(repo().owner("akira-io").name("vcs-providers-rs").get()),
+            .get(repository_location()),
     )?;
 
     assert_eq!(repository.provider().as_str(), "github");
@@ -26,15 +24,11 @@ fn github_transport_backed_repos_hydrate_repository() -> vcs_provider_core::VcsR
 }
 
 #[test]
-fn github_transport_backed_repos_hydrate_repository_list() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> {
     let repositories = futures::executor::block_on(
         github()
-            .transport(SingleResponseTransport::make(
-                response()
-                    .body(
-                        r#"[{"full_name":"akira-io/vcs-providers-rs","private":true,"archived":true,"disabled":false}]"#,
-                    )
-                    .build(),
+            .client(provider_response_body(
+                r#"[{"full_name":"akira-io/vcs-providers-rs","private":true,"archived":true,"disabled":false}]"#,
             ))
             .repos()
             .list(github().repo().query().list(None)),
@@ -51,27 +45,30 @@ fn github_transport_backed_repos_hydrate_repository_list() -> vcs_provider_core:
 }
 
 #[test]
-fn github_transport_backed_repos_hydrate_branches_and_commits() -> vcs_provider_core::VcsResult<()>
-{
+fn github_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult<()> {
     let branch_page = futures::executor::block_on(
         github()
-            .transport(SingleResponseTransport::make(
-                response().body(r#"[{"name":"main"}]"#).build(),
-            ))
+            .client(provider_response_body(r#"[{"name":"main"}]"#))
             .repos()
-            .branches(repo().owner("akira-io").name("vcs-providers-rs").get()),
+            .branches(repository_location()),
     )?;
     let commit_page = futures::executor::block_on(
         github()
-            .transport(SingleResponseTransport::make(
-                response().body(r#"[{"sha":"abc123"}]"#).build(),
-            ))
+            .client(provider_response_body(r#"[{"sha":"abc123"}]"#))
             .repos()
-            .commits(repo().owner("akira-io").name("vcs-providers-rs").get()),
+            .commits(repository_location()),
     )?;
 
     assert_eq!(branch_page.items()[0].name(), "main");
     assert_eq!(commit_page.items()[0].id(), "abc123");
 
     Ok(())
+}
+
+fn repository_location() -> Repo {
+    repo().owner("akira-io").name("vcs-providers-rs").get()
+}
+
+fn provider_response_body(body: &str) -> SingleResponseTransport {
+    provider_response().body(body).get()
 }

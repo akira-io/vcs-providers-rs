@@ -68,6 +68,10 @@ impl Provider for GitHubClient {
 }
 
 impl GitHubProvider {
+    pub fn client(self, transport: impl Transport + 'static) -> GitHubClient {
+        GitHubClient::make(transport)
+    }
+
     pub fn transport(self, transport: impl Transport + 'static) -> GitHubClient {
         GitHubClient::make(transport)
     }

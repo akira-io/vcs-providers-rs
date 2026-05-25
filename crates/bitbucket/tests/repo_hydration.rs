@@ -1,17 +1,17 @@
 use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::{LifecycleState, SingleResponseTransport, Visibility, repo, response};
+use vcs_provider_core::{
+    LifecycleState, Repo, SingleResponseTransport, Visibility, provider_response, repo,
+};
 
 #[test]
-fn bitbucket_transport_backed_repos_hydrate_repository() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
     let repository = futures::executor::block_on(
         bitbucket()
-            .transport(SingleResponseTransport::make(
-                response()
-                    .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
-                    .build(),
+            .client(provider_response_body(
+                r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#,
             ))
             .repos()
-            .get(repo().owner("akira-io").name("vcs-providers-rs").get()),
+            .get(repository_location()),
     )?;
 
     assert_eq!(repository.provider().as_str(), "bitbucket");
@@ -24,15 +24,11 @@ fn bitbucket_transport_backed_repos_hydrate_repository() -> vcs_provider_core::V
 }
 
 #[test]
-fn bitbucket_transport_backed_repos_hydrate_repository_list() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> {
     let repositories = futures::executor::block_on(
         bitbucket()
-            .transport(SingleResponseTransport::make(
-                response()
-                    .body(
-                        r#"{"values":[{"full_name":"akira-io/vcs-providers-rs","is_private":true}]}"#,
-                    )
-                    .build(),
+            .client(provider_response_body(
+                r#"{"values":[{"full_name":"akira-io/vcs-providers-rs","is_private":true}]}"#,
             ))
             .repos()
             .list(bitbucket().repo().query().list(None)),
@@ -45,27 +41,30 @@ fn bitbucket_transport_backed_repos_hydrate_repository_list() -> vcs_provider_co
 }
 
 #[test]
-fn bitbucket_transport_backed_repos_hydrate_branches_and_commits()
--> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult<()> {
     let branch_page = futures::executor::block_on(
         bitbucket()
-            .transport(SingleResponseTransport::make(
-                response().body(r#"{"values":[{"name":"main"}]}"#).build(),
-            ))
+            .client(provider_response_body(r#"{"values":[{"name":"main"}]}"#))
             .repos()
-            .branches(repo().owner("akira-io").name("vcs-providers-rs").get()),
+            .branches(repository_location()),
     )?;
     let commit_page = futures::executor::block_on(
         bitbucket()
-            .transport(SingleResponseTransport::make(
-                response().body(r#"{"values":[{"hash":"abc123"}]}"#).build(),
-            ))
+            .client(provider_response_body(r#"{"values":[{"hash":"abc123"}]}"#))
             .repos()
-            .commits(repo().owner("akira-io").name("vcs-providers-rs").get()),
+            .commits(repository_location()),
     )?;
 
     assert_eq!(branch_page.items()[0].name(), "main");
     assert_eq!(commit_page.items()[0].id(), "abc123");
 
     Ok(())
+}
+
+fn repository_location() -> Repo {
+    repo().owner("akira-io").name("vcs-providers-rs").get()
+}
+
+fn provider_response_body(body: &str) -> SingleResponseTransport {
+    provider_response().body(body).get()
 }

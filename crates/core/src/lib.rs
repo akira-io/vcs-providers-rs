@@ -101,7 +101,10 @@ pub use telemetry::{
     TelemetryEvent, TelemetryRecorder, TelemetrySink, TelemetryTransport,
     TelemetryTransportBuilder,
 };
-pub use testing::{EchoTransport, SingleResponseTransport};
+pub use testing::{
+    EchoTransport, ProviderResponseBuilder, ProviderResponseTransportBuilder,
+    SingleResponseTransport, provider_response,
+};
 pub use transport::{
     Request, RequestBody, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue,
     RequestMethod, Response, ResponseBody, ResponseBuilder, ResponseStatus, Transport,
