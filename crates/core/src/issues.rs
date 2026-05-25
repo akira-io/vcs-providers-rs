@@ -4,11 +4,26 @@ use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configu
 
 #[path = "issues/drafts.rs"]
 mod drafts;
+#[path = "issues/list.rs"]
+mod list;
+#[path = "issues/operations.rs"]
+mod operations;
 #[path = "issues/patches.rs"]
 mod patches;
+#[path = "issues/scoped.rs"]
+mod scoped;
+#[path = "issues/transport.rs"]
+mod transport;
 
 pub use drafts::{IssueDraftBuilder, MissingIssueTitle, ProvidedIssueTitle};
+pub use list::{IssueListOperation, IssueListPaginationOperation};
+#[allow(unused_imports)]
+pub use operations::{
+    IssueCloseOperation, IssueCreateOperation, IssueUpdateOperation, IssuesFluent,
+};
 pub use patches::IssuePatchBuilder;
+pub use scoped::ScopedIssueOperation;
+pub use transport::{IssueResponseMapper, TransportBackedIssues};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IssueId(String);
@@ -198,6 +213,12 @@ pub trait Issues: Send + Sync {
     fn get(&self, repo: Repo, id: IssueId) -> BoxFuture<'_, VcsResult<Issue>>;
 
     fn list(&self, query: IssueListQuery) -> BoxFuture<'_, VcsResult<Page<Issue>>>;
+
+    fn create(&self, draft: IssueDraft) -> BoxFuture<'_, VcsResult<Issue>>;
+
+    fn update(&self, patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>>;
+
+    fn close(&self, patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -209,6 +230,18 @@ impl Issues for TransportNotConfiguredIssues {
     }
 
     fn list(&self, _query: IssueListQuery) -> BoxFuture<'_, VcsResult<Page<Issue>>> {
+        transport_not_configured()
+    }
+
+    fn create(&self, _draft: IssueDraft) -> BoxFuture<'_, VcsResult<Issue>> {
+        transport_not_configured()
+    }
+
+    fn update(&self, _patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>> {
+        transport_not_configured()
+    }
+
+    fn close(&self, _patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>> {
         transport_not_configured()
     }
 }

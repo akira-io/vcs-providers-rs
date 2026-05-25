@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use vcs_provider_core::{
     AuthCredential, CodeReviews, Issues, Pipelines, Provider, ProviderDescriptor, Releases, Repos,
-    RequestHeader, Transport, TransportBackedRepos, TransportNotConfiguredCodeReviews,
+    RequestHeader, Transport, TransportBackedCodeReviews, TransportBackedRepos,
     TransportNotConfiguredIssues, TransportNotConfiguredPipelines, TransportNotConfiguredReleases,
 };
 
-use crate::mappers::BitbucketRepositoryMapper;
+use crate::mappers::{BitbucketCodeReviewMapper, BitbucketRepositoryMapper};
 use crate::{BitbucketProvider, DEFAULT_BASE_URL, bitbucket};
 
 #[derive(Clone)]
@@ -21,6 +21,17 @@ impl BitbucketClient {
             transport: Arc::new(transport),
             headers: default_headers(),
         }
+    }
+
+    pub fn code_reviews(&self) -> Box<dyn CodeReviews> {
+        Box::new(
+            TransportBackedCodeReviews::make(
+                bitbucket(),
+                Arc::clone(&self.transport),
+                BitbucketCodeReviewMapper,
+            )
+            .with_headers(self.headers.clone()),
+        )
     }
 
     pub fn repos(&self) -> Box<dyn Repos> {
@@ -60,7 +71,7 @@ impl Provider for BitbucketClient {
     }
 
     fn code_reviews(&self) -> Box<dyn CodeReviews> {
-        Box::<TransportNotConfiguredCodeReviews>::default()
+        BitbucketClient::code_reviews(self)
     }
 
     fn pipelines(&self) -> Box<dyn Pipelines> {
@@ -90,6 +101,10 @@ impl BitbucketProvider {
 
     pub fn transport(self, transport: impl Transport + 'static) -> BitbucketClient {
         BitbucketClient::make(transport)
+    }
+
+    pub fn body(self, body: impl Into<String>) -> BitbucketClient {
+        BitbucketClient::make(vcs_provider_core::provider_response().body(body).get())
     }
 }
 
