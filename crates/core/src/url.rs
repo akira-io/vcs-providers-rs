@@ -32,6 +32,11 @@ impl RequestUrlBuilder {
         self
     }
 
+    pub fn path(mut self, path: impl Into<String>) -> Self {
+        self.base_url = join_path(self.base_url, path.into());
+        self
+    }
+
     pub fn optional_query_param(
         mut self,
         name: impl Into<String>,
@@ -59,6 +64,26 @@ impl RequestUrlBuilder {
     pub fn build(self) -> RequestUrl {
         RequestUrl::make(build_url(self.base_url, self.query_params))
     }
+}
+
+fn join_path(base_url: String, path: String) -> String {
+    if path.is_empty() {
+        return base_url;
+    }
+
+    if path.starts_with("http://") {
+        return path;
+    }
+
+    if path.starts_with("https://") {
+        return path;
+    }
+
+    format!(
+        "{}/{}",
+        base_url.trim_end_matches('/'),
+        path.trim_start_matches('/')
+    )
 }
 
 fn build_url(base_url: String, query_params: Vec<(String, String)>) -> String {

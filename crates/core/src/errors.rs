@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ResponseStatus;
+use crate::{Response, ResponseStatus};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum VcsError {
@@ -53,6 +53,10 @@ pub enum ErrorKind {
 pub struct ErrorBuilder;
 
 impl ErrorBuilder {
+    pub fn from_response(self, response: &Response) -> Option<VcsError> {
+        self.from_status(response.status())
+    }
+
     pub fn from_status(self, status: &ResponseStatus) -> Option<VcsError> {
         match status.code() {
             400 => Some(VcsError::InvalidInput("bad request".into())),
