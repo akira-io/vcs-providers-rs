@@ -6,23 +6,28 @@ use serde::{Deserialize, Serialize};
 mod auth;
 mod helpers;
 mod middleware;
+mod pagination;
 mod rate_limit;
 mod registry;
 mod repos;
 mod telemetry;
 mod transport;
+mod url;
 
 pub use auth::{
     AuthBuilder, AuthCredential, AuthHeader, AuthHeaderName, AuthHeaderStyle, AuthHeaderValue,
     AuthKind, AuthToken,
 };
 pub use helpers::{
-    CapabilitySetBuilder, auth, capabilities, middleware, provider, rate_limit, repo, request,
-    telemetry,
+    CapabilitySetBuilder, auth, branch, capabilities, commit, middleware, pagination, provider,
+    rate_limit, repo, request, telemetry, url,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
     TransportPipelineBuilder,
+};
+pub use pagination::{
+    Page, PageBuilder, PageCursor, PageLimit, PageRequest, PageRequestBuilder, PaginationBuilder,
 };
 pub use rate_limit::{
     RateLimitBuilder, RateLimitCost, RateLimitHeaderName, RateLimitHeaderProfile,
@@ -31,9 +36,11 @@ pub use rate_limit::{
 };
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use repos::{
-    BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repo, RepoBuilder, Repos,
-    Repository, RepositoryBuilder, RepositoryListQuery, RepositoryName, RepositorySearchQuery,
-    TransportNotConfiguredRepos, Visibility,
+    BoxFuture, Branch, Commit, LifecycleState, MissingLifecycleState, MissingOwnerName,
+    MissingRepositoryName, MissingVisibility, OwnerName, ProvidedLifecycleState, ProvidedOwnerName,
+    ProvidedProviderId, ProvidedRepositoryName, ProvidedVisibility, Repo, RepoBuilder,
+    RepoQueryBuilder, Repos, Repository, RepositoryBuilder, RepositoryListQuery, RepositoryName,
+    RepositorySearchQuery, TransportNotConfiguredRepos, Visibility,
 };
 pub use telemetry::{
     MissingTelemetrySink, ProvidedTelemetrySink, ProvidedTelemetryTransport, RequestTelemetry,
@@ -43,8 +50,9 @@ pub use telemetry::{
 };
 pub use transport::{
     Request, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue, RequestMethod,
-    RequestUrl, Response, ResponseStatus, Transport,
+    Response, ResponseStatus, Transport,
 };
+pub use url::{RequestUrl, RequestUrlBuilder};
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct ProviderId(String);

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{AuthHeader, BoxFuture, VcsResult};
+use crate::{AuthHeader, BoxFuture, RequestUrl, VcsResult};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum RequestMethod {
@@ -9,19 +9,6 @@ pub enum RequestMethod {
     Put,
     Patch,
     Delete,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct RequestUrl(String);
-
-impl RequestUrl {
-    pub fn make(value: impl Into<String>) -> Self {
-        Self(value.into())
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
