@@ -1,6 +1,6 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, VcsError, VcsResult, provider,
-    repo,
+    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, VcsError, VcsResult, auth,
+    provider, repo,
 };
 use vcs_provider_gitlab::{DISPLAY_NAME, PROVIDER_ID, gitlab};
 
@@ -18,6 +18,20 @@ fn gitlab_provider_uses_private_token_header_for_personal_access_tokens() {
     let style = gitlab().auth_header_style(AuthKind::PersonalAccessToken);
 
     assert_eq!(style, AuthHeaderStyle::CustomHeader("private-token".into()));
+}
+
+#[test]
+fn gitlab_provider_maps_personal_access_token_header() {
+    let credential = auth().personal_access_token("test-token");
+    let header = gitlab().auth_header(&credential);
+
+    assert_eq!(
+        header.map(|header| (
+            header.name().as_str().to_owned(),
+            header.value().as_str().to_owned()
+        )),
+        Some(("private-token".into(), "test-token".into()))
+    );
 }
 
 #[test]

@@ -1,5 +1,11 @@
 use crate::repos::{MissingOwnerName, MissingRepositoryName};
-use crate::{Capability, CapabilitySet, ProviderRegistry, ProviderRegistryBuilder, RepoBuilder};
+use crate::{
+    AuthBuilder, Capability, CapabilitySet, ProviderRegistry, ProviderRegistryBuilder, RepoBuilder,
+};
+
+pub fn auth() -> AuthBuilder {
+    AuthBuilder
+}
 
 pub fn capabilities() -> CapabilitySetBuilder {
     CapabilitySetBuilder

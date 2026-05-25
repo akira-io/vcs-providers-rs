@@ -1,5 +1,5 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, VcsError, VcsResult, provider, repo,
+    AuthHeaderStyle, AuthKind, Capability, Provider, VcsError, VcsResult, auth, provider, repo,
 };
 use vcs_provider_github::{DISPLAY_NAME, PROVIDER_ID, github};
 
@@ -17,6 +17,20 @@ fn github_provider_uses_bearer_auth_for_tokens() {
     let style = github().auth_header_style(AuthKind::PersonalAccessToken);
 
     assert_eq!(style, AuthHeaderStyle::AuthorizationBearer);
+}
+
+#[test]
+fn github_provider_maps_personal_access_token_header() {
+    let credential = auth().personal_access_token("test-token");
+    let header = github().auth_header(&credential);
+
+    assert_eq!(
+        header.map(|header| (
+            header.name().as_str().to_owned(),
+            header.value().as_str().to_owned()
+        )),
+        Some(("authorization".into(), "Bearer test-token".into()))
+    );
 }
 
 #[test]

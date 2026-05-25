@@ -3,11 +3,16 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+mod auth;
 mod helpers;
 mod registry;
 mod repos;
 
-pub use helpers::{CapabilitySetBuilder, capabilities, provider, repo};
+pub use auth::{
+    AuthBuilder, AuthCredential, AuthHeader, AuthHeaderName, AuthHeaderStyle, AuthHeaderValue,
+    AuthKind, AuthToken,
+};
+pub use helpers::{CapabilitySetBuilder, auth, capabilities, provider, repo};
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use repos::{
     BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repo, RepoBuilder, Repos,
@@ -101,23 +106,6 @@ impl CapabilitySet {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum AuthKind {
-    Anonymous,
-    PersonalAccessToken,
-    OAuth,
-    AppInstallation,
-    Jwt,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum AuthHeaderStyle {
-    AuthorizationBearer,
-    AuthorizationToken,
-    CustomHeader(String),
-    None,
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum VcsError {
     Unauthorized,
@@ -142,4 +130,8 @@ pub trait Provider: Send + Sync {
     fn default_base_url(&self) -> &str;
 
     fn auth_header_style(&self, auth_kind: AuthKind) -> AuthHeaderStyle;
+
+    fn auth_header(&self, credential: &AuthCredential) -> Option<AuthHeader> {
+        credential.header(self.auth_header_style(credential.kind()))
+    }
 }
