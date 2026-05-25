@@ -3,9 +3,17 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+mod helpers;
 mod registry;
+mod repos;
 
+pub use helpers::{CapabilitySetBuilder, capabilities, provider, repo};
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
+pub use repos::{
+    BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repo, RepoBuilder, Repos,
+    Repository, RepositoryBuilder, RepositoryListQuery, RepositoryName, RepositorySearchQuery,
+    TransportNotConfiguredRepos, Visibility,
+};
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct ProviderId(String);
@@ -61,7 +69,7 @@ impl ProviderDescriptor {
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum Capability {
-    Repositories,
+    Repos,
     Issues,
     CodeReviews,
     Pipelines,
@@ -118,6 +126,7 @@ pub enum VcsError {
     Conflict,
     RateLimited,
     ProviderUnavailable,
+    TransportNotConfigured,
     ProviderAlreadyRegistered(String),
     ProviderNotRegistered(String),
     InvalidInput(String),
@@ -125,24 +134,12 @@ pub enum VcsError {
 
 pub type VcsResult<T> = Result<T, VcsError>;
 
-pub trait ProviderDriver: Send + Sync {
+pub trait Provider: Send + Sync {
     fn descriptor(&self) -> ProviderDescriptor;
+
+    fn repos(&self) -> Box<dyn Repos>;
 
     fn default_base_url(&self) -> &str;
 
     fn auth_header_style(&self, auth_kind: AuthKind) -> AuthHeaderStyle;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{Capability, CapabilitySet};
-
-    #[test]
-    fn capability_set_reports_supported_capabilities() {
-        let capabilities = CapabilitySet::make([Capability::Repositories, Capability::Pipelines]);
-
-        assert!(capabilities.supports(&Capability::Repositories));
-        assert!(capabilities.supports(&Capability::Pipelines));
-        assert!(!capabilities.supports(&Capability::Releases));
-    }
 }

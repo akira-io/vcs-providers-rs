@@ -1,10 +1,10 @@
-use vcs_provider_core::{ProviderRegistry, VcsResult};
+use vcs_provider_core::{VcsResult, provider};
 
 fn main() -> VcsResult<()> {
-    let registry = ProviderRegistry::builder()
-        .register(vcs_provider_github::driver())?
-        .register(vcs_provider_gitlab::driver())?
-        .register(vcs_provider_bitbucket::driver())?
+    let registry = provider()
+        .register(vcs_provider_github::github())?
+        .register(vcs_provider_gitlab::gitlab())?
+        .register(vcs_provider_bitbucket::bitbucket())?
         .build();
 
     for descriptor in registry.descriptors() {

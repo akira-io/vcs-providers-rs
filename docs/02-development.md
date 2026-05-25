@@ -26,6 +26,6 @@ cargo clippy --all-targets --all-features -- -D warnings
 
 ## Provider Work
 
-Provider behavior should be added through driver implementations, adapters, builders, middleware, and contract implementations.
+Provider behavior should be added through provider types, adapters, builders, middleware, and contract implementations.
 
 If a new provider needs a different behavior, define the variation as a provider-owned implementation behind a core contract.

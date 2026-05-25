@@ -9,14 +9,14 @@ Application
 vcs-provider-core contracts
     |
     v
-provider driver crates
+provider crates
 ```
 
 ## Core
 
 `vcs-provider-core` owns shared contracts and domain primitives:
 
-- Provider driver contracts.
+- Provider contracts.
 - Capability negotiation.
 - Provider-neutral errors.
 - Auth primitives.
@@ -40,35 +40,52 @@ Providers depend on `vcs-provider-core`. Provider crates own provider-specific d
 
 Adding a new provider must not require editing `vcs-provider-core`.
 
-## Driver Contract
+## Provider Contract
 
-Every provider exposes a driver implementing `ProviderDriver`.
+Every provider crate exposes a type implementing `Provider`.
 
-The driver describes:
+The provider describes:
 
 - Provider identity.
 - Display name.
 - Capabilities.
+- Repos contract.
 - Default endpoint.
 - Supported authentication modes.
 
-Applications and managers consume drivers through `ProviderDriver`, not through concrete provider types.
+Applications and managers consume providers through `Provider`, not through concrete provider types.
+
+## Repos Contract
+
+`Repos` is the provider-neutral contract for repository operations.
+
+It exposes:
+
+- `get`
+- `list`
+- `search`
+- `branches`
+- `commits`
+
+The contract is async-first and object-safe. Provider crates return futures through the shared `BoxFuture` type, so applications can consume repository operations through trait objects without depending on provider-specific types.
+
+Provider crates own the mapping from provider endpoints to universal `Repository`, `Branch`, and `Commit` resources. Until transport is configured, repos return `VcsError::TransportNotConfigured` instead of generating placeholder data.
 
 ## Registry Contract
 
-`ProviderRegistry` stores provider drivers by provider identity.
+`ProviderRegistry` stores providers by provider identity.
 
 Applications compose the registry explicitly:
 
 ```rust
-let registry = ProviderRegistry::builder()
-    .register(vcs_provider_github::driver())?
-    .register(vcs_provider_gitlab::driver())?
-    .register(vcs_provider_bitbucket::driver())?
+let registry = provider()
+    .register(vcs_provider_github::github())?
+    .register(vcs_provider_gitlab::gitlab())?
+    .register(vcs_provider_bitbucket::bitbucket())?
     .build();
 ```
 
-The registry lives in `core`, but it never imports provider crates. Each provider owns its driver and applications decide which drivers to register.
+The registry lives in `core`, but it never imports provider crates. Applications decide which providers to register.
 
 ## Dependency Rules
 

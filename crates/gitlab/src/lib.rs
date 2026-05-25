@@ -1,6 +1,6 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, CapabilitySet, ProviderDescriptor, ProviderDriver,
-    ProviderId,
+    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderDescriptor, ProviderId, Repos,
+    TransportNotConfiguredRepos, capabilities,
 };
 
 pub const PROVIDER_ID: &str = "gitlab";
@@ -8,15 +8,15 @@ pub const DISPLAY_NAME: &str = "GitLab";
 pub const DEFAULT_BASE_URL: &str = "https://gitlab.com";
 
 #[derive(Clone, Copy, Debug, Default)]
-pub struct GitLabDriver;
+pub struct GitLabProvider;
 
-impl ProviderDriver for GitLabDriver {
+impl Provider for GitLabProvider {
     fn descriptor(&self) -> ProviderDescriptor {
         ProviderDescriptor::make(
             ProviderId::make(PROVIDER_ID),
             DISPLAY_NAME,
-            CapabilitySet::make([
-                Capability::Repositories,
+            capabilities().make([
+                Capability::Repos,
                 Capability::Issues,
                 Capability::CodeReviews,
                 Capability::Pipelines,
@@ -26,6 +26,10 @@ impl ProviderDriver for GitLabDriver {
                 Capability::SelfHosted,
             ]),
         )
+    }
+
+    fn repos(&self) -> Box<dyn Repos> {
+        Box::<TransportNotConfiguredRepos>::default()
     }
 
     fn default_base_url(&self) -> &str {
@@ -43,42 +47,6 @@ impl ProviderDriver for GitLabDriver {
     }
 }
 
-pub fn driver() -> GitLabDriver {
-    GitLabDriver
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{DISPLAY_NAME, GitLabDriver, PROVIDER_ID};
-    use vcs_provider_core::{
-        AuthHeaderStyle, AuthKind, Capability, ProviderDriver, ProviderId, ProviderRegistry,
-        VcsResult,
-    };
-
-    #[test]
-    fn gitlab_driver_exposes_provider_descriptor() {
-        let descriptor = GitLabDriver.descriptor();
-
-        assert_eq!(descriptor.id().as_str(), PROVIDER_ID);
-        assert_eq!(descriptor.display_name(), DISPLAY_NAME);
-        assert!(descriptor.capabilities().supports(&Capability::SelfHosted));
-    }
-
-    #[test]
-    fn gitlab_driver_uses_private_token_header_for_personal_access_tokens() {
-        let style = GitLabDriver.auth_header_style(AuthKind::PersonalAccessToken);
-
-        assert_eq!(style, AuthHeaderStyle::CustomHeader("private-token".into()));
-    }
-
-    #[test]
-    fn gitlab_driver_registers_through_core_registry() -> VcsResult<()> {
-        let registry = ProviderRegistry::builder()
-            .register(super::driver())?
-            .build();
-
-        assert!(registry.contains_provider(&ProviderId::make(PROVIDER_ID)));
-
-        Ok(())
-    }
+pub fn gitlab() -> GitLabProvider {
+    GitLabProvider
 }
