@@ -72,7 +72,6 @@ impl Provider for BitbucketProvider {
             DISPLAY_NAME,
             capabilities().make([
                 Capability::Repos,
-                Capability::Issues,
                 Capability::CodeReviews,
                 Capability::Pipelines,
                 Capability::Webhooks,

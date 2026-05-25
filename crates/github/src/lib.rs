@@ -1,13 +1,15 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, CodeReviews, Issues, ManagedProvider, MissingOwnerName,
-    MissingRepositoryName, Pipelines, Provider, ProviderDescriptor, ProviderId, Releases, Repos,
-    TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
-    TransportNotConfiguredPipelines, TransportNotConfiguredReleases, TransportNotConfiguredRepos,
-    capabilities,
+    AuthHeaderStyle, AuthKind, Capability, CodeReviews, Issues, ManagedIssueProvider,
+    ManagedProvider, MissingOwnerName, MissingRepositoryName, Pipelines, Provider,
+    ProviderDescriptor, ProviderId, Releases, Repos, TransportNotConfiguredCodeReviews,
+    TransportNotConfiguredIssues, TransportNotConfiguredPipelines, TransportNotConfiguredReleases,
+    TransportNotConfiguredRepos, capabilities,
 };
 
+mod issues;
 mod repos;
 
+pub use issues::{GitHubIssue, GitHubIssueCollection};
 pub use repos::{GitHubRepo, GitHubRepoCollection};
 
 pub const PROVIDER_ID: &str = "github";
@@ -22,6 +24,16 @@ impl GitHubProvider {
         &self,
     ) -> vcs_provider_core::ManagedRepoBuilder<Self, MissingOwnerName, MissingRepositoryName> {
         vcs_provider_core::vcs(*self).repo()
+    }
+
+    pub fn issue(
+        &self,
+    ) -> vcs_provider_core::ManagedIssueBuilder<
+        Self,
+        vcs_provider_core::MissingIssueRepo,
+        vcs_provider_core::MissingIssueId,
+    > {
+        vcs_provider_core::vcs(*self).issue()
     }
 
     pub fn pagination(&self) -> vcs_provider_core::PaginationBuilder {
@@ -62,6 +74,19 @@ impl ManagedProvider for GitHubProvider {
         query: &vcs_provider_core::RepositorySearchQuery,
     ) -> vcs_provider_core::RequestUrl {
         GitHubRepoCollection::make(DEFAULT_BASE_URL).search(query)
+    }
+}
+
+impl ManagedIssueProvider for GitHubProvider {
+    fn issue_url(&self, issue: &vcs_provider_core::Issue) -> vcs_provider_core::RequestUrl {
+        GitHubIssue::make(DEFAULT_BASE_URL, issue.clone()).url()
+    }
+
+    fn issue_list_url(
+        &self,
+        query: &vcs_provider_core::IssueListQuery,
+    ) -> vcs_provider_core::RequestUrl {
+        GitHubIssueCollection::make(DEFAULT_BASE_URL).list(query)
     }
 }
 

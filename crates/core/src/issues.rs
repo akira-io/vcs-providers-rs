@@ -65,9 +65,9 @@ pub struct IssueBuilder<RepoState, IssueIdState> {
 }
 
 impl<IssueIdState> IssueBuilder<MissingIssueRepo, IssueIdState> {
-    pub fn repo(self, repo: Repo) -> IssueBuilder<ProvidedIssueRepo, IssueIdState> {
+    pub fn repo(self, repo: impl Into<Repo>) -> IssueBuilder<ProvidedIssueRepo, IssueIdState> {
         IssueBuilder {
-            repo: ProvidedIssueRepo { repo },
+            repo: ProvidedIssueRepo { repo: repo.into() },
             id: self.id,
         }
     }
@@ -103,8 +103,11 @@ impl IssueBuilder<MissingIssueRepo, MissingIssueId> {
 pub struct IssueQueryBuilder;
 
 impl IssueQueryBuilder {
-    pub fn list(self, repo: Repo, page: Option<PageRequest>) -> IssueListQuery {
-        IssueListQuery { repo, page }
+    pub fn list(self, repo: impl Into<Repo>, page: Option<PageRequest>) -> IssueListQuery {
+        IssueListQuery {
+            repo: repo.into(),
+            page,
+        }
     }
 }
 
