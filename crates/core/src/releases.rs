@@ -22,6 +22,13 @@ pub struct Release {
 }
 
 impl Release {
+    pub fn builder() -> ReleaseBuilder<MissingReleaseRepo, MissingReleaseId> {
+        ReleaseBuilder {
+            repo: MissingReleaseRepo,
+            id: MissingReleaseId,
+        }
+    }
+
     pub fn make(repo: Repo, id: ReleaseId) -> Self {
         Self { repo, id }
     }
@@ -32,6 +39,57 @@ impl Release {
 
     pub fn id(&self) -> &ReleaseId {
         &self.id
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingReleaseRepo;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedReleaseRepo {
+    repo: Repo,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MissingReleaseId;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ProvidedReleaseId {
+    id: ReleaseId,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ReleaseBuilder<RepoState, ReleaseIdState> {
+    repo: RepoState,
+    id: ReleaseIdState,
+}
+
+impl<ReleaseIdState> ReleaseBuilder<MissingReleaseRepo, ReleaseIdState> {
+    pub fn repo(self, repo: Repo) -> ReleaseBuilder<ProvidedReleaseRepo, ReleaseIdState> {
+        ReleaseBuilder {
+            repo: ProvidedReleaseRepo { repo },
+            id: self.id,
+        }
+    }
+}
+
+impl<RepoState> ReleaseBuilder<RepoState, MissingReleaseId> {
+    pub fn id(self, id: impl Into<String>) -> ReleaseBuilder<RepoState, ProvidedReleaseId> {
+        ReleaseBuilder {
+            repo: self.repo,
+            id: ProvidedReleaseId {
+                id: ReleaseId::make(id),
+            },
+        }
+    }
+}
+
+impl ReleaseBuilder<ProvidedReleaseRepo, ProvidedReleaseId> {
+    pub fn build(self) -> Release {
+        Release {
+            repo: self.repo.repo,
+            id: self.id.id,
+        }
     }
 }
 

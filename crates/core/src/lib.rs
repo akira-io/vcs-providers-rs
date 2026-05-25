@@ -27,15 +27,22 @@ pub use auth::{
     AuthKind, AuthToken,
 };
 pub use code_reviews::{
-    CodeReview, CodeReviewDraft, CodeReviewId, CodeReviews, TransportNotConfiguredCodeReviews,
+    CodeReview, CodeReviewBuilder, CodeReviewDraft, CodeReviewDraftBuilder, CodeReviewId,
+    CodeReviews, MissingCodeReviewDraftRepo, MissingCodeReviewId, MissingCodeReviewRepo,
+    MissingCodeReviewTitle, ProvidedCodeReviewDraftRepo, ProvidedCodeReviewId,
+    ProvidedCodeReviewRepo, ProvidedCodeReviewTitle, TransportNotConfiguredCodeReviews,
 };
 pub(crate) use errors::transport_not_configured;
 pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
 pub use helpers::{
-    CapabilitySetBuilder, auth, branch, capabilities, commit, error, middleware, pagination,
-    provider, rate_limit, repo, request, response, runtime, telemetry, url, vcs,
+    CapabilitySetBuilder, auth, branch, capabilities, code_review, commit, error, issue,
+    middleware, pagination, pipeline, provider, rate_limit, release, repo, request, response,
+    runtime, telemetry, url, vcs,
 };
-pub use issues::{Issue, IssueId, Issues, TransportNotConfiguredIssues};
+pub use issues::{
+    Issue, IssueBuilder, IssueId, Issues, MissingIssueId, MissingIssueRepo, ProvidedIssueId,
+    ProvidedIssueRepo, TransportNotConfiguredIssues,
+};
 pub use manager::{
     ManagedProvider, ManagedRepo, ManagedRepoBuilder, ManagedRepoCollection, VcsManager,
     VcsManagerBuilder, VcsManagerWithDriverBuilder,
@@ -47,14 +54,20 @@ pub use middleware::{
 pub use pagination::{
     Page, PageBuilder, PageCursor, PageLimit, PageRequest, PageRequestBuilder, PaginationBuilder,
 };
-pub use pipelines::{Pipeline, PipelineId, Pipelines, TransportNotConfiguredPipelines};
+pub use pipelines::{
+    MissingPipelineId, MissingPipelineRepo, Pipeline, PipelineBuilder, PipelineId, Pipelines,
+    ProvidedPipelineId, ProvidedPipelineRepo, TransportNotConfiguredPipelines,
+};
 pub use rate_limit::{
     RateLimitBuilder, RateLimitCost, RateLimitHeaderName, RateLimitHeaderProfile,
     RateLimitHeaderProfileBuilder, RateLimitObservation, RateLimitQuota, RateLimitReset,
     RetryAfter,
 };
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
-pub use releases::{Release, ReleaseId, Releases, TransportNotConfiguredReleases};
+pub use releases::{
+    MissingReleaseId, MissingReleaseRepo, ProvidedReleaseId, ProvidedReleaseRepo, Release,
+    ReleaseBuilder, ReleaseId, Releases, TransportNotConfiguredReleases,
+};
 pub use repos::{
     BoxFuture, Branch, Commit, LifecycleState, MissingLifecycleState, MissingOwnerName,
     MissingRepositoryName, MissingVisibility, OwnerName, ProvidedLifecycleState, ProvidedOwnerName,
