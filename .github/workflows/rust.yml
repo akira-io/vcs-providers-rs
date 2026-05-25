@@ -1,0 +1,19 @@
+name: Rust
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.89.0
+        with:
+          components: clippy,rustfmt
+      - run: cargo fmt --check
+      - run: cargo test
+      - run: cargo clippy --all-targets --all-features -- -D warnings

@@ -1,0 +1,29 @@
+[workspace]
+members = [
+    "crates/core",
+    "crates/github",
+    "crates/gitlab",
+    "crates/bitbucket",
+    "examples",
+]
+resolver = "3"
+
+[workspace.package]
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/akira-io/vcs-providers-rs"
+rust-version = "1.89"
+version = "0.1.0"
+
+[workspace.dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+vcs-provider-core = { path = "crates/core", version = "0.1.0" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unwrap_used = "deny"

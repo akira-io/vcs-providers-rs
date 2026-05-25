@@ -1,0 +1,16 @@
+[package]
+name = "vcs-provider-examples"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+vcs-provider-bitbucket = { path = "../crates/bitbucket" }
+vcs-provider-core.workspace = true
+vcs-provider-github = { path = "../crates/github" }
+vcs-provider-gitlab = { path = "../crates/gitlab" }
+
+[lints]
+workspace = true
