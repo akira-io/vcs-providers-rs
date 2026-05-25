@@ -1,8 +1,8 @@
 use crate::repos::{MissingOwnerName, MissingRepositoryName};
 use crate::{
-    AuthBuilder, Branch, Capability, CapabilitySet, Commit, PaginationBuilder, ProviderRegistry,
-    ProviderRegistryBuilder, RateLimitBuilder, RepoBuilder, RequestBuilder, RequestUrlBuilder,
-    TelemetryBuilder, TransportPipeline, TransportPipelineBuilder,
+    AuthBuilder, Branch, Capability, CapabilitySet, Commit, ErrorBuilder, PaginationBuilder,
+    ProviderRegistry, ProviderRegistryBuilder, RateLimitBuilder, RepoBuilder, RequestBuilder,
+    RequestUrlBuilder, TelemetryBuilder, TransportPipeline, TransportPipelineBuilder,
 };
 
 pub fn auth() -> AuthBuilder {
@@ -11,6 +11,10 @@ pub fn auth() -> AuthBuilder {
 
 pub fn capabilities() -> CapabilitySetBuilder {
     CapabilitySetBuilder
+}
+
+pub fn error() -> ErrorBuilder {
+    ErrorBuilder
 }
 
 pub fn repo() -> RepoBuilder<MissingOwnerName, MissingRepositoryName> {

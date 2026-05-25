@@ -4,6 +4,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 mod auth;
+mod errors;
 mod helpers;
 mod middleware;
 mod pagination;
@@ -18,9 +19,10 @@ pub use auth::{
     AuthBuilder, AuthCredential, AuthHeader, AuthHeaderName, AuthHeaderStyle, AuthHeaderValue,
     AuthKind, AuthToken,
 };
+pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
 pub use helpers::{
-    CapabilitySetBuilder, auth, branch, capabilities, commit, middleware, pagination, provider,
-    rate_limit, repo, request, telemetry, url,
+    CapabilitySetBuilder, auth, branch, capabilities, commit, error, middleware, pagination,
+    provider, rate_limit, repo, request, telemetry, url,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
@@ -139,22 +141,6 @@ impl CapabilitySet {
         self.capabilities.iter()
     }
 }
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum VcsError {
-    Unauthorized,
-    Forbidden,
-    NotFound,
-    Conflict,
-    RateLimited,
-    ProviderUnavailable,
-    TransportNotConfigured,
-    ProviderAlreadyRegistered(String),
-    ProviderNotRegistered(String),
-    InvalidInput(String),
-}
-
-pub type VcsResult<T> = Result<T, VcsError>;
 
 pub trait Provider: Send + Sync {
     fn descriptor(&self) -> ProviderDescriptor;

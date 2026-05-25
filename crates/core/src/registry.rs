@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use crate::{Capability, Provider, ProviderDescriptor, ProviderId, VcsError, VcsResult};
+use crate::{Capability, Provider, ProviderDescriptor, ProviderId, VcsResult, error};
 
 #[derive(Clone, Default)]
 pub struct ProviderRegistry {
@@ -16,7 +16,7 @@ impl ProviderRegistry {
     pub fn get_provider(&self, id: &ProviderId) -> VcsResult<Arc<dyn Provider>> {
         match self.providers.get(id) {
             Some(provider) => Ok(Arc::clone(provider)),
-            None => Err(VcsError::ProviderNotRegistered(id.as_str().into())),
+            None => Err(error().provider_not_registered(id.as_str())),
         }
     }
 
@@ -56,7 +56,7 @@ impl ProviderRegistryBuilder {
         let id = descriptor.id().clone();
 
         match self.providers.contains_key(&id) {
-            true => Err(VcsError::ProviderAlreadyRegistered(id.as_str().into())),
+            true => Err(error().provider_already_registered(id.as_str())),
             false => {
                 self.providers.insert(id, Arc::new(provider));
                 Ok(self)
