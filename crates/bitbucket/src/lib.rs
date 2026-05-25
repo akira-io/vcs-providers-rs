@@ -1,16 +1,20 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, CapabilitySet, ProviderDescriptor, ProviderDriver,
-    ProviderId,
+    AuthHeaderStyle, AuthKind, Capability, CapabilitySet, Provider, ProviderDescriptor, ProviderId,
+    Repositories,
 };
+
+mod repositories;
+
+pub use repositories::BitbucketRepositories;
 
 pub const PROVIDER_ID: &str = "bitbucket";
 pub const DISPLAY_NAME: &str = "Bitbucket";
 pub const DEFAULT_BASE_URL: &str = "https://api.bitbucket.org/2.0";
 
 #[derive(Clone, Copy, Debug, Default)]
-pub struct BitbucketDriver;
+pub struct BitbucketProvider;
 
-impl ProviderDriver for BitbucketDriver {
+impl Provider for BitbucketProvider {
     fn descriptor(&self) -> ProviderDescriptor {
         ProviderDescriptor::make(
             ProviderId::make(PROVIDER_ID),
@@ -23,6 +27,10 @@ impl ProviderDriver for BitbucketDriver {
                 Capability::Webhooks,
             ]),
         )
+    }
+
+    fn repositories(&self) -> Box<dyn Repositories> {
+        Box::<BitbucketRepositories>::default()
     }
 
     fn default_base_url(&self) -> &str {
@@ -40,21 +48,21 @@ impl ProviderDriver for BitbucketDriver {
     }
 }
 
-pub fn driver() -> BitbucketDriver {
-    BitbucketDriver
+pub fn provider() -> BitbucketProvider {
+    BitbucketProvider
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{BitbucketDriver, DISPLAY_NAME, PROVIDER_ID};
+    use super::{BitbucketProvider, DISPLAY_NAME, PROVIDER_ID};
     use vcs_provider_core::{
-        AuthHeaderStyle, AuthKind, Capability, ProviderDriver, ProviderId, ProviderRegistry,
-        VcsResult,
+        AuthHeaderStyle, AuthKind, Capability, OwnerName, Provider, ProviderId, ProviderRegistry,
+        RepositoryCoordinates, RepositoryName, VcsError, VcsResult,
     };
 
     #[test]
-    fn bitbucket_driver_exposes_provider_descriptor() {
-        let descriptor = BitbucketDriver.descriptor();
+    fn bitbucket_provider_exposes_provider_descriptor() {
+        let descriptor = BitbucketProvider.descriptor();
 
         assert_eq!(descriptor.id().as_str(), PROVIDER_ID);
         assert_eq!(descriptor.display_name(), DISPLAY_NAME);
@@ -62,19 +70,32 @@ mod tests {
     }
 
     #[test]
-    fn bitbucket_driver_uses_bearer_auth_for_oauth() {
-        let style = BitbucketDriver.auth_header_style(AuthKind::OAuth);
+    fn bitbucket_provider_uses_bearer_auth_for_oauth() {
+        let style = BitbucketProvider.auth_header_style(AuthKind::OAuth);
 
         assert_eq!(style, AuthHeaderStyle::AuthorizationBearer);
     }
 
     #[test]
-    fn bitbucket_driver_registers_through_core_registry() -> VcsResult<()> {
+    fn bitbucket_provider_registers_through_core_registry() -> VcsResult<()> {
         let registry = ProviderRegistry::builder()
-            .register(super::driver())?
+            .register(super::provider())?
             .build();
 
         assert!(registry.contains_provider(&ProviderId::make(PROVIDER_ID)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn bitbucket_provider_exposes_repositories_contract() -> VcsResult<()> {
+        let repositories = BitbucketProvider.repositories();
+        let result = futures::executor::block_on(repositories.get(RepositoryCoordinates::make(
+            OwnerName::make("akira-io"),
+            RepositoryName::make("vcs-providers-rs"),
+        )));
+
+        assert_eq!(result, Err(VcsError::TransportNotConfigured));
 
         Ok(())
     }

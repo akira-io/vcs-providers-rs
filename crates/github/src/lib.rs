@@ -1,16 +1,20 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, CapabilitySet, ProviderDescriptor, ProviderDriver,
-    ProviderId,
+    AuthHeaderStyle, AuthKind, Capability, CapabilitySet, Provider, ProviderDescriptor, ProviderId,
+    Repositories,
 };
+
+mod repositories;
+
+pub use repositories::GitHubRepositories;
 
 pub const PROVIDER_ID: &str = "github";
 pub const DISPLAY_NAME: &str = "GitHub";
 pub const DEFAULT_BASE_URL: &str = "https://api.github.com";
 
 #[derive(Clone, Copy, Debug, Default)]
-pub struct GitHubDriver;
+pub struct GitHubProvider;
 
-impl ProviderDriver for GitHubDriver {
+impl Provider for GitHubProvider {
     fn descriptor(&self) -> ProviderDescriptor {
         ProviderDescriptor::make(
             ProviderId::make(PROVIDER_ID),
@@ -28,6 +32,10 @@ impl ProviderDriver for GitHubDriver {
         )
     }
 
+    fn repositories(&self) -> Box<dyn Repositories> {
+        Box::<GitHubRepositories>::default()
+    }
+
     fn default_base_url(&self) -> &str {
         DEFAULT_BASE_URL
     }
@@ -43,20 +51,21 @@ impl ProviderDriver for GitHubDriver {
     }
 }
 
-pub fn driver() -> GitHubDriver {
-    GitHubDriver
+pub fn provider() -> GitHubProvider {
+    GitHubProvider
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{DISPLAY_NAME, GitHubDriver, PROVIDER_ID};
+    use super::{DISPLAY_NAME, GitHubProvider, PROVIDER_ID};
     use vcs_provider_core::{
-        AuthHeaderStyle, AuthKind, Capability, ProviderDriver, ProviderRegistry, VcsResult,
+        AuthHeaderStyle, AuthKind, Capability, OwnerName, Provider, ProviderRegistry,
+        RepositoryCoordinates, RepositoryName, VcsError, VcsResult,
     };
 
     #[test]
-    fn github_driver_exposes_provider_descriptor() {
-        let descriptor = GitHubDriver.descriptor();
+    fn github_provider_exposes_provider_descriptor() {
+        let descriptor = GitHubProvider.descriptor();
 
         assert_eq!(descriptor.id().as_str(), PROVIDER_ID);
         assert_eq!(descriptor.display_name(), DISPLAY_NAME);
@@ -68,19 +77,32 @@ mod tests {
     }
 
     #[test]
-    fn github_driver_uses_bearer_auth_for_tokens() {
-        let style = GitHubDriver.auth_header_style(AuthKind::PersonalAccessToken);
+    fn github_provider_uses_bearer_auth_for_tokens() {
+        let style = GitHubProvider.auth_header_style(AuthKind::PersonalAccessToken);
 
         assert_eq!(style, AuthHeaderStyle::AuthorizationBearer);
     }
 
     #[test]
-    fn github_driver_registers_through_core_registry() -> VcsResult<()> {
+    fn github_provider_registers_through_core_registry() -> VcsResult<()> {
         let registry = ProviderRegistry::builder()
-            .register(super::driver())?
+            .register(super::provider())?
             .build();
 
         assert!(registry.contains_provider(&vcs_provider_core::ProviderId::make(PROVIDER_ID)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn github_provider_exposes_repositories_contract() -> VcsResult<()> {
+        let repositories = GitHubProvider.repositories();
+        let result = futures::executor::block_on(repositories.get(RepositoryCoordinates::make(
+            OwnerName::make("akira-io"),
+            RepositoryName::make("vcs-providers-rs"),
+        )));
+
+        assert_eq!(result, Err(VcsError::TransportNotConfigured));
 
         Ok(())
     }

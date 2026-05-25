@@ -4,8 +4,13 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 mod registry;
+mod repositories;
 
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
+pub use repositories::{
+    BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repositories, Repository,
+    RepositoryCoordinates, RepositoryListQuery, RepositoryName, RepositorySearchQuery, Visibility,
+};
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct ProviderId(String);
@@ -118,6 +123,7 @@ pub enum VcsError {
     Conflict,
     RateLimited,
     ProviderUnavailable,
+    TransportNotConfigured,
     ProviderAlreadyRegistered(String),
     ProviderNotRegistered(String),
     InvalidInput(String),
@@ -125,8 +131,10 @@ pub enum VcsError {
 
 pub type VcsResult<T> = Result<T, VcsError>;
 
-pub trait ProviderDriver: Send + Sync {
+pub trait Provider: Send + Sync {
     fn descriptor(&self) -> ProviderDescriptor;
+
+    fn repositories(&self) -> Box<dyn Repositories>;
 
     fn default_base_url(&self) -> &str;
 
