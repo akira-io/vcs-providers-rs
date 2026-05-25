@@ -1,7 +1,7 @@
 use vcs_provider_bitbucket::{DISPLAY_NAME, PROVIDER_ID, bitbucket};
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, VcsError, VcsResult, provider,
-    repo,
+    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, VcsError, VcsResult, auth,
+    provider, repo,
 };
 
 #[test]
@@ -18,6 +18,20 @@ fn bitbucket_provider_uses_bearer_auth_for_oauth() {
     let style = bitbucket().auth_header_style(AuthKind::OAuth);
 
     assert_eq!(style, AuthHeaderStyle::AuthorizationBearer);
+}
+
+#[test]
+fn bitbucket_provider_maps_oauth_header() {
+    let credential = auth().oauth("test-token");
+    let header = bitbucket().auth_header(&credential);
+
+    assert_eq!(
+        header.map(|header| (
+            header.name().as_str().to_owned(),
+            header.value().as_str().to_owned()
+        )),
+        Some(("authorization".into(), "Bearer test-token".into()))
+    );
 }
 
 #[test]
