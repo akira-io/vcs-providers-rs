@@ -7,17 +7,22 @@ mod auth;
 mod helpers;
 mod registry;
 mod repos;
+mod transport;
 
 pub use auth::{
     AuthBuilder, AuthCredential, AuthHeader, AuthHeaderName, AuthHeaderStyle, AuthHeaderValue,
     AuthKind, AuthToken,
 };
-pub use helpers::{CapabilitySetBuilder, auth, capabilities, provider, repo};
+pub use helpers::{CapabilitySetBuilder, auth, capabilities, provider, repo, request};
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use repos::{
     BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repo, RepoBuilder, Repos,
     Repository, RepositoryBuilder, RepositoryListQuery, RepositoryName, RepositorySearchQuery,
     TransportNotConfiguredRepos, Visibility,
+};
+pub use transport::{
+    Request, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue, RequestMethod,
+    RequestUrl, Response, ResponseStatus, Transport,
 };
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
