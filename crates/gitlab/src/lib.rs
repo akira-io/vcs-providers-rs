@@ -59,8 +59,8 @@ pub fn provider() -> GitLabProvider {
 mod tests {
     use super::{DISPLAY_NAME, GitLabProvider, PROVIDER_ID};
     use vcs_provider_core::{
-        AuthHeaderStyle, AuthKind, Capability, OwnerName, Provider, ProviderId, ProviderRegistry,
-        RepositoryCoordinates, RepositoryName, VcsError, VcsResult,
+        AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, ProviderRegistry,
+        RepositoryCoordinates, VcsError, VcsResult,
     };
 
     #[test]
@@ -93,10 +93,11 @@ mod tests {
     #[test]
     fn gitlab_provider_exposes_repositories_contract() -> VcsResult<()> {
         let repositories = GitLabProvider.repositories();
-        let result = futures::executor::block_on(repositories.get(RepositoryCoordinates::make(
-            OwnerName::make("akira-io"),
-            RepositoryName::make("vcs-providers-rs"),
-        )));
+        let coordinates = RepositoryCoordinates::make()
+            .owner_name("akira-io")
+            .name("vcs-providers-rs")
+            .build()?;
+        let result = futures::executor::block_on(repositories.get(coordinates));
 
         assert_eq!(result, Err(VcsError::TransportNotConfigured));
 

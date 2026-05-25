@@ -9,7 +9,8 @@ mod repositories;
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use repositories::{
     BoxFuture, Branch, Commit, LifecycleState, OwnerName, Page, Repositories, Repository,
-    RepositoryCoordinates, RepositoryListQuery, RepositoryName, RepositorySearchQuery, Visibility,
+    RepositoryCoordinates, RepositoryCoordinatesBuilder, RepositoryListQuery, RepositoryName,
+    RepositorySearchQuery, Visibility,
 };
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]

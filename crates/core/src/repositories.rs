@@ -40,8 +40,8 @@ pub struct RepositoryCoordinates {
 }
 
 impl RepositoryCoordinates {
-    pub fn make(owner: OwnerName, name: RepositoryName) -> Self {
-        Self { owner, name }
+    pub fn make() -> RepositoryCoordinatesBuilder {
+        RepositoryCoordinatesBuilder::default()
     }
 
     pub fn owner(&self) -> &OwnerName {
@@ -50,6 +50,40 @@ impl RepositoryCoordinates {
 
     pub fn name(&self) -> &RepositoryName {
         &self.name
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct RepositoryCoordinatesBuilder {
+    owner: Option<OwnerName>,
+    name: Option<RepositoryName>,
+}
+
+impl RepositoryCoordinatesBuilder {
+    pub fn owner_name(mut self, owner: impl Into<String>) -> Self {
+        self.owner = Some(OwnerName::make(owner));
+        self
+    }
+
+    pub fn name(mut self, name: impl Into<String>) -> Self {
+        self.name = Some(RepositoryName::make(name));
+        self
+    }
+
+    pub fn build(self) -> VcsResult<RepositoryCoordinates> {
+        let Some(owner) = self.owner else {
+            return Err(crate::VcsError::InvalidInput(
+                "owner name is required".into(),
+            ));
+        };
+
+        let Some(name) = self.name else {
+            return Err(crate::VcsError::InvalidInput(
+                "repository name is required".into(),
+            ));
+        };
+
+        Ok(RepositoryCoordinates { owner, name })
     }
 }
 
@@ -189,14 +223,15 @@ pub trait Repositories: Send + Sync {
 #[cfg(test)]
 mod tests {
     use crate::{
-        LifecycleState, OwnerName, ProviderId, Repository, RepositoryCoordinates, RepositoryName,
-        Visibility,
+        LifecycleState, ProviderId, Repository, RepositoryCoordinates, VcsResult, Visibility,
     };
 
     #[test]
-    fn repository_resource_is_provider_neutral() {
-        let coordinates =
-            RepositoryCoordinates::make(OwnerName::make("akira-io"), RepositoryName::make("core"));
+    fn repository_resource_is_provider_neutral() -> VcsResult<()> {
+        let coordinates = RepositoryCoordinates::make()
+            .owner_name("akira-io")
+            .name("core")
+            .build()?;
         let repository = Repository::make(
             ProviderId::make("github"),
             coordinates,
@@ -209,5 +244,7 @@ mod tests {
         assert_eq!(repository.coordinates().name().as_str(), "core");
         assert_eq!(repository.visibility(), &Visibility::Public);
         assert_eq!(repository.lifecycle_state(), &LifecycleState::Active);
+
+        Ok(())
     }
 }
