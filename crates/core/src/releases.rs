@@ -4,11 +4,26 @@ use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configu
 
 #[path = "releases/drafts.rs"]
 mod drafts;
+#[path = "releases/list.rs"]
+mod list;
+#[path = "releases/operations.rs"]
+mod operations;
 #[path = "releases/patches.rs"]
 mod patches;
+#[path = "releases/scoped.rs"]
+mod scoped;
+#[path = "releases/transport.rs"]
+mod transport;
 
 pub use drafts::{MissingReleaseTag, ProvidedReleaseTag, ReleaseDraftBuilder};
+pub use list::{ReleaseListOperation, ReleaseListPaginationOperation};
+#[allow(unused_imports)]
+pub use operations::{
+    ReleaseCreateOperation, ReleaseDeleteOperation, ReleaseUpdateOperation, ReleasesFluent,
+};
 pub use patches::ReleasePatchBuilder;
+pub use scoped::ScopedReleaseOperation;
+pub use transport::{ReleaseResponseMapper, TransportBackedReleases};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ReleaseId(String);
@@ -199,6 +214,12 @@ pub trait Releases: Send + Sync {
     fn get(&self, repo: Repo, id: ReleaseId) -> BoxFuture<'_, VcsResult<Release>>;
 
     fn list(&self, query: ReleaseListQuery) -> BoxFuture<'_, VcsResult<Page<Release>>>;
+
+    fn create(&self, draft: ReleaseDraft) -> BoxFuture<'_, VcsResult<Release>>;
+
+    fn update(&self, patch: ReleasePatch) -> BoxFuture<'_, VcsResult<Release>>;
+
+    fn delete(&self, release: Release) -> BoxFuture<'_, VcsResult<()>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -210,6 +231,18 @@ impl Releases for TransportNotConfiguredReleases {
     }
 
     fn list(&self, _query: ReleaseListQuery) -> BoxFuture<'_, VcsResult<Page<Release>>> {
+        transport_not_configured()
+    }
+
+    fn create(&self, _draft: ReleaseDraft) -> BoxFuture<'_, VcsResult<Release>> {
+        transport_not_configured()
+    }
+
+    fn update(&self, _patch: ReleasePatch) -> BoxFuture<'_, VcsResult<Release>> {
+        transport_not_configured()
+    }
+
+    fn delete(&self, _release: Release) -> BoxFuture<'_, VcsResult<()>> {
         transport_not_configured()
     }
 }

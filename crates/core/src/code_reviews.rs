@@ -4,14 +4,30 @@ use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configu
 
 #[path = "code_reviews/drafts.rs"]
 mod drafts;
+#[path = "code_reviews/list.rs"]
+mod list;
+#[path = "code_reviews/operations.rs"]
+mod operations;
 #[path = "code_reviews/patches.rs"]
 mod patches;
+#[path = "code_reviews/scoped.rs"]
+mod scoped;
+#[path = "code_reviews/transport.rs"]
+mod transport;
 
 pub use drafts::{
     CodeReviewDraftBuilder, MissingCodeReviewDraftRepo, MissingCodeReviewTitle,
     ProvidedCodeReviewDraftRepo, ProvidedCodeReviewTitle,
 };
+pub use list::{CodeReviewListOperation, CodeReviewListPaginationOperation};
+#[allow(unused_imports)]
+pub use operations::{
+    CodeReviewCloseOperation, CodeReviewCreateOperation, CodeReviewUpdateOperation,
+    CodeReviewsFluent,
+};
 pub use patches::CodeReviewPatchBuilder;
+pub use scoped::ScopedCodeReviewOperation;
+pub use transport::{CodeReviewResponseMapper, TransportBackedCodeReviews};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CodeReviewId(String);
@@ -234,6 +250,8 @@ pub trait CodeReviews: Send + Sync {
 
     fn create(&self, draft: CodeReviewDraft) -> BoxFuture<'_, VcsResult<CodeReview>>;
 
+    fn update(&self, patch: CodeReviewPatch) -> BoxFuture<'_, VcsResult<CodeReview>>;
+
     fn merge(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>>;
 
     fn close(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>>;
@@ -252,6 +270,10 @@ impl CodeReviews for TransportNotConfiguredCodeReviews {
     }
 
     fn create(&self, _draft: CodeReviewDraft) -> BoxFuture<'_, VcsResult<CodeReview>> {
+        transport_not_configured()
+    }
+
+    fn update(&self, _patch: CodeReviewPatch) -> BoxFuture<'_, VcsResult<CodeReview>> {
         transport_not_configured()
     }
 

@@ -2,11 +2,13 @@ use std::sync::Arc;
 
 use vcs_provider_core::{
     AuthCredential, CodeReviews, Issues, Pipelines, Provider, ProviderDescriptor, Releases, Repos,
-    RequestHeader, Transport, TransportBackedRepos, TransportNotConfiguredCodeReviews,
-    TransportNotConfiguredIssues, TransportNotConfiguredPipelines, TransportNotConfiguredReleases,
+    RequestHeader, Transport, TransportBackedCodeReviews, TransportBackedIssues,
+    TransportBackedReleases, TransportBackedRepos, TransportNotConfiguredPipelines,
 };
 
-use crate::mappers::GitHubRepositoryMapper;
+use crate::mappers::{
+    GitHubCodeReviewMapper, GitHubIssueMapper, GitHubReleaseMapper, GitHubRepositoryMapper,
+};
 use crate::{DEFAULT_BASE_URL, GitHubProvider, github};
 
 #[derive(Clone)]
@@ -21,6 +23,35 @@ impl GitHubClient {
             transport: Arc::new(transport),
             headers: default_headers(),
         }
+    }
+
+    pub fn issues(&self) -> Box<dyn Issues> {
+        Box::new(
+            TransportBackedIssues::make(github(), Arc::clone(&self.transport), GitHubIssueMapper)
+                .with_headers(self.headers.clone()),
+        )
+    }
+
+    pub fn code_reviews(&self) -> Box<dyn CodeReviews> {
+        Box::new(
+            TransportBackedCodeReviews::make(
+                github(),
+                Arc::clone(&self.transport),
+                GitHubCodeReviewMapper,
+            )
+            .with_headers(self.headers.clone()),
+        )
+    }
+
+    pub fn releases(&self) -> Box<dyn Releases> {
+        Box::new(
+            TransportBackedReleases::make(
+                github(),
+                Arc::clone(&self.transport),
+                GitHubReleaseMapper,
+            )
+            .with_headers(self.headers.clone()),
+        )
     }
 
     pub fn repos(&self) -> Box<dyn Repos> {
@@ -56,11 +87,11 @@ impl Provider for GitHubClient {
     }
 
     fn issues(&self) -> Box<dyn Issues> {
-        Box::<TransportNotConfiguredIssues>::default()
+        GitHubClient::issues(self)
     }
 
     fn code_reviews(&self) -> Box<dyn CodeReviews> {
-        Box::<TransportNotConfiguredCodeReviews>::default()
+        GitHubClient::code_reviews(self)
     }
 
     fn pipelines(&self) -> Box<dyn Pipelines> {
@@ -68,7 +99,7 @@ impl Provider for GitHubClient {
     }
 
     fn releases(&self) -> Box<dyn Releases> {
-        Box::<TransportNotConfiguredReleases>::default()
+        GitHubClient::releases(self)
     }
 
     fn default_base_url(&self) -> &str {
@@ -90,6 +121,10 @@ impl GitHubProvider {
 
     pub fn transport(self, transport: impl Transport + 'static) -> GitHubClient {
         GitHubClient::make(transport)
+    }
+
+    pub fn body(self, body: impl Into<String>) -> GitHubClient {
+        GitHubClient::make(vcs_provider_core::provider_response().body(body).get())
     }
 }
 

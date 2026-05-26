@@ -1,13 +1,23 @@
 use serde::Deserialize;
 use vcs_provider_core::{
-    Branch, Commit, LifecycleState, Page, Repo, Repository, RepositoryResponseMapper, Response,
-    VcsError, VcsResult, Visibility, error, repo,
+    Branch, CodeReview, CodeReviewId, CodeReviewResponseMapper, Commit, Issue, IssueId,
+    IssueResponseMapper, LifecycleState, Page, Release, ReleaseId, ReleaseResponseMapper, Repo,
+    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, repo,
 };
 
 use crate::PROVIDER_ID;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct GitHubRepositoryMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitHubIssueMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitHubCodeReviewMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitHubReleaseMapper;
 
 impl RepositoryResponseMapper for GitHubRepositoryMapper {
     fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository> {
@@ -51,6 +61,95 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
     }
 }
 
+impl IssueResponseMapper for GitHubIssueMapper {
+    fn issue(&self, requested_issue: &Issue, response: &Response) -> VcsResult<Issue> {
+        let issue = parse_body::<GitHubIssue>(response, "invalid github issue response")?;
+
+        Ok(Issue::make(
+            requested_issue.repo().clone(),
+            IssueId::make(issue.number.to_string()),
+        ))
+    }
+
+    fn issues(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Issue>> {
+        let issues =
+            parse_body::<Vec<GitHubIssue>>(response, "invalid github issue list response")?
+                .into_iter()
+                .map(|issue| {
+                    Issue::make(
+                        requested_repo.clone(),
+                        IssueId::make(issue.number.to_string()),
+                    )
+                })
+                .collect();
+
+        Ok(Page::make(issues))
+    }
+}
+
+impl CodeReviewResponseMapper for GitHubCodeReviewMapper {
+    fn code_review(
+        &self,
+        requested_code_review: &CodeReview,
+        response: &Response,
+    ) -> VcsResult<CodeReview> {
+        let code_review =
+            parse_body::<GitHubCodeReview>(response, "invalid github code review response")?;
+
+        Ok(CodeReview::make(
+            requested_code_review.repo().clone(),
+            CodeReviewId::make(code_review.number.to_string()),
+        ))
+    }
+
+    fn code_reviews(
+        &self,
+        requested_repo: &Repo,
+        response: &Response,
+    ) -> VcsResult<Page<CodeReview>> {
+        let code_reviews = parse_body::<Vec<GitHubCodeReview>>(
+            response,
+            "invalid github code review list response",
+        )?
+        .into_iter()
+        .map(|code_review| {
+            CodeReview::make(
+                requested_repo.clone(),
+                CodeReviewId::make(code_review.number.to_string()),
+            )
+        })
+        .collect();
+
+        Ok(Page::make(code_reviews))
+    }
+}
+
+impl ReleaseResponseMapper for GitHubReleaseMapper {
+    fn release(&self, requested_release: &Release, response: &Response) -> VcsResult<Release> {
+        let release = parse_body::<GitHubRelease>(response, "invalid github release response")?;
+
+        Ok(Release::make(
+            requested_release.repo().clone(),
+            ReleaseId::make(release.id.to_string()),
+        ))
+    }
+
+    fn releases(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Release>> {
+        let releases =
+            parse_body::<Vec<GitHubRelease>>(response, "invalid github release list response")?
+                .into_iter()
+                .map(|release| {
+                    Release::make(
+                        requested_repo.clone(),
+                        ReleaseId::make(release.id.to_string()),
+                    )
+                })
+                .collect();
+
+        Ok(Page::make(releases))
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitHubRepository {
     full_name: Option<String>,
@@ -73,6 +172,21 @@ struct GitHubBranch {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitHubCommit {
     sha: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitHubIssue {
+    number: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitHubCodeReview {
+    number: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitHubRelease {
+    id: u64,
 }
 
 fn github_repository(response: &Response) -> VcsResult<GitHubRepository> {

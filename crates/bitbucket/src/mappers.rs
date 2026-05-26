@@ -1,13 +1,16 @@
 use serde::Deserialize;
 use vcs_provider_core::{
-    Branch, Commit, LifecycleState, Page, Repo, Repository, RepositoryResponseMapper, Response,
-    VcsError, VcsResult, Visibility, error, repo,
+    Branch, CodeReview, CodeReviewId, CodeReviewResponseMapper, Commit, LifecycleState, Page, Repo,
+    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, repo,
 };
 
 use crate::PROVIDER_ID;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct BitbucketRepositoryMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct BitbucketCodeReviewMapper;
 
 impl RepositoryResponseMapper for BitbucketRepositoryMapper {
     fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository> {
@@ -60,6 +63,44 @@ impl RepositoryResponseMapper for BitbucketRepositoryMapper {
     }
 }
 
+impl CodeReviewResponseMapper for BitbucketCodeReviewMapper {
+    fn code_review(
+        &self,
+        requested_code_review: &CodeReview,
+        response: &Response,
+    ) -> VcsResult<CodeReview> {
+        let code_review =
+            parse_body::<BitbucketCodeReview>(response, "invalid bitbucket code review response")?;
+
+        Ok(CodeReview::make(
+            requested_code_review.repo().clone(),
+            CodeReviewId::make(code_review.id.to_string()),
+        ))
+    }
+
+    fn code_reviews(
+        &self,
+        requested_repo: &Repo,
+        response: &Response,
+    ) -> VcsResult<Page<CodeReview>> {
+        let code_reviews = parse_body::<BitbucketPage<BitbucketCodeReview>>(
+            response,
+            "invalid bitbucket code review list response",
+        )?
+        .values
+        .into_iter()
+        .map(|code_review| {
+            CodeReview::make(
+                requested_repo.clone(),
+                CodeReviewId::make(code_review.id.to_string()),
+            )
+        })
+        .collect();
+
+        Ok(Page::make(code_reviews))
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct BitbucketPage<T> {
     values: Vec<T>,
@@ -85,6 +126,11 @@ struct BitbucketBranch {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct BitbucketCommit {
     hash: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct BitbucketCodeReview {
+    id: u64,
 }
 
 fn bitbucket_repository(response: &Response) -> VcsResult<BitbucketRepository> {

@@ -29,10 +29,12 @@ pub use auth::{
 };
 pub use code_reviews::{
     CodeReview, CodeReviewBuilder, CodeReviewDraft, CodeReviewDraftBuilder, CodeReviewId,
-    CodeReviewListQuery, CodeReviewPatch, CodeReviewPatchBuilder, CodeReviewQueryBuilder,
-    CodeReviews, MissingCodeReviewDraftRepo, MissingCodeReviewId, MissingCodeReviewRepo,
-    MissingCodeReviewTitle, ProvidedCodeReviewDraftRepo, ProvidedCodeReviewId,
-    ProvidedCodeReviewRepo, ProvidedCodeReviewTitle, TransportNotConfiguredCodeReviews,
+    CodeReviewListOperation, CodeReviewListPaginationOperation, CodeReviewListQuery,
+    CodeReviewPatch, CodeReviewPatchBuilder, CodeReviewQueryBuilder, CodeReviewResponseMapper,
+    CodeReviews, CodeReviewsFluent, MissingCodeReviewDraftRepo, MissingCodeReviewId,
+    MissingCodeReviewRepo, MissingCodeReviewTitle, ProvidedCodeReviewDraftRepo,
+    ProvidedCodeReviewId, ProvidedCodeReviewRepo, ProvidedCodeReviewTitle,
+    ScopedCodeReviewOperation, TransportBackedCodeReviews, TransportNotConfiguredCodeReviews,
 };
 pub(crate) use errors::transport_not_configured;
 pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
@@ -43,10 +45,11 @@ pub use helpers::{
 };
 pub use http::{HttpBuilder, HttpTransport, HttpTransportBuilder};
 pub use issues::{
-    Issue, IssueBuilder, IssueDraft, IssueDraftBuilder, IssueId, IssueListQuery, IssuePatch,
-    IssuePatchBuilder, IssueQueryBuilder, Issues, MissingIssueId, MissingIssueRepo,
-    MissingIssueTitle, ProvidedIssueId, ProvidedIssueRepo, ProvidedIssueTitle,
-    TransportNotConfiguredIssues,
+    Issue, IssueBuilder, IssueDraft, IssueDraftBuilder, IssueId, IssueListOperation,
+    IssueListPaginationOperation, IssueListQuery, IssuePatch, IssuePatchBuilder, IssueQueryBuilder,
+    IssueResponseMapper, Issues, IssuesFluent, MissingIssueId, MissingIssueRepo, MissingIssueTitle,
+    ProvidedIssueId, ProvidedIssueRepo, ProvidedIssueTitle, ScopedIssueOperation,
+    TransportBackedIssues, TransportNotConfiguredIssues,
 };
 pub use manager::{
     ManagedCodeReview, ManagedCodeReviewBuilder, ManagedCodeReviewCollection,
@@ -80,8 +83,10 @@ pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use releases::{
     MissingReleaseId, MissingReleaseRepo, MissingReleaseTag, ProvidedReleaseId,
     ProvidedReleaseRepo, ProvidedReleaseTag, Release, ReleaseBuilder, ReleaseDraft,
-    ReleaseDraftBuilder, ReleaseId, ReleaseListQuery, ReleasePatch, ReleasePatchBuilder,
-    ReleaseQueryBuilder, Releases, TransportNotConfiguredReleases,
+    ReleaseDraftBuilder, ReleaseId, ReleaseListOperation, ReleaseListPaginationOperation,
+    ReleaseListQuery, ReleasePatch, ReleasePatchBuilder, ReleaseQueryBuilder,
+    ReleaseResponseMapper, Releases, ReleasesFluent, ScopedReleaseOperation,
+    TransportBackedReleases, TransportNotConfiguredReleases,
 };
 pub use repos::{
     BoxFuture, Branch, Commit, LifecycleState, MissingLifecycleState, MissingOwnerName,

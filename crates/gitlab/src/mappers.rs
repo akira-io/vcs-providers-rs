@@ -1,13 +1,23 @@
 use serde::Deserialize;
 use vcs_provider_core::{
-    Branch, Commit, LifecycleState, Page, Repo, Repository, RepositoryResponseMapper, Response,
-    VcsError, VcsResult, Visibility, error, repo,
+    Branch, CodeReview, CodeReviewId, CodeReviewResponseMapper, Commit, Issue, IssueId,
+    IssueResponseMapper, LifecycleState, Page, Release, ReleaseId, ReleaseResponseMapper, Repo,
+    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, repo,
 };
 
 use crate::PROVIDER_ID;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct GitLabRepositoryMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabIssueMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabCodeReviewMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabReleaseMapper;
 
 impl RepositoryResponseMapper for GitLabRepositoryMapper {
     fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository> {
@@ -51,6 +61,89 @@ impl RepositoryResponseMapper for GitLabRepositoryMapper {
     }
 }
 
+impl IssueResponseMapper for GitLabIssueMapper {
+    fn issue(&self, requested_issue: &Issue, response: &Response) -> VcsResult<Issue> {
+        let issue = parse_body::<GitLabIssue>(response, "invalid gitlab issue response")?;
+
+        Ok(Issue::make(
+            requested_issue.repo().clone(),
+            IssueId::make(issue.iid.to_string()),
+        ))
+    }
+
+    fn issues(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Issue>> {
+        let issues =
+            parse_body::<Vec<GitLabIssue>>(response, "invalid gitlab issue list response")?
+                .into_iter()
+                .map(|issue| {
+                    Issue::make(requested_repo.clone(), IssueId::make(issue.iid.to_string()))
+                })
+                .collect();
+
+        Ok(Page::make(issues))
+    }
+}
+
+impl CodeReviewResponseMapper for GitLabCodeReviewMapper {
+    fn code_review(
+        &self,
+        requested_code_review: &CodeReview,
+        response: &Response,
+    ) -> VcsResult<CodeReview> {
+        let code_review =
+            parse_body::<GitLabCodeReview>(response, "invalid gitlab code review response")?;
+
+        Ok(CodeReview::make(
+            requested_code_review.repo().clone(),
+            CodeReviewId::make(code_review.iid.to_string()),
+        ))
+    }
+
+    fn code_reviews(
+        &self,
+        requested_repo: &Repo,
+        response: &Response,
+    ) -> VcsResult<Page<CodeReview>> {
+        let code_reviews = parse_body::<Vec<GitLabCodeReview>>(
+            response,
+            "invalid gitlab code review list response",
+        )?
+        .into_iter()
+        .map(|code_review| {
+            CodeReview::make(
+                requested_repo.clone(),
+                CodeReviewId::make(code_review.iid.to_string()),
+            )
+        })
+        .collect();
+
+        Ok(Page::make(code_reviews))
+    }
+}
+
+impl ReleaseResponseMapper for GitLabReleaseMapper {
+    fn release(&self, requested_release: &Release, response: &Response) -> VcsResult<Release> {
+        let release = parse_body::<GitLabRelease>(response, "invalid gitlab release response")?;
+
+        Ok(Release::make(
+            requested_release.repo().clone(),
+            ReleaseId::make(release.tag_name),
+        ))
+    }
+
+    fn releases(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Release>> {
+        let releases =
+            parse_body::<Vec<GitLabRelease>>(response, "invalid gitlab release list response")?
+                .into_iter()
+                .map(|release| {
+                    Release::make(requested_repo.clone(), ReleaseId::make(release.tag_name))
+                })
+                .collect();
+
+        Ok(Page::make(releases))
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitLabRepository {
     path_with_namespace: Option<String>,
@@ -72,6 +165,21 @@ struct GitLabBranch {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitLabCommit {
     id: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitLabIssue {
+    iid: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitLabCodeReview {
+    iid: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitLabRelease {
+    tag_name: String,
 }
 
 fn gitlab_repository(response: &Response) -> VcsResult<GitLabRepository> {
