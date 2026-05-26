@@ -21,11 +21,19 @@ fn check_repos(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_transport_not_configured(
         "repo list",
-        futures::executor::block_on(repos.list(repo().query().list(None))),
+        futures::executor::block_on(repos.list(repo().query().optional_pagination(None).list())),
     )?;
     assert_transport_not_configured(
         "repo search",
-        futures::executor::block_on(repos.search(repo().query().search("vcs", None))),
+        futures::executor::block_on(
+            repos.search(
+                repo()
+                    .query()
+                    .search("vcs")
+                    .optional_pagination(None)
+                    .search(),
+            ),
+        ),
     )?;
     assert_transport_not_configured(
         "repo create",
@@ -76,7 +84,9 @@ fn check_issues(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_transport_not_configured(
         "issue list",
-        futures::executor::block_on(issues.list(issue().query().list(repo_location.clone(), None))),
+        futures::executor::block_on(
+            issues.list(issue().query().location(repo_location.clone()).list()),
+        ),
     )?;
     assert_transport_not_configured(
         "issue create",
@@ -126,7 +136,7 @@ fn check_code_reviews(provider: &impl Provider) -> VcsResult<()> {
     assert_transport_not_configured(
         "code review list",
         futures::executor::block_on(
-            code_reviews.list(code_review().query().list(repo_location.clone(), None)),
+            code_reviews.list(code_review().query().location(repo_location.clone()).list()),
         ),
     )?;
     assert_transport_not_configured(
@@ -172,7 +182,9 @@ fn check_pipelines(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_transport_not_configured(
         "pipeline list",
-        futures::executor::block_on(pipelines.list(pipeline().query().list(repo_location, None))),
+        futures::executor::block_on(
+            pipelines.list(pipeline().query().location(repo_location).list()),
+        ),
     )?;
     assert_transport_not_configured(
         "pipeline rerun",
@@ -196,7 +208,7 @@ fn check_releases(provider: &impl Provider) -> VcsResult<()> {
     assert_transport_not_configured(
         "release list",
         futures::executor::block_on(
-            releases.list(release().query().list(repo_location.clone(), None)),
+            releases.list(release().query().location(repo_location.clone()).list()),
         ),
     )?;
     assert_transport_not_configured(

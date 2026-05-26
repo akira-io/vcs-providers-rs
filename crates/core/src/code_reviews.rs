@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configured};
+use crate::{BoxFuture, Page, Repo, VcsResult, transport_not_configured};
 
 #[path = "code_reviews/drafts.rs"]
 mod drafts;
@@ -10,6 +10,8 @@ mod list;
 mod operations;
 #[path = "code_reviews/patches.rs"]
 mod patches;
+#[path = "code_reviews/queries.rs"]
+mod queries;
 #[path = "code_reviews/scoped.rs"]
 mod scoped;
 #[path = "code_reviews/transport.rs"]
@@ -26,6 +28,8 @@ pub use operations::{
     CodeReviewUpdateOperation, CodeReviewsFluent,
 };
 pub use patches::CodeReviewPatchBuilder;
+#[allow(unused_imports)]
+pub use queries::{CodeReviewListQuery, CodeReviewListQueryBuilder, CodeReviewQueryBuilder};
 pub use scoped::ScopedCodeReviewOperation;
 pub use transport::{CodeReviewResponseMapper, TransportBackedCodeReviews};
 
@@ -138,31 +142,6 @@ impl CodeReviewBuilder<ProvidedCodeReviewRepo, ProvidedCodeReviewId> {
 impl CodeReviewBuilder<MissingCodeReviewRepo, MissingCodeReviewId> {
     pub fn query(self) -> CodeReviewQueryBuilder {
         CodeReviewQueryBuilder
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct CodeReviewQueryBuilder;
-
-impl CodeReviewQueryBuilder {
-    pub fn list(self, repo: Repo, page: Option<PageRequest>) -> CodeReviewListQuery {
-        CodeReviewListQuery { repo, page }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct CodeReviewListQuery {
-    repo: Repo,
-    page: Option<PageRequest>,
-}
-
-impl CodeReviewListQuery {
-    pub fn repo(&self) -> &Repo {
-        &self.repo
-    }
-
-    pub fn page(&self) -> Option<&PageRequest> {
-        self.page.as_ref()
     }
 }
 

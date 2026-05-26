@@ -82,7 +82,7 @@ impl ReleaseCreateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Release>> {
+    pub fn create(self) -> BoxFuture<'static, VcsResult<Release>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -137,7 +137,7 @@ impl ReleaseUpdateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Release>> {
+    pub fn update(self) -> BoxFuture<'static, VcsResult<Release>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -181,7 +181,7 @@ impl ReleaseDeleteOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<()>> {
+    pub fn delete(self) -> BoxFuture<'static, VcsResult<()>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };

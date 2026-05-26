@@ -17,7 +17,7 @@ fn bitbucket_pipeline_list_targets_pipelines_endpoint() {
         .limit(50)
         .cursor("2")
         .build();
-    let query = pipeline().query().list(repo, Some(page));
+    let query = pipeline().query().location(repo).pagination(page).list();
 
     assert_eq!(
         BitbucketPipelineCollection::default().list(&query).value(),

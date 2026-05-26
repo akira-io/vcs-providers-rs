@@ -54,7 +54,7 @@ fn bitbucket_repo_list_targets_collection_endpoint() {
     let page = bitbucket().pagination().request().limit(25).build();
     let repo = bitbucket().repo();
     let collection = repo.collection();
-    let list_query = repo.query().list(Some(page.clone()));
+    let list_query = repo.query().pagination(page.clone()).list();
 
     assert_eq!(
         collection.list(&list_query).value(),
@@ -67,7 +67,11 @@ fn bitbucket_repo_search_targets_collection_endpoint() {
     let page = bitbucket().pagination().request().limit(25).build();
     let repo = bitbucket().repo();
     let collection = repo.collection();
-    let search_query = repo.query().search("vcs provider", Some(page));
+    let search_query = repo
+        .query()
+        .search("vcs provider")
+        .pagination(page)
+        .search();
 
     assert_eq!(
         collection.search(&search_query).value(),

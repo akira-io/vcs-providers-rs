@@ -73,7 +73,7 @@ impl ScopedCodeReviewOperation {
 
     pub fn list(self) -> BoxFuture<'static, VcsResult<Page<CodeReview>>> {
         let code_reviews = self.code_reviews;
-        let query = code_review().query().list(self.repo, None);
+        let query = code_review().query().location(self.repo).list();
 
         Box::pin(async move { CodeReviews::list(&*code_reviews, query).await })
     }

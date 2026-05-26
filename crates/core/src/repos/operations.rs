@@ -54,7 +54,7 @@ impl RepoCreateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Repository>> {
+    pub fn create(self) -> BoxFuture<'static, VcsResult<Repository>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(crate::error().invalid_input("repository is required")) });
         };
@@ -99,7 +99,7 @@ impl RepoUpdateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Repository>> {
+    pub fn update(self) -> BoxFuture<'static, VcsResult<Repository>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(crate::error().invalid_input("repository is required")) });
         };

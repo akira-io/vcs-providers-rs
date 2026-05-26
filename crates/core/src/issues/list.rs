@@ -30,13 +30,17 @@ impl IssueListOperation {
         }
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Page<Issue>>> {
+    pub fn list(self) -> BoxFuture<'static, VcsResult<Page<Issue>>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
 
         let issues = self.issues;
-        let query = issue().query().list(repo, self.page);
+        let query = issue()
+            .query()
+            .location(repo)
+            .optional_pagination(self.page)
+            .list();
 
         Box::pin(async move { Issues::list(&*issues, query).await })
     }

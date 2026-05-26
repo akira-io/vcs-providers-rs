@@ -100,7 +100,7 @@ impl CodeReviewCreateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn create(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -170,7 +170,7 @@ impl CodeReviewUpdateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn update(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -218,7 +218,7 @@ impl CodeReviewMergeOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn merge(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -251,7 +251,7 @@ impl CodeReviewCloseOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn close(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };

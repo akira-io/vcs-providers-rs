@@ -96,7 +96,7 @@ let created = gitlab()
     .create()
     .location(location.clone())
     .visibility(vcs_provider_core::Visibility::Private)
-    .send()
+    .create()
     .await?;
 
 gitlab().client(transport).repos().delete(location).await?;

@@ -145,7 +145,10 @@ where
     }
 
     fn query(&self) -> PipelineListQuery {
-        PipelineQueryBuilder.list(self.repo.clone(), self.page.clone())
+        PipelineQueryBuilder
+            .location(self.repo.clone())
+            .optional_pagination(self.page.clone())
+            .list()
     }
 }
 

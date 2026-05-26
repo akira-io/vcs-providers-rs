@@ -7,15 +7,58 @@ pub struct RepoQueryBuilder;
 
 impl RepoQueryBuilder {
     pub fn list(self, page: Option<PageRequest>) -> RepositoryListQuery {
-        RepositoryListQuery::make(page)
+        self.optional_pagination(page).list()
     }
 
-    pub fn search(
-        self,
-        text: impl Into<String>,
-        page: Option<PageRequest>,
-    ) -> RepositorySearchQuery {
-        RepositorySearchQuery::make(text, page)
+    pub fn pagination(self, page: PageRequest) -> RepositoryListQueryBuilder {
+        RepositoryListQueryBuilder { page: Some(page) }
+    }
+
+    pub fn optional_pagination(self, page: Option<PageRequest>) -> RepositoryListQueryBuilder {
+        RepositoryListQueryBuilder { page }
+    }
+
+    pub fn search(self, text: impl Into<String>) -> RepositorySearchQueryBuilder {
+        RepositorySearchQueryBuilder {
+            text: text.into(),
+            page: None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct RepositoryListQueryBuilder {
+    page: Option<PageRequest>,
+}
+
+impl RepositoryListQueryBuilder {
+    pub fn list(self) -> RepositoryListQuery {
+        RepositoryListQuery { page: self.page }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RepositorySearchQueryBuilder {
+    text: String,
+    page: Option<PageRequest>,
+}
+
+impl RepositorySearchQueryBuilder {
+    pub fn pagination(mut self, page: PageRequest) -> Self {
+        self.page = Some(page);
+        self
+    }
+
+    pub fn optional_pagination(mut self, page: Option<PageRequest>) -> Self {
+        self.page = page;
+        self
+    }
+
+    pub fn search(self) -> RepositorySearchQuery {
+        RepositorySearchQuery {
+            text: self.text,
+            page: self.page,
+        }
     }
 }
 
@@ -25,10 +68,6 @@ pub struct RepositoryListQuery {
 }
 
 impl RepositoryListQuery {
-    pub fn make(page: Option<PageRequest>) -> Self {
-        Self { page }
-    }
-
     pub fn page(&self) -> Option<&PageRequest> {
         self.page.as_ref()
     }
@@ -41,15 +80,8 @@ pub struct RepositorySearchQuery {
 }
 
 impl RepositorySearchQuery {
-    pub fn make(text: impl Into<String>, page: Option<PageRequest>) -> Self {
-        Self {
-            text: text.into(),
-            page,
-        }
-    }
-
     pub fn with_page(text: impl Into<String>, page: PageRequest) -> Self {
-        Self::make(text, Some(page))
+        RepoQueryBuilder.search(text).pagination(page).search()
     }
 
     pub fn text(&self) -> &str {

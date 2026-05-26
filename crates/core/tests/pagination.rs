@@ -34,8 +34,12 @@ fn pagination_page_carries_items_and_next_cursor() {
 #[test]
 fn repository_queries_accept_pagination_request() {
     let page_request = pagination().request().limit(50).build();
-    let list_query = repo().query().list(Some(page_request.clone()));
-    let search_query = repo().query().search("vcs", Some(page_request));
+    let list_query = repo().query().pagination(page_request.clone()).list();
+    let search_query = repo()
+        .query()
+        .search("vcs")
+        .pagination(page_request)
+        .search();
 
     assert_eq!(
         list_query

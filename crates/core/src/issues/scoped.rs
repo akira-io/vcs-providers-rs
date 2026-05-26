@@ -61,7 +61,7 @@ impl ScopedIssueOperation {
 
     pub fn list(self) -> BoxFuture<'static, VcsResult<Page<Issue>>> {
         let issues = self.issues;
-        let query = issue().query().list(self.repo, None);
+        let query = issue().query().location(self.repo).list();
 
         Box::pin(async move { Issues::list(&*issues, query).await })
     }

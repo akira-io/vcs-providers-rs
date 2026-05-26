@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configured};
+use crate::{BoxFuture, Page, Repo, VcsResult, transport_not_configured};
 
 #[path = "issues/drafts.rs"]
 mod drafts;
@@ -10,6 +10,8 @@ mod list;
 mod operations;
 #[path = "issues/patches.rs"]
 mod patches;
+#[path = "issues/queries.rs"]
+mod queries;
 #[path = "issues/scoped.rs"]
 mod scoped;
 #[path = "issues/transport.rs"]
@@ -22,6 +24,8 @@ pub use operations::{
     IssueCloseOperation, IssueCreateOperation, IssueUpdateOperation, IssuesFluent,
 };
 pub use patches::IssuePatchBuilder;
+#[allow(unused_imports)]
+pub use queries::{IssueListQuery, IssueListQueryBuilder, IssueQueryBuilder};
 pub use scoped::ScopedIssueOperation;
 pub use transport::{IssueResponseMapper, TransportBackedIssues};
 
@@ -178,34 +182,6 @@ impl IssueBuilder<MissingIssueRepo, MissingIssueId> {
             title: MissingIssueTitle,
             body: None,
         }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct IssueQueryBuilder;
-
-impl IssueQueryBuilder {
-    pub fn list(self, repo: impl Into<Repo>, page: Option<PageRequest>) -> IssueListQuery {
-        IssueListQuery {
-            repo: repo.into(),
-            page,
-        }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct IssueListQuery {
-    repo: Repo,
-    page: Option<PageRequest>,
-}
-
-impl IssueListQuery {
-    pub fn repo(&self) -> &Repo {
-        &self.repo
-    }
-
-    pub fn page(&self) -> Option<&PageRequest> {
-        self.page.as_ref()
     }
 }
 

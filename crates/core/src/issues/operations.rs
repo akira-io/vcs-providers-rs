@@ -76,7 +76,7 @@ impl IssueCreateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn create(self) -> BoxFuture<'static, VcsResult<Issue>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -138,7 +138,7 @@ impl IssueUpdateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn update(self) -> BoxFuture<'static, VcsResult<Issue>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -186,7 +186,7 @@ impl IssueCloseOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn close(self) -> BoxFuture<'static, VcsResult<Issue>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };

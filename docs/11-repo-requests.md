@@ -18,7 +18,11 @@ Collections use the provider repository namespace without a specific repository:
 
 ```rust
 let repo = github().repo();
-let query = repo.query().search("vcs provider", None);
+let query = repo
+    .query()
+    .search("vcs provider")
+    .optional_pagination(None)
+    .search();
 let url = repo.collection().search(&query);
 ```
 
