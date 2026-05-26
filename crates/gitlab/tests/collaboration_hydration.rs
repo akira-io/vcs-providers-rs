@@ -54,6 +54,14 @@ fn gitlab_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> 
             .close()
             .await?;
 
+        gitlab()
+            .issues()
+            .response_body("{}")
+            .location(repository_location())
+            .id("42")
+            .delete()
+            .await?;
+
         assert_eq!(created_issue.id().as_str(), "42");
         assert_eq!(updated_issue.id().as_str(), "42");
         assert_eq!(closed_issue.id().as_str(), "42");
@@ -120,6 +128,14 @@ fn gitlab_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
             .location(repository_location())
             .id("42")
             .close()
+            .await?;
+
+        gitlab()
+            .code_reviews()
+            .response_body("{}")
+            .location(repository_location())
+            .id("42")
+            .delete()
             .await?;
 
         assert_eq!(created_code_review.id().as_str(), "42");

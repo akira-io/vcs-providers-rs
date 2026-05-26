@@ -1,5 +1,5 @@
 use vcs_provider_core::{
-    CodeReviewsFluent, IssuesFluent, ReleasesFluent, Repo, repo, run_async_test,
+    CodeReviewsFluent, IssuesFluent, ReleasesFluent, Repo, VcsError, repo, run_async_test,
 };
 use vcs_provider_github::github;
 
@@ -57,6 +57,26 @@ fn github_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> 
         assert_eq!(created_issue.id().as_str(), "42");
         assert_eq!(updated_issue.id().as_str(), "42");
         assert_eq!(closed_issue.id().as_str(), "42");
+
+        Ok(())
+    })
+}
+
+#[test]
+fn github_client_reports_unsupported_issue_delete() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let result = github()
+            .issues()
+            .response_body("{}")
+            .location(repository_location())
+            .id("42")
+            .delete()
+            .await;
+
+        assert_eq!(
+            result,
+            Err(VcsError::UnsupportedOperation("issue delete".into()))
+        );
 
         Ok(())
     })
@@ -126,6 +146,26 @@ fn github_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
         assert_eq!(updated_code_review.id().as_str(), "42");
         assert_eq!(merged_code_review.id().as_str(), "42");
         assert_eq!(closed_code_review.id().as_str(), "42");
+
+        Ok(())
+    })
+}
+
+#[test]
+fn github_client_reports_unsupported_code_review_delete() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let result = github()
+            .code_reviews()
+            .response_body("{}")
+            .location(repository_location())
+            .id("42")
+            .delete()
+            .await;
+
+        assert_eq!(
+            result,
+            Err(VcsError::UnsupportedOperation("code review delete".into()))
+        );
 
         Ok(())
     })

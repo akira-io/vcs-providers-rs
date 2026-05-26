@@ -21,7 +21,8 @@ pub use drafts::{IssueDraftBuilder, MissingIssueTitle, ProvidedIssueTitle};
 pub use list::{IssueListOperation, IssueListPaginationOperation};
 #[allow(unused_imports)]
 pub use operations::{
-    IssueCloseOperation, IssueCreateOperation, IssueUpdateOperation, IssuesFluent,
+    IssueCloseOperation, IssueCreateOperation, IssueDeleteOperation, IssueUpdateOperation,
+    IssuesFluent,
 };
 pub use patches::IssuePatchBuilder;
 #[allow(unused_imports)]
@@ -195,6 +196,8 @@ pub trait Issues: Send + Sync {
     fn update(&self, patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>>;
 
     fn close(&self, patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>>;
+
+    fn delete(&self, issue: Issue) -> BoxFuture<'_, VcsResult<()>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -218,6 +221,10 @@ impl Issues for TransportNotConfiguredIssues {
     }
 
     fn close(&self, _patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>> {
+        transport_not_configured()
+    }
+
+    fn delete(&self, _issue: Issue) -> BoxFuture<'_, VcsResult<()>> {
         transport_not_configured()
     }
 }

@@ -100,9 +100,9 @@ advertise `Capability::Issues` and does not implement `ManagedIssueProvider`. Ji
 tracking should be modeled as a separate extension instead of leaking Jira behavior into the
 provider-neutral issue contract.
 
-## Create, Update, Close
+## Create, Update, Close, Delete
 
-Create, update, and close requests should stay fluent at the call site:
+Create, update, close and delete requests should stay fluent at the call site:
 
 ```rust
 let repo = github()
@@ -133,7 +133,27 @@ let close_request = github()
     .id("42")
     .closed()
     .close();
+
+let delete_request = gitlab()
+    .issue()
+    .repo(repo)
+    .id("42")
+    .delete()?;
 ```
+
+The async client follows the same terminal action names:
+
+```rust
+gitlab()
+    .transport(transport)
+    .issues()
+    .location(repo)
+    .id("42")
+    .delete()
+    .await?;
+```
+
+GitHub issues do not expose a universal delete endpoint. Use `close` for GitHub issue lifecycle changes. Calling async `delete` on GitHub returns `VcsError::UnsupportedOperation`.
 
 Provider support:
 

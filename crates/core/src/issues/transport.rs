@@ -117,4 +117,13 @@ where
             self.mapper.issue(patch.issue(), &response)
         })
     }
+
+    fn delete(&self, issue: Issue) -> BoxFuture<'_, VcsResult<()>> {
+        Box::pin(async move {
+            let request = self.driver.issue_delete_request(&issue)?;
+            self.send_request(request).await?;
+
+            Ok(())
+        })
+    }
 }

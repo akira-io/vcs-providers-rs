@@ -1,3 +1,4 @@
+use super::delete::CodeReviewDeleteOperation;
 use crate::{
     BoxFuture, CodeReview, CodeReviewDraft, CodeReviewId, CodeReviewListOperation,
     CodeReviewPatchBuilder, CodeReviews, Repo, ScopedCodeReviewOperation, VcsResult, error,
@@ -15,6 +16,8 @@ pub trait CodeReviewsFluent {
     fn merge(self) -> CodeReviewMergeOperation;
 
     fn close(self) -> CodeReviewCloseOperation;
+
+    fn delete(self) -> CodeReviewDeleteOperation;
 }
 
 impl CodeReviewsFluent for Box<dyn CodeReviews> {
@@ -62,6 +65,10 @@ impl CodeReviewsFluent for Box<dyn CodeReviews> {
             repo: None,
             id: None,
         }
+    }
+
+    fn delete(self) -> CodeReviewDeleteOperation {
+        CodeReviewDeleteOperation::make(self)
     }
 }
 

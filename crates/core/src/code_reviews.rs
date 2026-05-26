@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{BoxFuture, Page, Repo, VcsResult, transport_not_configured};
 
+#[path = "code_reviews/delete.rs"]
+mod delete;
 #[path = "code_reviews/drafts.rs"]
 mod drafts;
 #[path = "code_reviews/list.rs"]
@@ -17,6 +19,8 @@ mod scoped;
 #[path = "code_reviews/transport.rs"]
 mod transport;
 
+#[allow(unused_imports)]
+pub use delete::CodeReviewDeleteOperation;
 pub use drafts::{
     CodeReviewDraftBuilder, MissingCodeReviewDraftRepo, MissingCodeReviewTitle,
     ProvidedCodeReviewDraftRepo, ProvidedCodeReviewTitle,
@@ -234,6 +238,8 @@ pub trait CodeReviews: Send + Sync {
     fn merge(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>>;
 
     fn close(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>>;
+
+    fn delete(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<()>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -261,6 +267,10 @@ impl CodeReviews for TransportNotConfiguredCodeReviews {
     }
 
     fn close(&self, _code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>> {
+        transport_not_configured()
+    }
+
+    fn delete(&self, _code_review: CodeReview) -> BoxFuture<'_, VcsResult<()>> {
         transport_not_configured()
     }
 }

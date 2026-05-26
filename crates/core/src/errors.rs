@@ -11,6 +11,7 @@ pub enum VcsError {
     RateLimited,
     ProviderUnavailable,
     TransportNotConfigured,
+    UnsupportedOperation(String),
     ProviderAlreadyRegistered(String),
     ProviderNotRegistered(String),
     InvalidInput(String),
@@ -26,6 +27,7 @@ impl VcsError {
             Self::RateLimited => ErrorKind::RateLimited,
             Self::ProviderUnavailable => ErrorKind::ProviderUnavailable,
             Self::TransportNotConfigured => ErrorKind::TransportNotConfigured,
+            Self::UnsupportedOperation(_) => ErrorKind::UnsupportedOperation,
             Self::ProviderAlreadyRegistered(_) => ErrorKind::ProviderAlreadyRegistered,
             Self::ProviderNotRegistered(_) => ErrorKind::ProviderNotRegistered,
             Self::InvalidInput(_) => ErrorKind::InvalidInput,
@@ -48,6 +50,7 @@ pub enum ErrorKind {
     RateLimited,
     ProviderUnavailable,
     TransportNotConfigured,
+    UnsupportedOperation,
     ProviderAlreadyRegistered,
     ProviderNotRegistered,
     InvalidInput,
@@ -76,6 +79,10 @@ impl ErrorBuilder {
 
     pub fn invalid_input(self, message: impl Into<String>) -> VcsError {
         VcsError::InvalidInput(message.into())
+    }
+
+    pub fn unsupported_operation(self, operation: impl Into<String>) -> VcsError {
+        VcsError::UnsupportedOperation(operation.into())
     }
 
     pub fn provider_already_registered(self, provider: impl Into<String>) -> VcsError {

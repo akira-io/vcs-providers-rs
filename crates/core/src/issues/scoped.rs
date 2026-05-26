@@ -119,6 +119,17 @@ impl ScopedIssueOperation {
 
         Box::pin(async move { Issues::close(&*issues, patch).await })
     }
+
+    pub fn delete(self) -> BoxFuture<'static, VcsResult<()>> {
+        let Some(id) = self.id else {
+            return Box::pin(async { Err(error().invalid_input("issue id is required")) });
+        };
+
+        let issues = self.issues;
+        let issue = Issue::make(self.repo, IssueId::make(id));
+
+        Box::pin(async move { Issues::delete(&*issues, issue).await })
+    }
 }
 
 fn apply_issue_closed_state(patch: IssuePatchBuilder, closed: bool) -> IssuePatchBuilder {

@@ -144,10 +144,10 @@ pub trait ManagedIssueProvider: ManagedProvider {
     fn issue_close_request(&self, patch: &IssuePatch) -> crate::Request {
         self.issue_update_request(patch)
     }
-}
 
-pub trait ManagedIssueDeleteProvider: ManagedIssueProvider {
-    fn issue_delete_request(&self, issue: &Issue) -> crate::Request;
+    fn issue_delete_request(&self, _issue: &Issue) -> crate::VcsResult<crate::Request> {
+        Err(crate::error().unsupported_operation("issue delete"))
+    }
 }
 
 pub trait ManagedCodeReviewProvider: ManagedProvider {
@@ -162,10 +162,13 @@ pub trait ManagedCodeReviewProvider: ManagedProvider {
     fn code_review_merge_request(&self, code_review: &CodeReview) -> crate::Request;
 
     fn code_review_close_request(&self, code_review: &CodeReview) -> crate::Request;
-}
 
-pub trait ManagedCodeReviewDeleteProvider: ManagedCodeReviewProvider {
-    fn code_review_delete_request(&self, code_review: &CodeReview) -> crate::Request;
+    fn code_review_delete_request(
+        &self,
+        _code_review: &CodeReview,
+    ) -> crate::VcsResult<crate::Request> {
+        Err(crate::error().unsupported_operation("code review delete"))
+    }
 }
 
 pub trait ManagedReleaseProvider: ManagedProvider {

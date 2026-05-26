@@ -110,15 +110,18 @@ fn gitlab_issue_close_builds_put_request() {
 }
 
 #[test]
-fn gitlab_issue_delete_builds_delete_request() {
+fn gitlab_issue_delete_builds_delete_request() -> vcs_provider_core::VcsResult<()> {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
         .name("vcs-providers-rs")
         .get();
     let issue_resource = gitlab().issue().repo(repo).id("42").get();
+    let delete_request = issue_resource.delete()?;
 
-    assert_eq!(issue_resource.delete().method(), &RequestMethod::Delete);
+    assert_eq!(delete_request.method(), &RequestMethod::Delete);
+
+    Ok(())
 }
 
 fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {

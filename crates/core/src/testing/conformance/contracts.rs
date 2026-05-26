@@ -119,6 +119,10 @@ fn check_issues(provider: &impl Provider) -> VcsResult<()> {
                     .get(),
             ),
         ),
+    )?;
+    assert_transport_not_configured(
+        "issue delete",
+        futures::executor::block_on(issues.delete(sample_issue(sample_repo_location()))),
     )
 }
 
@@ -167,7 +171,11 @@ fn check_code_reviews(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_transport_not_configured(
         "code review close",
-        futures::executor::block_on(code_reviews.close(code_review_resource)),
+        futures::executor::block_on(code_reviews.close(code_review_resource.clone())),
+    )?;
+    assert_transport_not_configured(
+        "code review delete",
+        futures::executor::block_on(code_reviews.delete(code_review_resource)),
     )
 }
 
