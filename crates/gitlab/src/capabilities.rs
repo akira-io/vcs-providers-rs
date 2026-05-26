@@ -23,6 +23,7 @@ pub fn gitlab_capabilities() -> CapabilitySet {
         Capability::CodeReviewList,
         Capability::CodeReviewCreate,
         Capability::CodeReviewUpdate,
+        Capability::CodeReviewMerge,
         Capability::CodeReviewClose,
         Capability::CodeReviewDelete,
         Capability::Pipelines,

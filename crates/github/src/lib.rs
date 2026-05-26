@@ -178,6 +178,13 @@ impl ManagedCodeReviewProvider for GitHubProvider {
         GitHubCodeReview::make(DEFAULT_BASE_URL, patch.code_review().clone()).update(patch)
     }
 
+    fn code_review_merge_request(
+        &self,
+        code_review: &vcs_provider_core::CodeReview,
+    ) -> vcs_provider_core::Request {
+        GitHubCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).merge()
+    }
+
     fn code_review_close_request(
         &self,
         code_review: &vcs_provider_core::CodeReview,

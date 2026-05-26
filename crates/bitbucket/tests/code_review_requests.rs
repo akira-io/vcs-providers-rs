@@ -66,6 +66,17 @@ fn bitbucket_code_review_update_builds_put_request() {
 }
 
 #[test]
+fn bitbucket_code_review_merge_builds_post_request() {
+    let merge_request = code_review_resource().merge();
+
+    assert_eq!(merge_request.method(), &RequestMethod::Post);
+    assert_eq!(
+        merge_request.url().as_str(),
+        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/pullrequests/42/merge"
+    );
+}
+
+#[test]
 fn bitbucket_code_review_close_builds_decline_request() {
     assert_eq!(
         code_review_resource().close().method(),

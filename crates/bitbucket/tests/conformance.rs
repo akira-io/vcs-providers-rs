@@ -22,6 +22,7 @@ fn bitbucket_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::CodeReviewList,
             Capability::CodeReviewCreate,
             Capability::CodeReviewUpdate,
+            Capability::CodeReviewMerge,
             Capability::CodeReviewClose,
             Capability::Pipelines,
             Capability::PipelineGet,

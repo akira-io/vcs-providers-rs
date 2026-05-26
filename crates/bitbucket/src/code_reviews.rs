@@ -38,6 +38,24 @@ impl BitbucketCodeReview {
             .build()
     }
 
+    pub fn merge(&self) -> Request {
+        request()
+            .post(
+                url(&self.base_url)
+                    .path_segments([
+                        "repositories",
+                        self.code_review.repo().owner().as_str(),
+                        self.code_review.repo().name().as_str(),
+                        "pullrequests",
+                        self.code_review.id().as_str(),
+                        "merge",
+                    ])
+                    .build()
+                    .value(),
+            )
+            .build()
+    }
+
     pub fn close(&self) -> Request {
         request()
             .post(

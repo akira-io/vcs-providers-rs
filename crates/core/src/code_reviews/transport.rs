@@ -118,7 +118,13 @@ where
     }
 
     fn merge(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>> {
-        Box::pin(async move { Ok(code_review) })
+        Box::pin(async move {
+            let response = self
+                .send_request(self.driver.code_review_merge_request(&code_review))
+                .await?;
+
+            self.mapper.code_review(&code_review, &response)
+        })
     }
 
     fn close(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>> {
