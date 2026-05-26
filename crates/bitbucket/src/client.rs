@@ -21,6 +21,9 @@ pub struct BitbucketClient {
 pub struct BitbucketPipelinesTransportBuilder;
 
 #[derive(Clone, Copy, Debug, Default)]
+pub struct BitbucketReposTransportBuilder;
+
+#[derive(Clone, Copy, Debug, Default)]
 pub struct BitbucketCodeReviewsTransportBuilder;
 
 impl BitbucketClient {
@@ -114,6 +117,10 @@ impl Provider for BitbucketClient {
 }
 
 impl BitbucketProvider {
+    pub fn repos(self) -> BitbucketReposTransportBuilder {
+        BitbucketReposTransportBuilder
+    }
+
     pub fn code_reviews(self) -> BitbucketCodeReviewsTransportBuilder {
         BitbucketCodeReviewsTransportBuilder
     }
@@ -129,9 +136,15 @@ impl BitbucketProvider {
     pub fn transport(self, transport: impl Transport + 'static) -> BitbucketClient {
         BitbucketClient::make(transport)
     }
+}
 
-    pub fn body(self, body: impl Into<String>) -> BitbucketClient {
-        BitbucketClient::make(vcs_provider_core::provider_response().body(body).get())
+impl BitbucketReposTransportBuilder {
+    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Repos> {
+        BitbucketClient::make(vcs_provider_core::provider_response().body(body).get()).repos()
+    }
+
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Repos> {
+        BitbucketClient::make(transport).repos()
     }
 }
 

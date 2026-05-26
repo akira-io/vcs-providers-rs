@@ -22,6 +22,9 @@ pub struct GitHubClient {
 pub struct GitHubPipelinesTransportBuilder;
 
 #[derive(Clone, Copy, Debug, Default)]
+pub struct GitHubReposTransportBuilder;
+
+#[derive(Clone, Copy, Debug, Default)]
 pub struct GitHubIssuesTransportBuilder;
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -139,6 +142,10 @@ impl Provider for GitHubClient {
 }
 
 impl GitHubProvider {
+    pub fn repos(self) -> GitHubReposTransportBuilder {
+        GitHubReposTransportBuilder
+    }
+
     pub fn issues(self) -> GitHubIssuesTransportBuilder {
         GitHubIssuesTransportBuilder
     }
@@ -162,9 +169,15 @@ impl GitHubProvider {
     pub fn transport(self, transport: impl Transport + 'static) -> GitHubClient {
         GitHubClient::make(transport)
     }
+}
 
-    pub fn body(self, body: impl Into<String>) -> GitHubClient {
-        GitHubClient::make(vcs_provider_core::provider_response().body(body).get())
+impl GitHubReposTransportBuilder {
+    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Repos> {
+        GitHubClient::make(vcs_provider_core::provider_response().body(body).get()).repos()
+    }
+
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Repos> {
+        GitHubClient::make(transport).repos()
     }
 }
 

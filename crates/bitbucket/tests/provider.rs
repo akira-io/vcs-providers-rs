@@ -19,7 +19,7 @@ fn bitbucket_provider_exposes_universal_contracts() {
     let provider = bitbucket();
 
     assert!(provider.capabilities().supports(&Capability::Repos));
-    drop(provider.repos());
+    drop(Provider::repos(&provider));
     drop(provider.issues());
     drop(Provider::code_reviews(&provider));
     drop(Provider::pipelines(&provider));

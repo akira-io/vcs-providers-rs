@@ -22,6 +22,9 @@ pub struct GitLabClient {
 pub struct GitLabPipelinesTransportBuilder;
 
 #[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabReposTransportBuilder;
+
+#[derive(Clone, Copy, Debug, Default)]
 pub struct GitLabIssuesTransportBuilder;
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -139,6 +142,10 @@ impl Provider for GitLabClient {
 }
 
 impl GitLabProvider {
+    pub fn repos(self) -> GitLabReposTransportBuilder {
+        GitLabReposTransportBuilder
+    }
+
     pub fn issues(self) -> GitLabIssuesTransportBuilder {
         GitLabIssuesTransportBuilder
     }
@@ -162,9 +169,15 @@ impl GitLabProvider {
     pub fn transport(self, transport: impl Transport + 'static) -> GitLabClient {
         GitLabClient::make(transport)
     }
+}
 
-    pub fn body(self, body: impl Into<String>) -> GitLabClient {
-        GitLabClient::make(vcs_provider_core::provider_response().body(body).get())
+impl GitLabReposTransportBuilder {
+    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Repos> {
+        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).repos()
+    }
+
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Repos> {
+        GitLabClient::make(transport).repos()
     }
 }
 
