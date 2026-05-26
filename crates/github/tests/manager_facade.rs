@@ -61,6 +61,38 @@ fn github_facade_builds_release_requests() {
 }
 
 #[test]
+fn github_facade_builds_pipeline_requests() -> vcs_provider_core::VcsResult<()> {
+    let pipeline = vcs(github())
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .pipeline("42")
+        .get();
+    let pipelines = vcs(github())
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .pipelines()
+        .pagination()
+        .limit(50)
+        .cursor("2")
+        .url();
+
+    assert_eq!(
+        pipeline.url().value(),
+        "https://api.github.com/repos/akira-io/vcs-providers-rs/actions/runs/42"
+    );
+    assert_eq!(
+        pipelines.value(),
+        "https://api.github.com/repos/akira-io/vcs-providers-rs/actions/runs?per_page=50&page=2"
+    );
+    assert_eq!(pipeline.rerun()?.method(), &RequestMethod::Post);
+    assert_eq!(pipeline.cancel()?.method(), &RequestMethod::Post);
+
+    Ok(())
+}
+
+#[test]
 fn github_facade_builds_mutation_requests() {
     let create_request = vcs(github())
         .repo()

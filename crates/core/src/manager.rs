@@ -1,15 +1,17 @@
 use crate::Provider;
 use crate::{
     CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, Issue, IssueDraft,
-    IssueListQuery, IssuePatch, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId,
-    MissingIssueRepo, MissingOwnerName, MissingReleaseId, MissingReleaseRepo,
-    MissingRepositoryName, PageRequest, Release, ReleaseDraft, ReleaseListQuery, ReleasePatch,
-    Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch, RepositorySearchQuery, RequestUrl,
-    code_review, issue, release, repo,
+    IssueListQuery, IssuePatch, ManagedPipelineProvider, MissingCodeReviewId,
+    MissingCodeReviewRepo, MissingIssueId, MissingIssueRepo, MissingOwnerName, MissingPipelineId,
+    MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo, MissingRepositoryName, PageRequest,
+    Release, ReleaseDraft, ReleaseListQuery, ReleasePatch, Repo, RepositoryDraft,
+    RepositoryListQuery, RepositoryPatch, RepositorySearchQuery, RequestUrl, code_review, issue,
+    pipeline, release, repo,
 };
 
 mod code_reviews;
 mod issues;
+mod pipelines;
 mod releases;
 mod repos;
 
@@ -20,6 +22,10 @@ pub use code_reviews::{
 pub use issues::{
     ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDraftBuilder,
     ManagedRepoIssues, ManagedRepoIssuesPagination,
+};
+pub use pipelines::{
+    ManagedPipeline, ManagedPipelineBuilder, ManagedPipelineCollection, ManagedRepoPipelines,
+    ManagedRepoPipelinesPagination,
 };
 pub use releases::{
     ManagedRelease, ManagedReleaseBuilder, ManagedReleaseCollection, ManagedReleaseDraftBuilder,
@@ -74,6 +80,16 @@ where
         ManagedReleaseBuilder {
             manager: self.clone(),
             release: release(),
+        }
+    }
+
+    pub fn pipeline(&self) -> ManagedPipelineBuilder<Driver, MissingPipelineRepo, MissingPipelineId>
+    where
+        Driver: ManagedPipelineProvider,
+    {
+        ManagedPipelineBuilder {
+            manager: self.clone(),
+            pipeline: pipeline(),
         }
     }
 

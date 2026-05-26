@@ -1,11 +1,13 @@
 use crate::{
     ManagedCodeReviewBuilder, ManagedCodeReviewProvider, ManagedIssueBuilder, ManagedIssueProvider,
-    ManagedProvider, ManagedReleaseBuilder, ManagedReleaseProvider, ManagedRepoCodeReviews,
-    ManagedRepoIssues, ManagedRepoReleases, MissingOwnerName, MissingRepositoryName, PageRequest,
+    ManagedPipelineBuilder, ManagedPipelineProvider, ManagedProvider, ManagedReleaseBuilder,
+    ManagedReleaseProvider, ManagedRepoCodeReviews, ManagedRepoIssues, ManagedRepoPipelines,
+    ManagedRepoReleases, MissingOwnerName, MissingRepositoryName, PageRequest,
     ProvidedCodeReviewId, ProvidedCodeReviewRepo, ProvidedIssueId, ProvidedIssueRepo,
-    ProvidedOwnerName, ProvidedReleaseId, ProvidedReleaseRepo, ProvidedRepositoryName, Repo,
-    RepoBuilder, RepositoryDraftBuilder, RepositoryListQuery, RepositoryPatch,
-    RepositorySearchQuery, RequestUrl, VcsManager, Visibility, code_review, issue, release,
+    ProvidedOwnerName, ProvidedPipelineId, ProvidedPipelineRepo, ProvidedReleaseId,
+    ProvidedReleaseRepo, ProvidedRepositoryName, Repo, RepoBuilder, RepositoryDraftBuilder,
+    RepositoryListQuery, RepositoryPatch, RepositorySearchQuery, RequestUrl, VcsManager,
+    Visibility, code_review, issue, pipeline, release,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -144,6 +146,29 @@ where
 
     pub fn releases(self) -> ManagedRepoReleases<Driver> {
         ManagedRepoReleases {
+            manager: self.manager,
+            repo: self.repo.build(),
+            page: None,
+        }
+    }
+}
+
+impl<Driver> ManagedRepoBuilder<Driver, ProvidedOwnerName, ProvidedRepositoryName>
+where
+    Driver: ManagedPipelineProvider,
+{
+    pub fn pipeline(
+        self,
+        id: impl Into<String>,
+    ) -> ManagedPipelineBuilder<Driver, ProvidedPipelineRepo, ProvidedPipelineId> {
+        ManagedPipelineBuilder {
+            manager: self.manager,
+            pipeline: pipeline().repo(self.repo.build()).id(id),
+        }
+    }
+
+    pub fn pipelines(self) -> ManagedRepoPipelines<Driver> {
+        ManagedRepoPipelines {
             manager: self.manager,
             repo: self.repo.build(),
             page: None,
