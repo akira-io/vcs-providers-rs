@@ -54,14 +54,22 @@ fn github_code_review_create_builds_post_request() {
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Post);
-    assert!(create_request.body().is_some());
+    assert_eq!(
+        request_body(&create_request),
+        Some(
+            r#"{"title":"Add mutable operations","head":"feature","base":"main","body":"Details"}"#
+        )
+    );
 }
 
 #[test]
 fn github_code_review_update_builds_patch_request() {
+    let update_request = code_review_resource().update(&code_review_patch());
+
+    assert_eq!(update_request.method(), &RequestMethod::Patch);
     assert_eq!(
-        code_review_resource().update(&code_review_patch()).method(),
-        &RequestMethod::Patch
+        request_body(&update_request),
+        Some(r#"{"title":"Add safe mutable operations","body":"Updated details"}"#)
     );
 }
 
@@ -78,10 +86,10 @@ fn github_code_review_merge_builds_put_request() {
 
 #[test]
 fn github_code_review_close_builds_patch_request() {
-    assert_eq!(
-        code_review_resource().close().method(),
-        &RequestMethod::Patch
-    );
+    let close_request = code_review_resource().close();
+
+    assert_eq!(close_request.method(), &RequestMethod::Patch);
+    assert_eq!(request_body(&close_request), Some(r#"{"state":"closed"}"#));
 }
 
 fn repository() -> vcs_provider_core::ManagedRepo<vcs_provider_github::GitHubProvider> {
@@ -99,6 +107,11 @@ fn code_review_resource()
 
 fn code_review_patch() -> vcs_provider_core::CodeReviewPatch {
     CodeReviewPatchBuilder::make(code_review_resource().code_review().clone())
-        .closed()
+        .title("Add safe mutable operations")
+        .body("Updated details")
         .get()
+}
+
+fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
+    request.body().map(vcs_provider_core::RequestBody::as_str)
 }

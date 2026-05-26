@@ -1,3 +1,4 @@
+use serde::Serialize;
 use vcs_provider_core::{
     Issue, IssueDraft, IssueListQuery, IssuePatch, PageRequest, Request, RequestBody, RequestUrl,
     RequestUrlBuilder, request, url,
@@ -115,13 +116,47 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
 }
 
 fn issue_draft_body(draft: &IssueDraft) -> RequestBody {
-    RequestBody::make(format!("{{\"title\":\"{}\"}}", draft.title()))
+    json_body(&GitLabIssueDraftBody {
+        title: draft.title(),
+        description: draft.body(),
+    })
 }
 
 fn issue_patch_body(patch: &IssuePatch) -> RequestBody {
-    match patch.closed() {
-        Some(true) => RequestBody::make("{\"state_event\":\"close\"}"),
-        Some(false) => RequestBody::make("{\"state_event\":\"reopen\"}"),
-        None => RequestBody::make("{}"),
+    json_body(&GitLabIssuePatchBody {
+        title: patch.title(),
+        description: patch.body(),
+        state_event: patch.closed().map(gitlab_issue_state_event),
+    })
+}
+
+fn gitlab_issue_state_event(closed: bool) -> &'static str {
+    match closed {
+        true => "close",
+        false => "reopen",
+    }
+}
+
+#[derive(Serialize)]
+struct GitLabIssueDraftBody<'a> {
+    title: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct GitLabIssuePatchBody<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    state_event: Option<&'static str>,
+}
+
+fn json_body(payload: &impl Serialize) -> RequestBody {
+    match serde_json::to_string(payload) {
+        Ok(body) => RequestBody::make(body),
+        Err(_) => RequestBody::make("{}"),
     }
 }

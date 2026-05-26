@@ -86,10 +86,14 @@ fn bitbucket_repo_create_builds_put_request() {
         .repo()
         .draft(repo.clone())
         .visibility(Visibility::Private)
+        .description("Universal provider layer")
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Put);
-    assert!(create_request.body().is_some());
+    assert_eq!(
+        request_body(&create_request),
+        Some(r#"{"scm":"git","is_private":true,"description":"Universal provider layer"}"#)
+    );
 }
 
 #[test]
@@ -101,11 +105,15 @@ fn bitbucket_repo_update_builds_put_request() {
         .get();
     let repository_patch = RepositoryPatchBuilder::make(repo.clone().into())
         .visibility(Visibility::Public)
+        .description("Stable universal provider layer")
         .get();
     let update_request = repo.update(&repository_patch);
 
     assert_eq!(update_request.method(), &RequestMethod::Put);
-    assert!(update_request.body().is_some());
+    assert_eq!(
+        request_body(&update_request),
+        Some(r#"{"is_private":false,"description":"Stable universal provider layer"}"#)
+    );
 }
 
 #[test]
@@ -117,4 +125,8 @@ fn bitbucket_repo_delete_builds_delete_request() {
         .get();
 
     assert_eq!(repo.delete().method(), &RequestMethod::Delete);
+}
+
+fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
+    request.body().map(vcs_provider_core::RequestBody::as_str)
 }
