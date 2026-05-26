@@ -19,10 +19,10 @@ fn github_provider_exposes_universal_contracts() {
 
     assert!(provider.capabilities().supports(&Capability::Repos));
     drop(provider.repos());
-    drop(provider.issues());
-    drop(provider.code_reviews());
-    drop(provider.pipelines());
-    drop(provider.releases());
+    drop(Provider::issues(&provider));
+    drop(Provider::code_reviews(&provider));
+    drop(Provider::pipelines(&provider));
+    drop(Provider::releases(&provider));
 }
 
 #[test]

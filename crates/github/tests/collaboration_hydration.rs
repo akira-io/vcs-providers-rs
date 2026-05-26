@@ -7,15 +7,15 @@ use vcs_provider_github::github;
 fn github_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let issue_resource = github()
-            .body(r#"{"number":42}"#)
             .issues()
+            .response_body(r#"{"number":42}"#)
             .location(repository_location())
             .id("42")
             .get()
             .await?;
         let issue_page = github()
-            .body(r#"[{"number":42}]"#)
             .issues()
+            .response_body(r#"[{"number":42}]"#)
             .location(repository_location())
             .list()
             .await?;
@@ -31,24 +31,24 @@ fn github_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResult<(
 fn github_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let created_issue = github()
-            .body(r#"{"number":42}"#)
             .issues()
+            .response_body(r#"{"number":42}"#)
             .location(repository_location())
             .title("Fix payment state")
             .body("Details")
             .create()
             .await?;
         let updated_issue = github()
-            .body(r#"{"number":42}"#)
             .issues()
+            .response_body(r#"{"number":42}"#)
             .location(repository_location())
             .id("42")
             .title("Fix payment state safely")
             .update()
             .await?;
         let closed_issue = github()
-            .body(r#"{"number":42}"#)
             .issues()
+            .response_body(r#"{"number":42}"#)
             .location(repository_location())
             .id("42")
             .close()
@@ -66,15 +66,15 @@ fn github_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> 
 fn github_client_hydrates_code_review_get_and_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let code_review_resource = github()
-            .body(r#"{"number":42}"#)
             .code_reviews()
+            .response_body(r#"{"number":42}"#)
             .location(repository_location())
             .id("42")
             .get()
             .await?;
         let code_review_page = github()
-            .body(r#"[{"number":42}]"#)
             .code_reviews()
+            .response_body(r#"[{"number":42}]"#)
             .location(repository_location())
             .list()
             .await?;
@@ -90,8 +90,8 @@ fn github_client_hydrates_code_review_get_and_list() -> vcs_provider_core::VcsRe
 fn github_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let created_code_review = github()
-            .body(r#"{"number":42}"#)
             .code_reviews()
+            .response_body(r#"{"number":42}"#)
             .location(repository_location())
             .title("Add repository hydration")
             .source("feature")
@@ -100,16 +100,16 @@ fn github_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
             .create()
             .await?;
         let updated_code_review = github()
-            .body(r#"{"number":42}"#)
             .code_reviews()
+            .response_body(r#"{"number":42}"#)
             .location(repository_location())
             .id("42")
             .title("Add collaboration hydration")
             .update()
             .await?;
         let closed_code_review = github()
-            .body(r#"{"number":42}"#)
             .code_reviews()
+            .response_body(r#"{"number":42}"#)
             .location(repository_location())
             .id("42")
             .close()
@@ -127,15 +127,15 @@ fn github_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
 fn github_client_hydrates_release_get_and_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let release_resource = github()
-            .body(r#"{"id":123}"#)
             .releases()
+            .response_body(r#"{"id":123}"#)
             .location(repository_location())
             .id("123")
             .get()
             .await?;
         let release_page = github()
-            .body(r#"[{"id":123}]"#)
             .releases()
+            .response_body(r#"[{"id":123}]"#)
             .location(repository_location())
             .list()
             .await?;
@@ -151,8 +151,8 @@ fn github_client_hydrates_release_get_and_list() -> vcs_provider_core::VcsResult
 fn github_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let created_release = github()
-            .body(r#"{"id":123}"#)
             .releases()
+            .response_body(r#"{"id":123}"#)
             .location(repository_location())
             .tag("v1.0.0")
             .name("v1.0.0")
@@ -160,8 +160,8 @@ fn github_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()
             .create()
             .await?;
         let updated_release = github()
-            .body(r#"{"id":123}"#)
             .releases()
+            .response_body(r#"{"id":123}"#)
             .location(repository_location())
             .id("123")
             .body("Updated notes")
@@ -169,8 +169,8 @@ fn github_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()
             .await?;
 
         github()
-            .body("{}")
             .releases()
+            .response_body("{}")
             .location(repository_location())
             .id("123")
             .delete()

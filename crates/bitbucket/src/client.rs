@@ -17,6 +17,12 @@ pub struct BitbucketClient {
     headers: Vec<RequestHeader>,
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct BitbucketPipelinesTransportBuilder;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct BitbucketCodeReviewsTransportBuilder;
+
 impl BitbucketClient {
     pub fn make(transport: impl Transport + 'static) -> Self {
         Self {
@@ -108,6 +114,14 @@ impl Provider for BitbucketClient {
 }
 
 impl BitbucketProvider {
+    pub fn code_reviews(self) -> BitbucketCodeReviewsTransportBuilder {
+        BitbucketCodeReviewsTransportBuilder
+    }
+
+    pub fn pipelines(self) -> BitbucketPipelinesTransportBuilder {
+        BitbucketPipelinesTransportBuilder
+    }
+
     pub fn client(self, transport: impl Transport + 'static) -> BitbucketClient {
         BitbucketClient::make(transport)
     }
@@ -118,6 +132,27 @@ impl BitbucketProvider {
 
     pub fn body(self, body: impl Into<String>) -> BitbucketClient {
         BitbucketClient::make(vcs_provider_core::provider_response().body(body).get())
+    }
+}
+
+impl BitbucketCodeReviewsTransportBuilder {
+    pub fn response_body(self, body: impl Into<String>) -> Box<dyn CodeReviews> {
+        BitbucketClient::make(vcs_provider_core::provider_response().body(body).get())
+            .code_reviews()
+    }
+
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn CodeReviews> {
+        BitbucketClient::make(transport).code_reviews()
+    }
+}
+
+impl BitbucketPipelinesTransportBuilder {
+    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Pipelines> {
+        BitbucketClient::make(vcs_provider_core::provider_response().body(body).get()).pipelines()
+    }
+
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Pipelines> {
+        BitbucketClient::make(transport).pipelines()
     }
 }
 

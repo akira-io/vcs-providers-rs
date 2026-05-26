@@ -7,15 +7,15 @@ use vcs_provider_gitlab::gitlab;
 fn gitlab_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let issue_resource = gitlab()
-            .body(r#"{"iid":42}"#)
             .issues()
+            .response_body(r#"{"iid":42}"#)
             .location(repository_location())
             .id("42")
             .get()
             .await?;
         let issue_page = gitlab()
-            .body(r#"[{"iid":42}]"#)
             .issues()
+            .response_body(r#"[{"iid":42}]"#)
             .location(repository_location())
             .list()
             .await?;
@@ -31,24 +31,24 @@ fn gitlab_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResult<(
 fn gitlab_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let created_issue = gitlab()
-            .body(r#"{"iid":42}"#)
             .issues()
+            .response_body(r#"{"iid":42}"#)
             .location(repository_location())
             .title("Fix payment state")
             .body("Details")
             .create()
             .await?;
         let updated_issue = gitlab()
-            .body(r#"{"iid":42}"#)
             .issues()
+            .response_body(r#"{"iid":42}"#)
             .location(repository_location())
             .id("42")
             .title("Fix payment state safely")
             .update()
             .await?;
         let closed_issue = gitlab()
-            .body(r#"{"iid":42}"#)
             .issues()
+            .response_body(r#"{"iid":42}"#)
             .location(repository_location())
             .id("42")
             .close()
@@ -66,15 +66,15 @@ fn gitlab_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> 
 fn gitlab_client_hydrates_code_review_get_and_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let code_review_resource = gitlab()
-            .body(r#"{"iid":42}"#)
             .code_reviews()
+            .response_body(r#"{"iid":42}"#)
             .location(repository_location())
             .id("42")
             .get()
             .await?;
         let code_review_page = gitlab()
-            .body(r#"[{"iid":42}]"#)
             .code_reviews()
+            .response_body(r#"[{"iid":42}]"#)
             .location(repository_location())
             .list()
             .await?;
@@ -90,8 +90,8 @@ fn gitlab_client_hydrates_code_review_get_and_list() -> vcs_provider_core::VcsRe
 fn gitlab_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let created_code_review = gitlab()
-            .body(r#"{"iid":42}"#)
             .code_reviews()
+            .response_body(r#"{"iid":42}"#)
             .location(repository_location())
             .title("Add repository hydration")
             .source("feature")
@@ -100,16 +100,16 @@ fn gitlab_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
             .create()
             .await?;
         let updated_code_review = gitlab()
-            .body(r#"{"iid":42}"#)
             .code_reviews()
+            .response_body(r#"{"iid":42}"#)
             .location(repository_location())
             .id("42")
             .title("Add collaboration hydration")
             .update()
             .await?;
         let closed_code_review = gitlab()
-            .body(r#"{"iid":42}"#)
             .code_reviews()
+            .response_body(r#"{"iid":42}"#)
             .location(repository_location())
             .id("42")
             .close()
@@ -127,15 +127,15 @@ fn gitlab_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
 fn gitlab_client_hydrates_release_get_and_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let release_resource = gitlab()
-            .body(r#"{"tag_name":"v1.0.0"}"#)
             .releases()
+            .response_body(r#"{"tag_name":"v1.0.0"}"#)
             .location(repository_location())
             .id("v1.0.0")
             .get()
             .await?;
         let release_page = gitlab()
-            .body(r#"[{"tag_name":"v1.0.0"}]"#)
             .releases()
+            .response_body(r#"[{"tag_name":"v1.0.0"}]"#)
             .location(repository_location())
             .list()
             .await?;
@@ -151,8 +151,8 @@ fn gitlab_client_hydrates_release_get_and_list() -> vcs_provider_core::VcsResult
 fn gitlab_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let created_release = gitlab()
-            .body(r#"{"tag_name":"v1.0.0"}"#)
             .releases()
+            .response_body(r#"{"tag_name":"v1.0.0"}"#)
             .location(repository_location())
             .tag("v1.0.0")
             .name("v1.0.0")
@@ -160,8 +160,8 @@ fn gitlab_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()
             .create()
             .await?;
         let updated_release = gitlab()
-            .body(r#"{"tag_name":"v1.0.0"}"#)
             .releases()
+            .response_body(r#"{"tag_name":"v1.0.0"}"#)
             .location(repository_location())
             .id("v1.0.0")
             .body("Updated notes")
@@ -169,8 +169,8 @@ fn gitlab_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()
             .await?;
 
         gitlab()
-            .body("{}")
             .releases()
+            .response_body("{}")
             .location(repository_location())
             .id("v1.0.0")
             .delete()

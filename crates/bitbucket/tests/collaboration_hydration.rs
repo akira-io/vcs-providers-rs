@@ -5,15 +5,15 @@ use vcs_provider_core::{CodeReviewsFluent, Repo, repo, run_async_test};
 fn bitbucket_client_hydrates_code_review_get_and_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let code_review_resource = bitbucket()
-            .body(r#"{"id":42}"#)
             .code_reviews()
+            .response_body(r#"{"id":42}"#)
             .location(repository_location())
             .id("42")
             .get()
             .await?;
         let code_review_page = bitbucket()
-            .body(r#"{"values":[{"id":42}]}"#)
             .code_reviews()
+            .response_body(r#"{"values":[{"id":42}]}"#)
             .location(repository_location())
             .list()
             .await?;
@@ -29,8 +29,8 @@ fn bitbucket_client_hydrates_code_review_get_and_list() -> vcs_provider_core::Vc
 fn bitbucket_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let created_code_review = bitbucket()
-            .body(r#"{"id":42}"#)
             .code_reviews()
+            .response_body(r#"{"id":42}"#)
             .location(repository_location())
             .title("Add repository hydration")
             .source("feature")
@@ -39,16 +39,16 @@ fn bitbucket_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsRe
             .create()
             .await?;
         let updated_code_review = bitbucket()
-            .body(r#"{"id":42}"#)
             .code_reviews()
+            .response_body(r#"{"id":42}"#)
             .location(repository_location())
             .id("42")
             .title("Add collaboration hydration")
             .update()
             .await?;
         let closed_code_review = bitbucket()
-            .body(r#"{"id":42}"#)
             .code_reviews()
+            .response_body(r#"{"id":42}"#)
             .location(repository_location())
             .id("42")
             .close()

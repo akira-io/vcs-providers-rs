@@ -18,6 +18,18 @@ pub struct GitLabClient {
     headers: Vec<RequestHeader>,
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabPipelinesTransportBuilder;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabIssuesTransportBuilder;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabCodeReviewsTransportBuilder;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabReleasesTransportBuilder;
+
 impl GitLabClient {
     pub fn make(transport: impl Transport + 'static) -> Self {
         Self {
@@ -127,6 +139,22 @@ impl Provider for GitLabClient {
 }
 
 impl GitLabProvider {
+    pub fn issues(self) -> GitLabIssuesTransportBuilder {
+        GitLabIssuesTransportBuilder
+    }
+
+    pub fn code_reviews(self) -> GitLabCodeReviewsTransportBuilder {
+        GitLabCodeReviewsTransportBuilder
+    }
+
+    pub fn pipelines(self) -> GitLabPipelinesTransportBuilder {
+        GitLabPipelinesTransportBuilder
+    }
+
+    pub fn releases(self) -> GitLabReleasesTransportBuilder {
+        GitLabReleasesTransportBuilder
+    }
+
     pub fn client(self, transport: impl Transport + 'static) -> GitLabClient {
         GitLabClient::make(transport)
     }
@@ -137,6 +165,46 @@ impl GitLabProvider {
 
     pub fn body(self, body: impl Into<String>) -> GitLabClient {
         GitLabClient::make(vcs_provider_core::provider_response().body(body).get())
+    }
+}
+
+impl GitLabIssuesTransportBuilder {
+    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Issues> {
+        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).issues()
+    }
+
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Issues> {
+        GitLabClient::make(transport).issues()
+    }
+}
+
+impl GitLabCodeReviewsTransportBuilder {
+    pub fn response_body(self, body: impl Into<String>) -> Box<dyn CodeReviews> {
+        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).code_reviews()
+    }
+
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn CodeReviews> {
+        GitLabClient::make(transport).code_reviews()
+    }
+}
+
+impl GitLabPipelinesTransportBuilder {
+    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Pipelines> {
+        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).pipelines()
+    }
+
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Pipelines> {
+        GitLabClient::make(transport).pipelines()
+    }
+}
+
+impl GitLabReleasesTransportBuilder {
+    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Releases> {
+        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).releases()
+    }
+
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Releases> {
+        GitLabClient::make(transport).releases()
     }
 }
 

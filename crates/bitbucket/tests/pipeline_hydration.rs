@@ -5,15 +5,15 @@ use vcs_provider_core::{PipelinesFluent, Repo, VcsError, repo, run_async_test};
 fn bitbucket_client_hydrates_pipeline_get_and_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let pipeline_resource = bitbucket()
-            .body(r#"{"uuid":"{pipeline-uuid}"}"#)
             .pipelines()
+            .response_body(r#"{"uuid":"{pipeline-uuid}"}"#)
             .location(repository_location())
             .id("{pipeline-uuid}")
             .get()
             .await?;
         let pipeline_page = bitbucket()
-            .body(r#"{"values":[{"uuid":"{pipeline-uuid}"}]}"#)
             .pipelines()
+            .response_body(r#"{"values":[{"uuid":"{pipeline-uuid}"}]}"#)
             .location(repository_location())
             .list()
             .await?;
@@ -29,8 +29,8 @@ fn bitbucket_client_hydrates_pipeline_get_and_list() -> vcs_provider_core::VcsRe
 fn bitbucket_client_hydrates_pipeline_cancel() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let canceled_pipeline = bitbucket()
-            .body(r#"{"uuid":"{pipeline-uuid}"}"#)
             .pipelines()
+            .response_body(r#"{"uuid":"{pipeline-uuid}"}"#)
             .location(repository_location())
             .id("{pipeline-uuid}")
             .cancel()
@@ -46,8 +46,8 @@ fn bitbucket_client_hydrates_pipeline_cancel() -> vcs_provider_core::VcsResult<(
 fn bitbucket_client_reports_unvalidated_pipeline_rerun() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let result = bitbucket()
-            .body(r#"{"uuid":"{pipeline-uuid}"}"#)
             .pipelines()
+            .response_body(r#"{"uuid":"{pipeline-uuid}"}"#)
             .location(repository_location())
             .id("{pipeline-uuid}")
             .rerun()

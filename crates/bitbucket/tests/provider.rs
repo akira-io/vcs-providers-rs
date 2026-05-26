@@ -21,8 +21,8 @@ fn bitbucket_provider_exposes_universal_contracts() {
     assert!(provider.capabilities().supports(&Capability::Repos));
     drop(provider.repos());
     drop(provider.issues());
-    drop(provider.code_reviews());
-    drop(provider.pipelines());
+    drop(Provider::code_reviews(&provider));
+    drop(Provider::pipelines(&provider));
     drop(provider.releases());
 }
 
