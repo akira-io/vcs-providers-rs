@@ -9,16 +9,24 @@ use crate::{
     pipeline, release, repo,
 };
 
+mod code_review_mutations;
 mod code_reviews;
+mod issue_mutations;
 mod issues;
 mod pipelines;
+mod release_mutations;
 mod releases;
+mod repo_mutations;
 mod repos;
 
+#[allow(unused_imports)]
+pub use code_review_mutations::ManagedCodeReviewUpdateBuilder;
 pub use code_reviews::{
     ManagedCodeReview, ManagedCodeReviewBuilder, ManagedCodeReviewCollection,
     ManagedCodeReviewDraftBuilder, ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination,
 };
+#[allow(unused_imports)]
+pub use issue_mutations::ManagedIssueUpdateBuilder;
 pub use issues::{
     ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDraftBuilder,
     ManagedRepoIssues, ManagedRepoIssuesPagination,
@@ -27,10 +35,14 @@ pub use pipelines::{
     ManagedPipeline, ManagedPipelineBuilder, ManagedPipelineCollection, ManagedRepoPipelines,
     ManagedRepoPipelinesPagination,
 };
+#[allow(unused_imports)]
+pub use release_mutations::ManagedReleaseUpdateBuilder;
 pub use releases::{
     ManagedRelease, ManagedReleaseBuilder, ManagedReleaseCollection, ManagedReleaseDraftBuilder,
     ManagedRepoReleases, ManagedRepoReleasesPagination,
 };
+#[allow(unused_imports)]
+pub use repo_mutations::ManagedRepositoryUpdateBuilder;
 pub use repos::{
     ManagedRepo, ManagedRepoBuilder, ManagedRepoCollection, ManagedRepositoryDraftBuilder,
 };

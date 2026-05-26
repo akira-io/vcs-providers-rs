@@ -102,7 +102,7 @@ Pagination remains provider-neutral in the caller. Providers map it to their own
 
 ## Create, Update, Close, Delete
 
-Use `CodeReviewDraft` to create code reviews and `CodeReviewPatch` to update or close them:
+Create, update, close, merge, and delete requests should stay fluent at the call site:
 
 ```rust
 let repo = gitlab()
@@ -121,12 +121,15 @@ let create_request = gitlab()
     .body("Adds release request builders.")
     .create();
 
-let code_review = gitlab().code_review().repo(repo).id("42").get();
-let code_review_patch = CodeReviewPatchBuilder::make(code_review.code_review().clone())
-    .closed()
-    .get();
+let update_request = gitlab()
+    .code_review()
+    .repo(repo.clone())
+    .id("42")
+    .title("Add release mutations safely")
+    .body("Updates release request builders.")
+    .update();
 
-let update_request = code_review.update(&code_review_patch);
+let code_review = gitlab().code_review().repo(repo).id("42").get();
 let close_request = code_review.close();
 let delete_request = code_review.delete();
 ```

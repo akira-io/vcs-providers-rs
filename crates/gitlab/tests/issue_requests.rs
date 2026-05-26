@@ -1,4 +1,4 @@
-use vcs_provider_core::{IssuePatchBuilder, RequestMethod};
+use vcs_provider_core::RequestMethod;
 use vcs_provider_gitlab::gitlab;
 
 #[test]
@@ -78,12 +78,13 @@ fn gitlab_issue_update_builds_put_request() {
         .owner("akira-io")
         .name("vcs-providers-rs")
         .get();
-    let issue_resource = gitlab().issue().repo(repo).id("42").get();
-    let issue_patch = IssuePatchBuilder::make(issue_resource.issue().clone())
+    let update_request = gitlab()
+        .issue()
+        .repo(repo)
+        .id("42")
         .title("Track mutable issue requests safely")
         .body("Updated details")
-        .get();
-    let update_request = issue_resource.update(&issue_patch);
+        .update();
 
     assert_eq!(update_request.method(), &RequestMethod::Put);
     assert_eq!(
@@ -99,12 +100,7 @@ fn gitlab_issue_close_builds_put_request() {
         .owner("akira-io")
         .name("vcs-providers-rs")
         .get();
-    let issue_resource = gitlab().issue().repo(repo).id("42").get();
-    let issue_patch = IssuePatchBuilder::make(issue_resource.issue().clone())
-        .closed()
-        .get();
-
-    let close_request = issue_resource.close(&issue_patch);
+    let close_request = gitlab().issue().repo(repo).id("42").closed().close();
 
     assert_eq!(close_request.method(), &RequestMethod::Put);
     assert_eq!(

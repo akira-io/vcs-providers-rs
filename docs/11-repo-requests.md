@@ -36,7 +36,7 @@ The core crate only provides neutral primitives: `Repo`, pagination requests, re
 
 ## Create, Update, Delete
 
-Use `RepositoryDraft` to create repositories and `RepositoryPatch` to update repository settings:
+Create and update requests should stay fluent at the call site:
 
 ```rust
 let repo = github()
@@ -52,13 +52,11 @@ let create_request = github()
     .description("Universal VCS provider abstraction")
     .create();
 
-let repository_patch = repo
-    .patch()
+let update_request = repo
     .visibility(Visibility::Public)
     .description("Universal VCS provider abstraction")
-    .get();
+    .update();
 
-let update_request = repo.update(&repository_patch);
 let delete_request = repo.delete();
 ```
 

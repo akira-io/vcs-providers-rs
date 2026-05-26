@@ -1,4 +1,4 @@
-use vcs_provider_core::{CodeReviewPatchBuilder, RequestMethod};
+use vcs_provider_core::RequestMethod;
 use vcs_provider_gitlab::gitlab;
 
 #[test]
@@ -64,7 +64,13 @@ fn gitlab_code_review_create_builds_post_request() {
 
 #[test]
 fn gitlab_code_review_update_builds_put_request() {
-    let update_request = code_review_resource().update(&code_review_patch());
+    let update_request = gitlab()
+        .code_review()
+        .repo(repository())
+        .id("42")
+        .title("Add safe mutable operations")
+        .body("Updated details")
+        .update();
 
     assert_eq!(update_request.method(), &RequestMethod::Put);
     assert_eq!(
@@ -114,13 +120,6 @@ fn repository() -> vcs_provider_core::ManagedRepo<vcs_provider_gitlab::GitLabPro
 fn code_review_resource()
 -> vcs_provider_core::ManagedCodeReview<vcs_provider_gitlab::GitLabProvider> {
     gitlab().code_review().repo(repository()).id("42").get()
-}
-
-fn code_review_patch() -> vcs_provider_core::CodeReviewPatch {
-    CodeReviewPatchBuilder::make(code_review_resource().code_review().clone())
-        .title("Add safe mutable operations")
-        .body("Updated details")
-        .get()
 }
 
 fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
