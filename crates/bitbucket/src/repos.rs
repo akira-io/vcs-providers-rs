@@ -1,6 +1,8 @@
+use serde::Serialize;
 use vcs_provider_core::{
     PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
-    RepositorySearchQuery, Request, RequestBody, RequestUrl, RequestUrlBuilder, request, url,
+    RepositorySearchQuery, Request, RequestBody, RequestUrl, RequestUrlBuilder, Visibility,
+    request, url,
 };
 
 use crate::DEFAULT_BASE_URL;
@@ -118,12 +120,43 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
 }
 
 fn repository_draft_body(draft: &RepositoryDraft) -> RequestBody {
-    RequestBody::make(format!(
-        "{{\"scm\":\"git\",\"is_private\":{}}}",
-        matches!(draft.visibility(), vcs_provider_core::Visibility::Private)
-    ))
+    json_body(&BitbucketRepositoryDraftBody {
+        scm: "git",
+        is_private: bitbucket_private(draft.visibility()),
+        description: draft.description(),
+    })
 }
 
-fn repository_patch_body(_patch: &RepositoryPatch) -> RequestBody {
-    RequestBody::make("{}")
+fn repository_patch_body(patch: &RepositoryPatch) -> RequestBody {
+    json_body(&BitbucketRepositoryPatchBody {
+        is_private: patch.visibility().map(bitbucket_private),
+        description: patch.description(),
+    })
+}
+
+fn bitbucket_private(visibility: &Visibility) -> bool {
+    matches!(visibility, Visibility::Private | Visibility::Internal)
+}
+
+#[derive(Serialize)]
+struct BitbucketRepositoryDraftBody<'a> {
+    scm: &'static str,
+    is_private: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct BitbucketRepositoryPatchBody<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    is_private: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+}
+
+fn json_body(payload: &impl Serialize) -> RequestBody {
+    match serde_json::to_string(payload) {
+        Ok(body) => RequestBody::make(body),
+        Err(_) => RequestBody::make("{}"),
+    }
 }

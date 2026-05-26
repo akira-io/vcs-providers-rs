@@ -3,6 +3,11 @@ use crate::{
     provider,
 };
 
+#[path = "conformance/contracts.rs"]
+mod contracts;
+
+use contracts::check_provider_contracts;
+
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ProviderConformanceBuilder;
 
@@ -68,7 +73,7 @@ where
         self.check_descriptor()?;
         self.check_capabilities()?;
         self.check_auth()?;
-        self.check_contracts();
+        self.check_contracts()?;
         self.check_registry()?;
 
         Ok(())
@@ -122,12 +127,8 @@ where
         Ok(())
     }
 
-    fn check_contracts(&self) {
-        drop(self.provider.repos());
-        drop(self.provider.issues());
-        drop(self.provider.code_reviews());
-        drop(self.provider.pipelines());
-        drop(self.provider.releases());
+    fn check_contracts(&self) -> VcsResult<()> {
+        check_provider_contracts(&self.provider)
     }
 
     fn check_registry(&self) -> VcsResult<()> {

@@ -107,6 +107,13 @@ fn gitlab_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
             .title("Add collaboration hydration")
             .update()
             .await?;
+        let merged_code_review = gitlab()
+            .code_reviews()
+            .response_body(r#"{"iid":42}"#)
+            .location(repository_location())
+            .id("42")
+            .merge()
+            .await?;
         let closed_code_review = gitlab()
             .code_reviews()
             .response_body(r#"{"iid":42}"#)
@@ -117,6 +124,7 @@ fn gitlab_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
 
         assert_eq!(created_code_review.id().as_str(), "42");
         assert_eq!(updated_code_review.id().as_str(), "42");
+        assert_eq!(merged_code_review.id().as_str(), "42");
         assert_eq!(closed_code_review.id().as_str(), "42");
 
         Ok(())

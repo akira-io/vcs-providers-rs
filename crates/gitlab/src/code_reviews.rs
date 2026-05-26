@@ -1,3 +1,4 @@
+use serde::Serialize;
 use vcs_provider_core::{
     CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, PageRequest, Request,
     RequestBody, RequestUrl, RequestUrlBuilder, request, url,
@@ -43,6 +44,27 @@ impl GitLabCodeReview {
 
     pub fn delete(&self) -> Request {
         request().delete(self.url().value()).build()
+    }
+
+    pub fn merge(&self) -> Request {
+        let project_path = project_path(self.code_review.repo());
+
+        request()
+            .put(
+                url(&self.base_url)
+                    .path_segments([
+                        "api",
+                        "v4",
+                        "projects",
+                        project_path.as_str(),
+                        "merge_requests",
+                        self.code_review.id().as_str(),
+                        "merge",
+                    ])
+                    .build()
+                    .value(),
+            )
+            .build()
     }
 }
 
@@ -121,13 +143,53 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
 }
 
 fn code_review_draft_body(draft: &CodeReviewDraft) -> RequestBody {
-    RequestBody::make(format!("{{\"title\":\"{}\"}}", draft.title()))
+    json_body(&GitLabCodeReviewDraftBody {
+        title: draft.title(),
+        source_branch: draft.source(),
+        target_branch: draft.target(),
+        description: draft.body(),
+    })
 }
 
 fn code_review_patch_body(patch: &CodeReviewPatch) -> RequestBody {
-    match patch.closed() {
-        Some(true) => RequestBody::make("{\"state_event\":\"close\"}"),
-        Some(false) => RequestBody::make("{\"state_event\":\"reopen\"}"),
-        None => RequestBody::make("{}"),
+    json_body(&GitLabCodeReviewPatchBody {
+        title: patch.title(),
+        description: patch.body(),
+        state_event: patch.closed().map(gitlab_code_review_state_event),
+    })
+}
+
+fn gitlab_code_review_state_event(closed: bool) -> &'static str {
+    match closed {
+        true => "close",
+        false => "reopen",
+    }
+}
+
+#[derive(Serialize)]
+struct GitLabCodeReviewDraftBody<'a> {
+    title: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    source_branch: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    target_branch: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct GitLabCodeReviewPatchBody<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    state_event: Option<&'static str>,
+}
+
+fn json_body(payload: &impl Serialize) -> RequestBody {
+    match serde_json::to_string(payload) {
+        Ok(body) => RequestBody::make(body),
+        Err(_) => RequestBody::make("{}"),
     }
 }

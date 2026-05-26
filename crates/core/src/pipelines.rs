@@ -1,12 +1,16 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configured};
+use crate::{BoxFuture, Page, Repo, VcsResult, transport_not_configured};
 
+#[path = "pipelines/queries.rs"]
+mod queries;
 #[path = "pipelines/scoped.rs"]
 mod scoped;
 #[path = "pipelines/transport.rs"]
 mod transport;
 
+#[allow(unused_imports)]
+pub use queries::{PipelineListQuery, PipelineListQueryBuilder, PipelineQueryBuilder};
 pub use scoped::{PipelinePaginationOperation, PipelinesFluent, ScopedPipelineOperation};
 pub use transport::{PipelineResponseMapper, TransportBackedPipelines};
 
@@ -118,31 +122,6 @@ impl PipelineBuilder<ProvidedPipelineRepo, ProvidedPipelineId> {
 impl PipelineBuilder<MissingPipelineRepo, MissingPipelineId> {
     pub fn query(self) -> PipelineQueryBuilder {
         PipelineQueryBuilder
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct PipelineQueryBuilder;
-
-impl PipelineQueryBuilder {
-    pub fn list(self, repo: Repo, page: Option<PageRequest>) -> PipelineListQuery {
-        PipelineListQuery { repo, page }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct PipelineListQuery {
-    repo: Repo,
-    page: Option<PageRequest>,
-}
-
-impl PipelineListQuery {
-    pub fn repo(&self) -> &Repo {
-        &self.repo
-    }
-
-    pub fn page(&self) -> Option<&PageRequest> {
-        self.page.as_ref()
     }
 }
 

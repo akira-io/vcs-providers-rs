@@ -1,7 +1,7 @@
 use crate::{
-    Issue, IssueBuilder, IssueDraftBuilder, IssueListQuery, IssuePatch, IssueQueryBuilder,
-    MissingIssueId, MissingIssueRepo, MissingIssueTitle, PageRequest, PageRequestBuilder,
-    ProvidedIssueId, ProvidedIssueRepo, ProvidedIssueTitle, Repo, Request, RequestUrl,
+    Issue, IssueBuilder, IssueDraftBuilder, IssueListQuery, IssueQueryBuilder, MissingIssueId,
+    MissingIssueRepo, MissingIssueTitle, PageRequest, PageRequestBuilder, ProvidedIssueId,
+    ProvidedIssueRepo, ProvidedIssueTitle, Repo, Request, RequestUrl,
 };
 
 use super::{ManagedIssueDeleteProvider, ManagedIssueProvider, VcsManager};
@@ -137,8 +137,8 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedIssue<Driver> {
-    manager: VcsManager<Driver>,
-    issue: Issue,
+    pub(super) manager: VcsManager<Driver>,
+    pub(super) issue: Issue,
 }
 
 impl<Driver> ManagedIssue<Driver>
@@ -155,14 +155,6 @@ where
 
     pub fn repo(&self) -> &Repo {
         self.issue.repo()
-    }
-
-    pub fn update(&self, patch: &IssuePatch) -> Request {
-        self.manager.driver.issue_update_request(patch)
-    }
-
-    pub fn close(&self, patch: &IssuePatch) -> Request {
-        self.manager.driver.issue_close_request(patch)
     }
 }
 

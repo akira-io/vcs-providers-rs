@@ -57,7 +57,7 @@ impl ScopedReleaseOperation {
 
     pub fn list(self) -> BoxFuture<'static, VcsResult<Page<Release>>> {
         let releases = self.releases;
-        let query = release().query().list(self.repo, None);
+        let query = release().query().location(self.repo).list();
 
         Box::pin(async move { Releases::list(&*releases, query).await })
     }

@@ -81,19 +81,27 @@ let page = pagination()
 
 let issue_query = issue()
     .query()
-    .list(repo.clone(), Some(page.clone()));
+    .location(repo.clone())
+    .pagination(page.clone())
+    .list();
 
 let code_review_query = code_review()
     .query()
-    .list(repo.clone(), Some(page.clone()));
+    .location(repo.clone())
+    .pagination(page.clone())
+    .list();
 
 let pipeline_query = pipeline()
     .query()
-    .list(repo.clone(), Some(page.clone()));
+    .location(repo.clone())
+    .pagination(page.clone())
+    .list();
 
 let release_query = release()
     .query()
-    .list(repo, Some(page));
+    .location(repo)
+    .pagination(page)
+    .list();
 ```
 
 ## Capabilities

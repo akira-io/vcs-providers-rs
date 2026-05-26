@@ -46,6 +46,13 @@ fn bitbucket_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsRe
             .title("Add collaboration hydration")
             .update()
             .await?;
+        let merged_code_review = bitbucket()
+            .code_reviews()
+            .response_body(r#"{"id":42}"#)
+            .location(repository_location())
+            .id("42")
+            .merge()
+            .await?;
         let closed_code_review = bitbucket()
             .code_reviews()
             .response_body(r#"{"id":42}"#)
@@ -56,6 +63,7 @@ fn bitbucket_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsRe
 
         assert_eq!(created_code_review.id().as_str(), "42");
         assert_eq!(updated_code_review.id().as_str(), "42");
+        assert_eq!(merged_code_review.id().as_str(), "42");
         assert_eq!(closed_code_review.id().as_str(), "42");
 
         Ok(())

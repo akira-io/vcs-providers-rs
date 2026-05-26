@@ -1,9 +1,9 @@
-use std::collections::BTreeSet;
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
 mod auth;
+mod capability;
 mod code_reviews;
 mod errors;
 mod helpers;
@@ -27,6 +27,7 @@ pub use auth::{
     AuthBuilder, AuthCredential, AuthHeader, AuthHeaderName, AuthHeaderStyle, AuthHeaderValue,
     AuthKind, AuthToken,
 };
+pub use capability::{Capability, CapabilitySet};
 pub use code_reviews::{
     CodeReview, CodeReviewBuilder, CodeReviewDraft, CodeReviewDraftBuilder, CodeReviewId,
     CodeReviewListOperation, CodeReviewListPaginationOperation, CodeReviewListQuery,
@@ -57,13 +58,15 @@ pub use manager::{
     ManagedCodeReview, ManagedCodeReviewBuilder, ManagedCodeReviewCollection,
     ManagedCodeReviewDeleteProvider, ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider,
     ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDeleteProvider,
-    ManagedIssueDraftBuilder, ManagedIssueProvider, ManagedPipeline, ManagedPipelineBuilder,
-    ManagedPipelineCollection, ManagedProvider, ManagedRelease, ManagedReleaseBuilder,
-    ManagedReleaseCollection, ManagedReleaseDraftBuilder, ManagedReleaseProvider, ManagedRepo,
-    ManagedRepoBuilder, ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination,
-    ManagedRepoCollection, ManagedRepoIssues, ManagedRepoIssuesPagination, ManagedRepoPipelines,
+    ManagedIssueDraftBuilder, ManagedIssueProvider, ManagedIssueUpdateBuilder, ManagedPipeline,
+    ManagedPipelineBuilder, ManagedPipelineCollection, ManagedProvider, ManagedRelease,
+    ManagedReleaseBuilder, ManagedReleaseCollection, ManagedReleaseDraftBuilder,
+    ManagedReleaseProvider, ManagedReleaseUpdateBuilder, ManagedRepo, ManagedRepoBuilder,
+    ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination, ManagedRepoCollection,
+    ManagedRepoIssues, ManagedRepoIssuesPagination, ManagedRepoPipelines,
     ManagedRepoPipelinesPagination, ManagedRepoReleases, ManagedRepoReleasesPagination,
-    ManagedRepositoryDraftBuilder, VcsManager, VcsManagerBuilder, VcsManagerWithDriverBuilder,
+    ManagedRepositoryDraftBuilder, ManagedRepositoryUpdateBuilder, VcsManager, VcsManagerBuilder,
+    VcsManagerWithDriverBuilder,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
@@ -208,40 +211,6 @@ impl ProviderDescriptorBuilder {
             display_name: self.display_name,
             capabilities: self.capabilities,
         }
-    }
-}
-
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
-pub enum Capability {
-    Repos,
-    Issues,
-    CodeReviews,
-    Pipelines,
-    Releases,
-    Organizations,
-    Discussions,
-    Webhooks,
-    SelfHosted,
-}
-
-#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
-pub struct CapabilitySet {
-    capabilities: BTreeSet<Capability>,
-}
-
-impl CapabilitySet {
-    pub fn make(capabilities: impl IntoIterator<Item = Capability>) -> Self {
-        Self {
-            capabilities: capabilities.into_iter().collect(),
-        }
-    }
-
-    pub fn supports(&self, capability: &Capability) -> bool {
-        self.capabilities.contains(capability)
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = &Capability> {
-        self.capabilities.iter()
     }
 }
 

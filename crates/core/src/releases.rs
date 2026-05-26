@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configured};
+use crate::{BoxFuture, Page, Repo, VcsResult, transport_not_configured};
 
 #[path = "releases/drafts.rs"]
 mod drafts;
@@ -10,6 +10,8 @@ mod list;
 mod operations;
 #[path = "releases/patches.rs"]
 mod patches;
+#[path = "releases/queries.rs"]
+mod queries;
 #[path = "releases/scoped.rs"]
 mod scoped;
 #[path = "releases/transport.rs"]
@@ -22,6 +24,8 @@ pub use operations::{
     ReleaseCreateOperation, ReleaseDeleteOperation, ReleaseUpdateOperation, ReleasesFluent,
 };
 pub use patches::ReleasePatchBuilder;
+#[allow(unused_imports)]
+pub use queries::{ReleaseListQuery, ReleaseListQueryBuilder, ReleaseQueryBuilder};
 pub use scoped::ScopedReleaseOperation;
 pub use transport::{ReleaseResponseMapper, TransportBackedReleases};
 
@@ -182,31 +186,6 @@ impl ReleaseBuilder<MissingReleaseRepo, MissingReleaseId> {
             name: None,
             body: None,
         }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct ReleaseQueryBuilder;
-
-impl ReleaseQueryBuilder {
-    pub fn list(self, repo: Repo, page: Option<PageRequest>) -> ReleaseListQuery {
-        ReleaseListQuery { repo, page }
-    }
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct ReleaseListQuery {
-    repo: Repo,
-    page: Option<PageRequest>,
-}
-
-impl ReleaseListQuery {
-    pub fn repo(&self) -> &Repo {
-        &self.repo
-    }
-
-    pub fn page(&self) -> Option<&PageRequest> {
-        self.page.as_ref()
     }
 }
 

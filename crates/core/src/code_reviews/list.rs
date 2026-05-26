@@ -31,13 +31,17 @@ impl CodeReviewListOperation {
         }
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Page<CodeReview>>> {
+    pub fn list(self) -> BoxFuture<'static, VcsResult<Page<CodeReview>>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
 
         let code_reviews = self.code_reviews;
-        let query = code_review().query().list(repo, self.page);
+        let query = code_review()
+            .query()
+            .location(repo)
+            .optional_pagination(self.page)
+            .list();
 
         Box::pin(async move { CodeReviews::list(&*code_reviews, query).await })
     }

@@ -81,7 +81,7 @@ Pagination remains provider-neutral in the caller. Providers map it to their own
 
 ## Create, Update, Delete
 
-Use `ReleaseDraft` to create releases and `ReleasePatch` to update release notes:
+Create and update requests should stay fluent at the call site:
 
 ```rust
 let repo = github()
@@ -99,12 +99,14 @@ let create_request = github()
     .body("Release notes")
     .create();
 
-let release = github().release().repo(repo).id("123").get();
-let release_patch = ReleasePatchBuilder::make(release.release().clone())
+let update_request = github()
+    .release()
+    .repo(repo.clone())
+    .id("123")
     .body("Updated release notes")
-    .get();
+    .update();
 
-let update_request = release.update(&release_patch);
+let release = github().release().repo(repo).id("123").get();
 let delete_request = release.delete();
 ```
 

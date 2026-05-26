@@ -1,3 +1,4 @@
+use serde::Serialize;
 use vcs_provider_core::{
     CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, PageRequest, Request,
     RequestBody, RequestUrl, RequestUrlBuilder, request, url,
@@ -35,6 +36,24 @@ impl GitHubCodeReview {
         request()
             .patch(self.url().value())
             .body(code_review_patch_body(patch))
+            .build()
+    }
+
+    pub fn merge(&self) -> Request {
+        request()
+            .put(
+                url(&self.base_url)
+                    .path_segments([
+                        "repos",
+                        self.code_review.repo().owner().as_str(),
+                        self.code_review.repo().name().as_str(),
+                        "pulls",
+                        self.code_review.id().as_str(),
+                        "merge",
+                    ])
+                    .build()
+                    .value(),
+            )
             .build()
     }
 
@@ -111,13 +130,53 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
 }
 
 fn code_review_draft_body(draft: &CodeReviewDraft) -> RequestBody {
-    RequestBody::make(format!("{{\"title\":\"{}\"}}", draft.title()))
+    json_body(&GitHubCodeReviewDraftBody {
+        title: draft.title(),
+        head: draft.source(),
+        base: draft.target(),
+        body: draft.body(),
+    })
 }
 
 fn code_review_patch_body(patch: &CodeReviewPatch) -> RequestBody {
-    match patch.closed() {
-        Some(true) => RequestBody::make("{\"state\":\"closed\"}"),
-        Some(false) => RequestBody::make("{\"state\":\"open\"}"),
-        None => RequestBody::make("{}"),
+    json_body(&GitHubCodeReviewPatchBody {
+        title: patch.title(),
+        body: patch.body(),
+        state: patch.closed().map(github_code_review_state),
+    })
+}
+
+fn github_code_review_state(closed: bool) -> &'static str {
+    match closed {
+        true => "closed",
+        false => "open",
+    }
+}
+
+#[derive(Serialize)]
+struct GitHubCodeReviewDraftBody<'a> {
+    title: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    head: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    base: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    body: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct GitHubCodeReviewPatchBody<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    body: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    state: Option<&'static str>,
+}
+
+fn json_body(payload: &impl Serialize) -> RequestBody {
+    match serde_json::to_string(payload) {
+        Ok(body) => RequestBody::make(body),
+        Err(_) => RequestBody::make("{}"),
     }
 }

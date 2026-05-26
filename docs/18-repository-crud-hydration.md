@@ -12,7 +12,7 @@ let repository = github()
     .create()
     .location(repo)
     .visibility(Visibility::Private)
-    .send()
+    .create()
     .await?;
 ```
 

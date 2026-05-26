@@ -12,6 +12,8 @@ pub trait CodeReviewsFluent {
 
     fn update(self) -> CodeReviewUpdateOperation;
 
+    fn merge(self) -> CodeReviewMergeOperation;
+
     fn close(self) -> CodeReviewCloseOperation;
 }
 
@@ -43,6 +45,14 @@ impl CodeReviewsFluent for Box<dyn CodeReviews> {
             title: None,
             body: None,
             closed: None,
+        }
+    }
+
+    fn merge(self) -> CodeReviewMergeOperation {
+        CodeReviewMergeOperation {
+            code_reviews: self,
+            repo: None,
+            id: None,
         }
     }
 
@@ -90,7 +100,7 @@ impl CodeReviewCreateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn create(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -160,7 +170,7 @@ impl CodeReviewUpdateOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn update(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -191,6 +201,39 @@ impl CodeReviewUpdateOperation {
     }
 }
 
+pub struct CodeReviewMergeOperation {
+    code_reviews: Box<dyn CodeReviews>,
+    repo: Option<Repo>,
+    id: Option<String>,
+}
+
+impl CodeReviewMergeOperation {
+    pub fn location(mut self, repo: Repo) -> Self {
+        self.repo = Some(repo);
+        self
+    }
+
+    pub fn id(mut self, id: impl Into<String>) -> Self {
+        self.id = Some(id.into());
+        self
+    }
+
+    pub fn merge(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+        let Some(repo) = self.repo else {
+            return Box::pin(async { Err(error().invalid_input("repository is required")) });
+        };
+
+        let Some(id) = self.id else {
+            return Box::pin(async { Err(error().invalid_input("code review id is required")) });
+        };
+
+        let code_reviews = self.code_reviews;
+        let code_review = CodeReview::make(repo, CodeReviewId::make(id));
+
+        Box::pin(async move { CodeReviews::merge(&*code_reviews, code_review).await })
+    }
+}
+
 pub struct CodeReviewCloseOperation {
     code_reviews: Box<dyn CodeReviews>,
     repo: Option<Repo>,
@@ -208,7 +251,7 @@ impl CodeReviewCloseOperation {
         self
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn close(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };

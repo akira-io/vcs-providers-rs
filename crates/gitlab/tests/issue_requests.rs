@@ -1,4 +1,4 @@
-use vcs_provider_core::{IssuePatchBuilder, RequestMethod};
+use vcs_provider_core::RequestMethod;
 use vcs_provider_gitlab::gitlab;
 
 #[test]
@@ -65,7 +65,10 @@ fn gitlab_issue_create_builds_post_request() {
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Post);
-    assert!(create_request.body().is_some());
+    assert_eq!(
+        request_body(&create_request),
+        Some(r#"{"title":"Track mutable issue requests","description":"Details"}"#)
+    );
 }
 
 #[test]
@@ -75,14 +78,18 @@ fn gitlab_issue_update_builds_put_request() {
         .owner("akira-io")
         .name("vcs-providers-rs")
         .get();
-    let issue_resource = gitlab().issue().repo(repo).id("42").get();
-    let issue_patch = IssuePatchBuilder::make(issue_resource.issue().clone())
-        .closed()
-        .get();
+    let update_request = gitlab()
+        .issue()
+        .repo(repo)
+        .id("42")
+        .title("Track mutable issue requests safely")
+        .body("Updated details")
+        .update();
 
+    assert_eq!(update_request.method(), &RequestMethod::Put);
     assert_eq!(
-        issue_resource.update(&issue_patch).method(),
-        &RequestMethod::Put
+        request_body(&update_request),
+        Some(r#"{"title":"Track mutable issue requests safely","description":"Updated details"}"#)
     );
 }
 
@@ -93,14 +100,12 @@ fn gitlab_issue_close_builds_put_request() {
         .owner("akira-io")
         .name("vcs-providers-rs")
         .get();
-    let issue_resource = gitlab().issue().repo(repo).id("42").get();
-    let issue_patch = IssuePatchBuilder::make(issue_resource.issue().clone())
-        .closed()
-        .get();
+    let close_request = gitlab().issue().repo(repo).id("42").closed().close();
 
+    assert_eq!(close_request.method(), &RequestMethod::Put);
     assert_eq!(
-        issue_resource.close(&issue_patch).method(),
-        &RequestMethod::Put
+        request_body(&close_request),
+        Some(r#"{"state_event":"close"}"#)
     );
 }
 
@@ -114,4 +119,8 @@ fn gitlab_issue_delete_builds_delete_request() {
     let issue_resource = gitlab().issue().repo(repo).id("42").get();
 
     assert_eq!(issue_resource.delete().method(), &RequestMethod::Delete);
+}
+
+fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
+    request.body().map(vcs_provider_core::RequestBody::as_str)
 }

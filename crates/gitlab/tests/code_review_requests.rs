@@ -1,4 +1,4 @@
-use vcs_provider_core::{CodeReviewPatchBuilder, RequestMethod};
+use vcs_provider_core::RequestMethod;
 use vcs_provider_gitlab::gitlab;
 
 #[test]
@@ -54,20 +54,51 @@ fn gitlab_code_review_create_builds_post_request() {
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Post);
-    assert!(create_request.body().is_some());
+    assert_eq!(
+        request_body(&create_request),
+        Some(
+            r#"{"title":"Add mutable operations","source_branch":"feature","target_branch":"main","description":"Details"}"#
+        )
+    );
 }
 
 #[test]
 fn gitlab_code_review_update_builds_put_request() {
+    let update_request = gitlab()
+        .code_review()
+        .repo(repository())
+        .id("42")
+        .title("Add safe mutable operations")
+        .body("Updated details")
+        .update();
+
+    assert_eq!(update_request.method(), &RequestMethod::Put);
     assert_eq!(
-        code_review_resource().update(&code_review_patch()).method(),
-        &RequestMethod::Put
+        request_body(&update_request),
+        Some(r#"{"title":"Add safe mutable operations","description":"Updated details"}"#)
+    );
+}
+
+#[test]
+fn gitlab_code_review_merge_builds_put_request() {
+    let merge_request = code_review_resource().merge();
+
+    assert_eq!(merge_request.method(), &RequestMethod::Put);
+    assert_eq!(
+        merge_request.url().as_str(),
+        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/merge_requests/42/merge"
     );
 }
 
 #[test]
 fn gitlab_code_review_close_builds_put_request() {
-    assert_eq!(code_review_resource().close().method(), &RequestMethod::Put);
+    let close_request = code_review_resource().close();
+
+    assert_eq!(close_request.method(), &RequestMethod::Put);
+    assert_eq!(
+        request_body(&close_request),
+        Some(r#"{"state_event":"close"}"#)
+    );
 }
 
 #[test]
@@ -91,8 +122,6 @@ fn code_review_resource()
     gitlab().code_review().repo(repository()).id("42").get()
 }
 
-fn code_review_patch() -> vcs_provider_core::CodeReviewPatch {
-    CodeReviewPatchBuilder::make(code_review_resource().code_review().clone())
-        .closed()
-        .get()
+fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
+    request.body().map(vcs_provider_core::RequestBody::as_str)
 }

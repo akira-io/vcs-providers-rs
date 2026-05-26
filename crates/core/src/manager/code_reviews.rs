@@ -1,5 +1,5 @@
 use crate::{
-    CodeReview, CodeReviewBuilder, CodeReviewDraftBuilder, CodeReviewListQuery, CodeReviewPatch,
+    CodeReview, CodeReviewBuilder, CodeReviewDraftBuilder, CodeReviewListQuery,
     CodeReviewQueryBuilder, MissingCodeReviewDraftRepo, MissingCodeReviewId, MissingCodeReviewRepo,
     MissingCodeReviewTitle, PageRequest, PageRequestBuilder, ProvidedCodeReviewDraftRepo,
     ProvidedCodeReviewId, ProvidedCodeReviewRepo, ProvidedCodeReviewTitle, Repo, Request,
@@ -157,8 +157,8 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedCodeReview<Driver> {
-    manager: VcsManager<Driver>,
-    code_review: CodeReview,
+    pub(super) manager: VcsManager<Driver>,
+    pub(super) code_review: CodeReview,
 }
 
 impl<Driver> ManagedCodeReview<Driver>
@@ -177,14 +177,16 @@ where
         self.code_review.repo()
     }
 
-    pub fn update(&self, patch: &CodeReviewPatch) -> Request {
-        self.manager.driver.code_review_update_request(patch)
-    }
-
     pub fn close(&self) -> Request {
         self.manager
             .driver
             .code_review_close_request(&self.code_review)
+    }
+
+    pub fn merge(&self) -> Request {
+        self.manager
+            .driver
+            .code_review_merge_request(&self.code_review)
     }
 }
 

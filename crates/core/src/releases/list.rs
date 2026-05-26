@@ -31,13 +31,17 @@ impl ReleaseListOperation {
         }
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Page<Release>>> {
+    pub fn list(self) -> BoxFuture<'static, VcsResult<Page<Release>>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
 
         let releases = self.releases;
-        let query = release().query().list(repo, self.page);
+        let query = release()
+            .query()
+            .location(repo)
+            .optional_pagination(self.page)
+            .list();
 
         Box::pin(async move { Releases::list(&*releases, query).await })
     }

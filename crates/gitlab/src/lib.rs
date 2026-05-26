@@ -1,13 +1,13 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, CodeReviewPatchBuilder, CodeReviews, Issues,
+    AuthHeaderStyle, AuthKind, CodeReviewPatchBuilder, CodeReviews, Issues,
     ManagedCodeReviewProvider, ManagedIssueDeleteProvider, ManagedIssueProvider, ManagedProvider,
     MissingCodeReviewId, MissingCodeReviewRepo, MissingOwnerName, MissingReleaseId,
     MissingReleaseRepo, MissingRepositoryName, Pipelines, Provider, ProviderDescriptor, ProviderId,
     Releases, Repos, TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
     TransportNotConfiguredPipelines, TransportNotConfiguredReleases, TransportNotConfiguredRepos,
-    capabilities,
 };
 
+mod capabilities;
 mod client;
 mod code_reviews;
 mod issues;
@@ -23,6 +23,8 @@ pub use issues::{GitLabIssue, GitLabIssueCollection};
 pub use pipelines::{GitLabPipeline, GitLabPipelineCollection};
 pub use releases::{GitLabRelease, GitLabReleaseCollection};
 pub use repos::{GitLabRepo, GitLabRepoCollection};
+
+use capabilities::gitlab_capabilities;
 
 pub const PROVIDER_ID: &str = "gitlab";
 pub const DISPLAY_NAME: &str = "GitLab";
@@ -182,6 +184,13 @@ impl ManagedCodeReviewProvider for GitLabProvider {
         GitLabCodeReview::make(DEFAULT_BASE_URL, patch.code_review().clone()).update(patch)
     }
 
+    fn code_review_merge_request(
+        &self,
+        code_review: &vcs_provider_core::CodeReview,
+    ) -> vcs_provider_core::Request {
+        GitLabCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).merge()
+    }
+
     fn code_review_close_request(
         &self,
         code_review: &vcs_provider_core::CodeReview,
@@ -242,16 +251,7 @@ impl Provider for GitLabProvider {
         ProviderDescriptor::make(
             ProviderId::make(PROVIDER_ID),
             DISPLAY_NAME,
-            capabilities().make([
-                Capability::Repos,
-                Capability::Issues,
-                Capability::CodeReviews,
-                Capability::Pipelines,
-                Capability::Releases,
-                Capability::Organizations,
-                Capability::Webhooks,
-                Capability::SelfHosted,
-            ]),
+            gitlab_capabilities(),
         )
     }
 

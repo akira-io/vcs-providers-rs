@@ -32,7 +32,7 @@ fn github_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> 
             .response_body(
                 r#"[{"full_name":"akira-io/vcs-providers-rs","private":true,"archived":true,"disabled":false}]"#,
             )
-            .list(github().repo().query().list(None))
+            .list(github().repo().query().optional_pagination(None).list())
             .await?;
 
         assert_eq!(repositories.items().len(), 1);
@@ -57,7 +57,7 @@ fn github_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()
             .create()
             .location(repository_location())
             .visibility(Visibility::Private)
-            .send()
+            .create()
             .await?;
 
         assert_eq!(repository.provider().as_str(), "github");
@@ -78,7 +78,7 @@ fn github_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()
             .update()
             .location(repository_location())
             .visibility(Visibility::Public)
-            .send()
+            .update()
             .await?;
 
         assert_eq!(repository.provider().as_str(), "github");

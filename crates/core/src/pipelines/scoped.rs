@@ -53,7 +53,7 @@ impl ScopedPipelineOperation {
 
     pub fn list(self) -> BoxFuture<'static, VcsResult<Page<Pipeline>>> {
         let pipelines = self.pipelines;
-        let query = crate::pipeline().query().list(self.repo, None);
+        let query = crate::pipeline().query().location(self.repo).list();
 
         Box::pin(async move { Pipelines::list(&*pipelines, query).await })
     }
@@ -102,7 +102,9 @@ impl PipelinePaginationOperation {
         let pipelines = self.pipelines;
         let query = crate::pipeline()
             .query()
-            .list(self.repo, Some(self.page.build()));
+            .location(self.repo)
+            .pagination(self.page.build())
+            .list();
 
         Box::pin(async move { Pipelines::list(&*pipelines, query).await })
     }

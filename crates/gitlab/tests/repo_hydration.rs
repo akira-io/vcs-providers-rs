@@ -32,7 +32,7 @@ fn gitlab_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> 
             .response_body(
                 r#"[{"path_with_namespace":"platform/akira-io/vcs-providers-rs","visibility":"private","archived":true}]"#,
             )
-            .list(gitlab().repo().query().list(None))
+            .list(gitlab().repo().query().optional_pagination(None).list())
             .await?;
 
         assert_eq!(repositories.items().len(), 1);
@@ -61,7 +61,7 @@ fn gitlab_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()
             .create()
             .location(repository_location())
             .visibility(Visibility::Private)
-            .send()
+            .create()
             .await?;
 
         assert_eq!(repository.provider().as_str(), "gitlab");
@@ -82,7 +82,7 @@ fn gitlab_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()
             .update()
             .location(repository_location())
             .visibility(Visibility::Public)
-            .send()
+            .update()
             .await?;
 
         assert_eq!(repository.provider().as_str(), "gitlab");

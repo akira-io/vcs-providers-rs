@@ -1,5 +1,5 @@
 use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::{CodeReviewPatchBuilder, RequestMethod};
+use vcs_provider_core::RequestMethod;
 
 #[test]
 fn bitbucket_code_review_get_targets_repository_endpoint() {
@@ -54,14 +54,39 @@ fn bitbucket_code_review_create_builds_post_request() {
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Post);
-    assert!(create_request.body().is_some());
+    assert_eq!(
+        request_body(&create_request),
+        Some(
+            r#"{"title":"Add mutable operations","source":{"branch":{"name":"feature"}},"destination":{"branch":{"name":"main"}},"description":"Details"}"#
+        )
+    );
 }
 
 #[test]
 fn bitbucket_code_review_update_builds_put_request() {
+    let update_request = bitbucket()
+        .code_review()
+        .repo(repository())
+        .id("42")
+        .title("Add safe mutable operations")
+        .body("Updated details")
+        .update();
+
+    assert_eq!(update_request.method(), &RequestMethod::Put);
     assert_eq!(
-        code_review_resource().update(&code_review_patch()).method(),
-        &RequestMethod::Put
+        request_body(&update_request),
+        Some(r#"{"title":"Add safe mutable operations","description":"Updated details"}"#)
+    );
+}
+
+#[test]
+fn bitbucket_code_review_merge_builds_post_request() {
+    let merge_request = code_review_resource().merge();
+
+    assert_eq!(merge_request.method(), &RequestMethod::Post);
+    assert_eq!(
+        merge_request.url().as_str(),
+        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/pullrequests/42/merge"
     );
 }
 
@@ -86,8 +111,6 @@ fn code_review_resource()
     bitbucket().code_review().repo(repository()).id("42").get()
 }
 
-fn code_review_patch() -> vcs_provider_core::CodeReviewPatch {
-    CodeReviewPatchBuilder::make(code_review_resource().code_review().clone())
-        .closed()
-        .get()
+fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
+    request.body().map(vcs_provider_core::RequestBody::as_str)
 }
