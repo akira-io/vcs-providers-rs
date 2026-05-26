@@ -1,12 +1,12 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, CodeReviews, Issues, ManagedCodeReviewProvider,
-    ManagedProvider, MissingCodeReviewId, MissingCodeReviewRepo, MissingOwnerName,
-    MissingRepositoryName, Pipelines, Provider, ProviderDescriptor, ProviderId, Releases, Repos,
-    TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
-    TransportNotConfiguredPipelines, TransportNotConfiguredReleases, TransportNotConfiguredRepos,
-    capabilities,
+    AuthHeaderStyle, AuthKind, CodeReviews, Issues, ManagedCodeReviewProvider, ManagedProvider,
+    MissingCodeReviewId, MissingCodeReviewRepo, MissingOwnerName, MissingRepositoryName, Pipelines,
+    Provider, ProviderDescriptor, ProviderId, Releases, Repos, TransportNotConfiguredCodeReviews,
+    TransportNotConfiguredIssues, TransportNotConfiguredPipelines, TransportNotConfiguredReleases,
+    TransportNotConfiguredRepos,
 };
 
+mod capabilities;
 mod client;
 mod code_reviews;
 mod mappers;
@@ -18,6 +18,8 @@ pub use client::BitbucketClient;
 pub use code_reviews::{BitbucketCodeReview, BitbucketCodeReviewCollection};
 pub use pipelines::{BitbucketPipeline, BitbucketPipelineCollection};
 pub use repos::{BitbucketRepo, BitbucketRepoCollection};
+
+use capabilities::bitbucket_capabilities;
 
 pub const PROVIDER_ID: &str = "bitbucket";
 pub const DISPLAY_NAME: &str = "Bitbucket";
@@ -141,15 +143,7 @@ impl Provider for BitbucketProvider {
         ProviderDescriptor::make(
             ProviderId::make(PROVIDER_ID),
             DISPLAY_NAME,
-            capabilities().make([
-                Capability::Repos,
-                Capability::CodeReviews,
-                Capability::Pipelines,
-                Capability::PipelineGet,
-                Capability::PipelineList,
-                Capability::PipelineCancel,
-                Capability::Webhooks,
-            ]),
+            bitbucket_capabilities(),
         )
     }
 

@@ -1,12 +1,13 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, CodeReviews, Issues, ManagedCodeReviewProvider,
+    AuthHeaderStyle, AuthKind, CodeReviews, Issues, ManagedCodeReviewProvider,
     ManagedIssueProvider, ManagedProvider, MissingCodeReviewId, MissingCodeReviewRepo,
     MissingOwnerName, MissingReleaseId, MissingReleaseRepo, MissingRepositoryName, Pipelines,
     Provider, ProviderDescriptor, ProviderId, Releases, Repos, TransportNotConfiguredCodeReviews,
     TransportNotConfiguredIssues, TransportNotConfiguredPipelines, TransportNotConfiguredReleases,
-    TransportNotConfiguredRepos, capabilities,
+    TransportNotConfiguredRepos,
 };
 
+mod capabilities;
 mod client;
 mod code_reviews;
 mod issues;
@@ -22,6 +23,8 @@ pub use issues::{GitHubIssue, GitHubIssueCollection};
 pub use pipelines::{GitHubPipeline, GitHubPipelineCollection};
 pub use releases::{GitHubRelease, GitHubReleaseCollection};
 pub use repos::{GitHubRepo, GitHubRepoCollection};
+
+use capabilities::github_capabilities;
 
 pub const PROVIDER_ID: &str = "github";
 pub const DISPLAY_NAME: &str = "GitHub";
@@ -222,20 +225,7 @@ impl Provider for GitHubProvider {
         ProviderDescriptor::make(
             ProviderId::make(PROVIDER_ID),
             DISPLAY_NAME,
-            capabilities().make([
-                Capability::Repos,
-                Capability::Issues,
-                Capability::CodeReviews,
-                Capability::Pipelines,
-                Capability::PipelineGet,
-                Capability::PipelineList,
-                Capability::PipelineRerun,
-                Capability::PipelineCancel,
-                Capability::Releases,
-                Capability::Organizations,
-                Capability::Discussions,
-                Capability::Webhooks,
-            ]),
+            github_capabilities(),
         )
     }
 

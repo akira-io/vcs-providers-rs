@@ -112,8 +112,6 @@ pub struct CapabilitySetBuilder;
 
 impl CapabilitySetBuilder {
     pub fn make(self, capabilities: impl IntoIterator<Item = Capability>) -> CapabilitySet {
-        CapabilitySet {
-            capabilities: capabilities.into_iter().collect(),
-        }
+        CapabilitySet::make(capabilities)
     }
 }
