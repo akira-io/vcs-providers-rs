@@ -102,7 +102,7 @@ provider-neutral issue contract.
 
 ## Create, Update, Close
 
-Use `IssueDraft` to create issues and `IssuePatch` to update or close them:
+Create, update, and close requests should stay fluent at the call site:
 
 ```rust
 let repo = github()
@@ -119,13 +119,20 @@ let create_request = github()
     .body("The cursor should be opaque.")
     .create();
 
-let issue = github().issue().repo(repo).id("42").get();
-let issue_patch = IssuePatchBuilder::make(issue.issue().clone())
-    .closed()
-    .get();
+let update_request = github()
+    .issue()
+    .repo(repo.clone())
+    .id("42")
+    .title("Fix pagination safely")
+    .body("The cursor should remain opaque.")
+    .update();
 
-let update_request = issue.update(&issue_patch);
-let close_request = issue.close(&issue_patch);
+let close_request = github()
+    .issue()
+    .repo(repo)
+    .id("42")
+    .closed()
+    .close();
 ```
 
 Provider support:

@@ -6,8 +6,8 @@ use crate::{
     ProvidedCodeReviewId, ProvidedCodeReviewRepo, ProvidedIssueId, ProvidedIssueRepo,
     ProvidedOwnerName, ProvidedPipelineId, ProvidedPipelineRepo, ProvidedReleaseId,
     ProvidedReleaseRepo, ProvidedRepositoryName, Repo, RepoBuilder, RepositoryDraftBuilder,
-    RepositoryListQuery, RepositoryPatch, RepositorySearchQuery, RequestUrl, VcsManager,
-    Visibility, code_review, issue, pipeline, release,
+    RepositoryListQuery, RepositorySearchQuery, RequestUrl, VcsManager, Visibility, code_review,
+    issue, pipeline, release,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -203,8 +203,8 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepo<Driver> {
-    manager: VcsManager<Driver>,
-    repo: Repo,
+    pub(super) manager: VcsManager<Driver>,
+    pub(super) repo: Repo,
 }
 
 impl<Driver> ManagedRepo<Driver>
@@ -221,10 +221,6 @@ where
 
     pub fn commits(&self, page: Option<&PageRequest>) -> RequestUrl {
         self.manager.driver.repo_commits_url(&self.repo, page)
-    }
-
-    pub fn update(&self, patch: &RepositoryPatch) -> crate::Request {
-        self.manager.driver.repo_update_request(patch)
     }
 
     pub fn delete(&self) -> crate::Request {

@@ -1,8 +1,7 @@
 use crate::{
     MissingReleaseId, MissingReleaseRepo, MissingReleaseTag, PageRequest, PageRequestBuilder,
     ProvidedReleaseId, ProvidedReleaseRepo, ProvidedReleaseTag, Release, ReleaseBuilder,
-    ReleaseDraftBuilder, ReleaseListQuery, ReleasePatch, ReleaseQueryBuilder, Repo, Request,
-    RequestUrl,
+    ReleaseDraftBuilder, ReleaseListQuery, ReleaseQueryBuilder, Repo, Request, RequestUrl,
 };
 
 use super::{ManagedReleaseProvider, VcsManager};
@@ -147,8 +146,8 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRelease<Driver> {
-    manager: VcsManager<Driver>,
-    release: Release,
+    pub(super) manager: VcsManager<Driver>,
+    pub(super) release: Release,
 }
 
 impl<Driver> ManagedRelease<Driver>
@@ -165,10 +164,6 @@ where
 
     pub fn repo(&self) -> &Repo {
         self.release.repo()
-    }
-
-    pub fn update(&self, patch: &ReleasePatch) -> Request {
-        self.manager.driver.release_update_request(patch)
     }
 
     pub fn delete(&self) -> Request {

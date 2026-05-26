@@ -1,4 +1,4 @@
-use vcs_provider_core::{ReleasePatchBuilder, RequestMethod};
+use vcs_provider_core::RequestMethod;
 use vcs_provider_gitlab::gitlab;
 
 #[test]
@@ -79,20 +79,16 @@ fn gitlab_release_update_builds_put_request() {
         .owner("akira-io")
         .name("vcs-providers-rs")
         .get();
-    let release_resource = gitlab().release().repo(repo).id("v1.0.0").get();
-    let release_patch = ReleasePatchBuilder::make(release_resource.release().clone())
+    let update_request = gitlab()
+        .release()
+        .repo(repo)
+        .id("v1.0.0")
         .body("Updated")
-        .get();
+        .update();
 
+    assert_eq!(update_request.method(), &RequestMethod::Put);
     assert_eq!(
-        release_resource.update(&release_patch).method(),
-        &RequestMethod::Put
-    );
-    assert_eq!(
-        release_resource
-            .update(&release_patch)
-            .body()
-            .map(|body| body.as_str()),
+        update_request.body().map(|body| body.as_str()),
         Some(r#"{"description":"Updated"}"#)
     );
 }

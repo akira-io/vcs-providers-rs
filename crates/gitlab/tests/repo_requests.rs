@@ -1,4 +1,4 @@
-use vcs_provider_core::{RepositoryPatchBuilder, RequestMethod, Visibility};
+use vcs_provider_core::{RequestMethod, Visibility};
 use vcs_provider_gitlab::gitlab;
 
 #[test]
@@ -105,11 +105,10 @@ fn gitlab_repo_update_builds_put_request() {
         .owner("akira-io")
         .name("vcs-providers-rs")
         .get();
-    let repository_patch = RepositoryPatchBuilder::make(repo.clone().into())
+    let update_request = repo
         .visibility(Visibility::Public)
         .description("Stable universal provider layer")
-        .get();
-    let update_request = repo.update(&repository_patch);
+        .update();
 
     assert_eq!(update_request.method(), &RequestMethod::Put);
     assert_eq!(

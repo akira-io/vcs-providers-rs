@@ -1,4 +1,4 @@
-use vcs_provider_core::{IssuePatchBuilder, RequestMethod};
+use vcs_provider_core::RequestMethod;
 use vcs_provider_github::github;
 
 #[test]
@@ -78,12 +78,13 @@ fn github_issue_update_builds_patch_request() {
         .owner("akira-io")
         .name("vcs-providers-rs")
         .get();
-    let issue_resource = github().issue().repo(repo).id("42").get();
-    let issue_patch = IssuePatchBuilder::make(issue_resource.issue().clone())
+    let update_request = github()
+        .issue()
+        .repo(repo)
+        .id("42")
         .title("Track mutable issue requests safely")
         .body("Updated details")
-        .get();
-    let update_request = issue_resource.update(&issue_patch);
+        .update();
 
     assert_eq!(update_request.method(), &RequestMethod::Patch);
     assert_eq!(
@@ -99,13 +100,7 @@ fn github_issue_close_builds_patch_request() {
         .owner("akira-io")
         .name("vcs-providers-rs")
         .get();
-    let issue_resource = github().issue().repo(repo).id("42").get();
-
-    let issue_patch = IssuePatchBuilder::make(issue_resource.issue().clone())
-        .closed()
-        .get();
-
-    let close_request = issue_resource.close(&issue_patch);
+    let close_request = github().issue().repo(repo).id("42").closed().close();
 
     assert_eq!(close_request.method(), &RequestMethod::Patch);
     assert_eq!(request_body(&close_request), Some(r#"{"state":"closed"}"#));
