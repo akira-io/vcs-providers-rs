@@ -145,6 +145,9 @@ impl Provider for BitbucketProvider {
                 Capability::Repos,
                 Capability::CodeReviews,
                 Capability::Pipelines,
+                Capability::PipelineGet,
+                Capability::PipelineList,
+                Capability::PipelineCancel,
                 Capability::Webhooks,
             ]),
         )

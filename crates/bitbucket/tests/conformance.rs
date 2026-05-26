@@ -11,6 +11,9 @@ fn bitbucket_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::Repos,
             Capability::CodeReviews,
             Capability::Pipelines,
+            Capability::PipelineGet,
+            Capability::PipelineList,
+            Capability::PipelineCancel,
             Capability::Webhooks,
         ])
         .does_not_support([
@@ -19,6 +22,7 @@ fn bitbucket_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::Organizations,
             Capability::Discussions,
             Capability::SelfHosted,
+            Capability::PipelineRerun,
         ])
         .auth(AuthKind::OAuth, AuthHeaderStyle::AuthorizationBearer)
         .check()

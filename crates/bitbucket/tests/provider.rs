@@ -11,6 +11,16 @@ fn bitbucket_provider_exposes_provider_descriptor() {
     assert_eq!(descriptor.id().as_str(), PROVIDER_ID);
     assert_eq!(descriptor.display_name(), DISPLAY_NAME);
     assert!(descriptor.capabilities().supports(&Capability::Pipelines));
+    assert!(
+        descriptor
+            .capabilities()
+            .supports(&Capability::PipelineCancel)
+    );
+    assert!(
+        !descriptor
+            .capabilities()
+            .supports(&Capability::PipelineRerun)
+    );
     assert!(!descriptor.capabilities().supports(&Capability::Issues));
 }
 
