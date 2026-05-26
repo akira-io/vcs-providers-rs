@@ -61,6 +61,38 @@ fn gitlab_facade_builds_release_requests() {
 }
 
 #[test]
+fn gitlab_facade_builds_pipeline_requests() -> vcs_provider_core::VcsResult<()> {
+    let pipeline = vcs(gitlab())
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .pipeline("42")
+        .get();
+    let pipelines = vcs(gitlab())
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .pipelines()
+        .pagination()
+        .limit(50)
+        .cursor("2")
+        .url();
+
+    assert_eq!(
+        pipeline.url().value(),
+        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/pipelines/42"
+    );
+    assert_eq!(
+        pipelines.value(),
+        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/pipelines?per_page=50&page=2"
+    );
+    assert_eq!(pipeline.rerun()?.method(), &RequestMethod::Post);
+    assert_eq!(pipeline.cancel()?.method(), &RequestMethod::Post);
+
+    Ok(())
+}
+
+#[test]
 fn gitlab_facade_builds_mutation_requests() {
     let create_request = vcs(gitlab())
         .repo()

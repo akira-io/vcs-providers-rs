@@ -57,11 +57,12 @@ pub use manager::{
     ManagedCodeReview, ManagedCodeReviewBuilder, ManagedCodeReviewCollection,
     ManagedCodeReviewDeleteProvider, ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider,
     ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDeleteProvider,
-    ManagedIssueDraftBuilder, ManagedIssueProvider, ManagedProvider, ManagedRelease,
-    ManagedReleaseBuilder, ManagedReleaseCollection, ManagedReleaseDraftBuilder,
-    ManagedReleaseProvider, ManagedRepo, ManagedRepoBuilder, ManagedRepoCodeReviews,
-    ManagedRepoCodeReviewsPagination, ManagedRepoCollection, ManagedRepoIssues,
-    ManagedRepoIssuesPagination, ManagedRepoReleases, ManagedRepoReleasesPagination,
+    ManagedIssueDraftBuilder, ManagedIssueProvider, ManagedPipeline, ManagedPipelineBuilder,
+    ManagedPipelineCollection, ManagedProvider, ManagedRelease, ManagedReleaseBuilder,
+    ManagedReleaseCollection, ManagedReleaseDraftBuilder, ManagedReleaseProvider, ManagedRepo,
+    ManagedRepoBuilder, ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination,
+    ManagedRepoCollection, ManagedRepoIssues, ManagedRepoIssuesPagination, ManagedRepoPipelines,
+    ManagedRepoPipelinesPagination, ManagedRepoReleases, ManagedRepoReleasesPagination,
     ManagedRepositoryDraftBuilder, VcsManager, VcsManagerBuilder, VcsManagerWithDriverBuilder,
 };
 pub use middleware::{
