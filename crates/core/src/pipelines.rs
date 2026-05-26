@@ -2,6 +2,24 @@ use serde::{Deserialize, Serialize};
 
 use crate::{BoxFuture, Page, PageRequest, Repo, VcsResult, transport_not_configured};
 
+#[path = "pipelines/scoped.rs"]
+mod scoped;
+#[path = "pipelines/transport.rs"]
+mod transport;
+
+pub use scoped::{PipelinePaginationOperation, PipelinesFluent, ScopedPipelineOperation};
+pub use transport::{PipelineResponseMapper, TransportBackedPipelines};
+
+pub trait ManagedPipelineProvider: crate::ManagedProvider {
+    fn pipeline_url(&self, pipeline: &Pipeline) -> crate::RequestUrl;
+
+    fn pipeline_list_url(&self, query: &PipelineListQuery) -> crate::RequestUrl;
+
+    fn pipeline_rerun_request(&self, pipeline: &Pipeline) -> VcsResult<crate::Request>;
+
+    fn pipeline_cancel_request(&self, pipeline: &Pipeline) -> VcsResult<crate::Request>;
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PipelineId(String);
 

@@ -2,8 +2,10 @@ use serde::Deserialize;
 use vcs_provider_core::{
     Branch, CodeReview, CodeReviewId, CodeReviewResponseMapper, Commit, Issue, IssueId,
     IssueResponseMapper, LifecycleState, Page, Release, ReleaseId, ReleaseResponseMapper, Repo,
-    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, repo,
+    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error,
+    pipeline, repo,
 };
+use vcs_provider_core::{Pipeline, PipelineResponseMapper};
 
 use crate::PROVIDER_ID;
 
@@ -18,6 +20,9 @@ pub struct GitHubCodeReviewMapper;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct GitHubReleaseMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitHubPipelineMapper;
 
 impl RepositoryResponseMapper for GitHubRepositoryMapper {
     fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository> {
@@ -150,6 +155,33 @@ impl ReleaseResponseMapper for GitHubReleaseMapper {
     }
 }
 
+impl PipelineResponseMapper for GitHubPipelineMapper {
+    fn pipeline(&self, requested_pipeline: &Pipeline, response: &Response) -> VcsResult<Pipeline> {
+        let pipeline = parse_body::<GitHubPipeline>(response, "invalid github pipeline response")?;
+
+        Ok(vcs_provider_core::Pipeline::make(
+            requested_pipeline.repo().clone(),
+            vcs_provider_core::PipelineId::make(pipeline.id.to_string()),
+        ))
+    }
+
+    fn pipelines(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Pipeline>> {
+        let pipelines =
+            parse_body::<GitHubPipelinePage>(response, "invalid github pipeline list response")?
+                .workflow_runs
+                .into_iter()
+                .map(|pipeline_response| {
+                    pipeline()
+                        .repo(requested_repo.clone())
+                        .id(pipeline_response.id.to_string())
+                        .get()
+                })
+                .collect();
+
+        Ok(Page::make(pipelines))
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitHubRepository {
     full_name: Option<String>,
@@ -186,6 +218,16 @@ struct GitHubCodeReview {
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitHubRelease {
+    id: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitHubPipelinePage {
+    workflow_runs: Vec<GitHubPipeline>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitHubPipeline {
     id: u64,
 }
 

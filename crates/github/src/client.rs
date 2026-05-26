@@ -3,11 +3,12 @@ use std::sync::Arc;
 use vcs_provider_core::{
     AuthCredential, CodeReviews, Issues, Pipelines, Provider, ProviderDescriptor, Releases, Repos,
     RequestHeader, Transport, TransportBackedCodeReviews, TransportBackedIssues,
-    TransportBackedReleases, TransportBackedRepos, TransportNotConfiguredPipelines,
+    TransportBackedPipelines, TransportBackedReleases, TransportBackedRepos,
 };
 
 use crate::mappers::{
-    GitHubCodeReviewMapper, GitHubIssueMapper, GitHubReleaseMapper, GitHubRepositoryMapper,
+    GitHubCodeReviewMapper, GitHubIssueMapper, GitHubPipelineMapper, GitHubReleaseMapper,
+    GitHubRepositoryMapper,
 };
 use crate::{DEFAULT_BASE_URL, GitHubProvider, github};
 
@@ -54,6 +55,17 @@ impl GitHubClient {
         )
     }
 
+    pub fn pipelines(&self) -> Box<dyn Pipelines> {
+        Box::new(
+            TransportBackedPipelines::make(
+                github(),
+                Arc::clone(&self.transport),
+                GitHubPipelineMapper,
+            )
+            .with_headers(self.headers.clone()),
+        )
+    }
+
     pub fn repos(&self) -> Box<dyn Repos> {
         Box::new(
             TransportBackedRepos::make(
@@ -95,7 +107,7 @@ impl Provider for GitHubClient {
     }
 
     fn pipelines(&self) -> Box<dyn Pipelines> {
-        Box::<TransportNotConfiguredPipelines>::default()
+        GitHubClient::pipelines(self)
     }
 
     fn releases(&self) -> Box<dyn Releases> {

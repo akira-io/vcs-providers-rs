@@ -72,9 +72,10 @@ pub use pagination::{
     Page, PageBuilder, PageCursor, PageLimit, PageRequest, PageRequestBuilder, PaginationBuilder,
 };
 pub use pipelines::{
-    MissingPipelineId, MissingPipelineRepo, Pipeline, PipelineBuilder, PipelineId,
-    PipelineListQuery, PipelineQueryBuilder, Pipelines, ProvidedPipelineId, ProvidedPipelineRepo,
-    TransportNotConfiguredPipelines,
+    ManagedPipelineProvider, MissingPipelineId, MissingPipelineRepo, Pipeline, PipelineBuilder,
+    PipelineId, PipelineListQuery, PipelinePaginationOperation, PipelineQueryBuilder,
+    PipelineResponseMapper, Pipelines, PipelinesFluent, ProvidedPipelineId, ProvidedPipelineRepo,
+    ScopedPipelineOperation, TransportBackedPipelines, TransportNotConfiguredPipelines,
 };
 pub use rate_limit::{
     RateLimitBuilder, RateLimitCost, RateLimitHeaderName, RateLimitHeaderProfile,

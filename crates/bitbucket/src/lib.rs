@@ -10,10 +10,13 @@ use vcs_provider_core::{
 mod client;
 mod code_reviews;
 mod mappers;
+mod pipelines;
+mod provider_pipelines;
 mod repos;
 
 pub use client::BitbucketClient;
 pub use code_reviews::{BitbucketCodeReview, BitbucketCodeReviewCollection};
+pub use pipelines::{BitbucketPipeline, BitbucketPipelineCollection};
 pub use repos::{BitbucketRepo, BitbucketRepoCollection};
 
 pub const PROVIDER_ID: &str = "bitbucket";

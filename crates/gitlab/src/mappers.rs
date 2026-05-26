@@ -2,8 +2,10 @@ use serde::Deserialize;
 use vcs_provider_core::{
     Branch, CodeReview, CodeReviewId, CodeReviewResponseMapper, Commit, Issue, IssueId,
     IssueResponseMapper, LifecycleState, Page, Release, ReleaseId, ReleaseResponseMapper, Repo,
-    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, repo,
+    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error,
+    pipeline, repo,
 };
+use vcs_provider_core::{Pipeline, PipelineResponseMapper};
 
 use crate::PROVIDER_ID;
 
@@ -18,6 +20,9 @@ pub struct GitLabCodeReviewMapper;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct GitLabReleaseMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabPipelineMapper;
 
 impl RepositoryResponseMapper for GitLabRepositoryMapper {
     fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository> {
@@ -144,6 +149,32 @@ impl ReleaseResponseMapper for GitLabReleaseMapper {
     }
 }
 
+impl PipelineResponseMapper for GitLabPipelineMapper {
+    fn pipeline(&self, requested_pipeline: &Pipeline, response: &Response) -> VcsResult<Pipeline> {
+        let pipeline = parse_body::<GitLabPipeline>(response, "invalid gitlab pipeline response")?;
+
+        Ok(vcs_provider_core::Pipeline::make(
+            requested_pipeline.repo().clone(),
+            vcs_provider_core::PipelineId::make(pipeline.id.to_string()),
+        ))
+    }
+
+    fn pipelines(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Pipeline>> {
+        let pipelines =
+            parse_body::<Vec<GitLabPipeline>>(response, "invalid gitlab pipeline list response")?
+                .into_iter()
+                .map(|pipeline_response| {
+                    pipeline()
+                        .repo(requested_repo.clone())
+                        .id(pipeline_response.id.to_string())
+                        .get()
+                })
+                .collect();
+
+        Ok(Page::make(pipelines))
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitLabRepository {
     path_with_namespace: Option<String>,
@@ -180,6 +211,11 @@ struct GitLabCodeReview {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitLabRelease {
     tag_name: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitLabPipeline {
+    id: u64,
 }
 
 fn gitlab_repository(response: &Response) -> VcsResult<GitLabRepository> {

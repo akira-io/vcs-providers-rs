@@ -1,8 +1,10 @@
 use serde::Deserialize;
 use vcs_provider_core::{
     Branch, CodeReview, CodeReviewId, CodeReviewResponseMapper, Commit, LifecycleState, Page, Repo,
-    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, repo,
+    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error,
+    pipeline, repo,
 };
+use vcs_provider_core::{Pipeline, PipelineResponseMapper};
 
 use crate::PROVIDER_ID;
 
@@ -11,6 +13,9 @@ pub struct BitbucketRepositoryMapper;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct BitbucketCodeReviewMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct BitbucketPipelineMapper;
 
 impl RepositoryResponseMapper for BitbucketRepositoryMapper {
     fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository> {
@@ -101,6 +106,36 @@ impl CodeReviewResponseMapper for BitbucketCodeReviewMapper {
     }
 }
 
+impl PipelineResponseMapper for BitbucketPipelineMapper {
+    fn pipeline(&self, requested_pipeline: &Pipeline, response: &Response) -> VcsResult<Pipeline> {
+        let pipeline =
+            parse_body::<BitbucketPipeline>(response, "invalid bitbucket pipeline response")?;
+
+        Ok(vcs_provider_core::Pipeline::make(
+            requested_pipeline.repo().clone(),
+            vcs_provider_core::PipelineId::make(pipeline.uuid),
+        ))
+    }
+
+    fn pipelines(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Pipeline>> {
+        let pipelines = parse_body::<BitbucketPage<BitbucketPipeline>>(
+            response,
+            "invalid bitbucket pipeline list response",
+        )?
+        .values
+        .into_iter()
+        .map(|pipeline_response| {
+            pipeline()
+                .repo(requested_repo.clone())
+                .id(pipeline_response.uuid)
+                .get()
+        })
+        .collect();
+
+        Ok(Page::make(pipelines))
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct BitbucketPage<T> {
     values: Vec<T>,
@@ -131,6 +166,11 @@ struct BitbucketCommit {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct BitbucketCodeReview {
     id: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct BitbucketPipeline {
+    uuid: String,
 }
 
 fn bitbucket_repository(response: &Response) -> VcsResult<BitbucketRepository> {

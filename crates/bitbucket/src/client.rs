@@ -2,11 +2,13 @@ use std::sync::Arc;
 
 use vcs_provider_core::{
     AuthCredential, CodeReviews, Issues, Pipelines, Provider, ProviderDescriptor, Releases, Repos,
-    RequestHeader, Transport, TransportBackedCodeReviews, TransportBackedRepos,
-    TransportNotConfiguredIssues, TransportNotConfiguredPipelines, TransportNotConfiguredReleases,
+    RequestHeader, Transport, TransportBackedCodeReviews, TransportBackedPipelines,
+    TransportBackedRepos, TransportNotConfiguredIssues, TransportNotConfiguredReleases,
 };
 
-use crate::mappers::{BitbucketCodeReviewMapper, BitbucketRepositoryMapper};
+use crate::mappers::{
+    BitbucketCodeReviewMapper, BitbucketPipelineMapper, BitbucketRepositoryMapper,
+};
 use crate::{BitbucketProvider, DEFAULT_BASE_URL, bitbucket};
 
 #[derive(Clone)]
@@ -45,6 +47,17 @@ impl BitbucketClient {
         )
     }
 
+    pub fn pipelines(&self) -> Box<dyn Pipelines> {
+        Box::new(
+            TransportBackedPipelines::make(
+                bitbucket(),
+                Arc::clone(&self.transport),
+                BitbucketPipelineMapper,
+            )
+            .with_headers(self.headers.clone()),
+        )
+    }
+
     pub fn auth(mut self, credential: AuthCredential) -> Self {
         if let Some(header) = bitbucket().auth_header(&credential) {
             self.headers.push(RequestHeader::make(
@@ -75,7 +88,7 @@ impl Provider for BitbucketClient {
     }
 
     fn pipelines(&self) -> Box<dyn Pipelines> {
-        Box::<TransportNotConfiguredPipelines>::default()
+        BitbucketClient::pipelines(self)
     }
 
     fn releases(&self) -> Box<dyn Releases> {
