@@ -9,7 +9,20 @@ fn bitbucket_provider_passes_common_conformance_suite() -> VcsResult<()> {
         .display_name(DISPLAY_NAME)
         .supports([
             Capability::Repos,
+            Capability::RepoGet,
+            Capability::RepoList,
+            Capability::RepoSearch,
+            Capability::RepoBranches,
+            Capability::RepoCommits,
+            Capability::RepoCreate,
+            Capability::RepoUpdate,
+            Capability::RepoDelete,
             Capability::CodeReviews,
+            Capability::CodeReviewGet,
+            Capability::CodeReviewList,
+            Capability::CodeReviewCreate,
+            Capability::CodeReviewUpdate,
+            Capability::CodeReviewClose,
             Capability::Pipelines,
             Capability::PipelineGet,
             Capability::PipelineList,
@@ -18,10 +31,22 @@ fn bitbucket_provider_passes_common_conformance_suite() -> VcsResult<()> {
         ])
         .does_not_support([
             Capability::Issues,
+            Capability::IssueGet,
+            Capability::IssueList,
+            Capability::IssueCreate,
+            Capability::IssueUpdate,
+            Capability::IssueClose,
+            Capability::IssueDelete,
             Capability::Releases,
+            Capability::ReleaseGet,
+            Capability::ReleaseList,
+            Capability::ReleaseCreate,
+            Capability::ReleaseUpdate,
+            Capability::ReleaseDelete,
             Capability::Organizations,
             Capability::Discussions,
             Capability::SelfHosted,
+            Capability::CodeReviewDelete,
             Capability::PipelineRerun,
         ])
         .auth(AuthKind::OAuth, AuthHeaderStyle::AuthorizationBearer)
