@@ -186,6 +186,12 @@ where
             .driver
             .code_review_close_request(&self.code_review)
     }
+
+    pub fn merge(&self) -> Request {
+        self.manager
+            .driver
+            .code_review_merge_request(&self.code_review)
+    }
 }
 
 impl<Driver> ManagedCodeReview<Driver>

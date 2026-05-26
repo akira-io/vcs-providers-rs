@@ -66,6 +66,17 @@ fn github_code_review_update_builds_patch_request() {
 }
 
 #[test]
+fn github_code_review_merge_builds_put_request() {
+    let merge_request = code_review_resource().merge();
+
+    assert_eq!(merge_request.method(), &RequestMethod::Put);
+    assert_eq!(
+        merge_request.url().as_str(),
+        "https://api.github.com/repos/akira-io/vcs-providers-rs/pulls/42/merge"
+    );
+}
+
+#[test]
 fn github_code_review_close_builds_patch_request() {
     assert_eq!(
         code_review_resource().close().method(),

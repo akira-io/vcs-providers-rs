@@ -139,4 +139,15 @@ impl ScopedCodeReviewOperation {
 
         Box::pin(async move { CodeReviews::close(&*code_reviews, code_review).await })
     }
+
+    pub fn merge(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+        let Some(id) = self.id else {
+            return Box::pin(async { Err(error().invalid_input("code review id is required")) });
+        };
+
+        let code_reviews = self.code_reviews;
+        let code_review = CodeReview::make(self.repo, CodeReviewId::make(id));
+
+        Box::pin(async move { CodeReviews::merge(&*code_reviews, code_review).await })
+    }
 }

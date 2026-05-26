@@ -29,6 +29,7 @@ fn gitlab_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::CodeReviewList,
             Capability::CodeReviewCreate,
             Capability::CodeReviewUpdate,
+            Capability::CodeReviewMerge,
             Capability::CodeReviewClose,
             Capability::CodeReviewDelete,
             Capability::Pipelines,

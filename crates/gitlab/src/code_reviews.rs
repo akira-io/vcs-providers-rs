@@ -44,6 +44,27 @@ impl GitLabCodeReview {
     pub fn delete(&self) -> Request {
         request().delete(self.url().value()).build()
     }
+
+    pub fn merge(&self) -> Request {
+        let project_path = project_path(self.code_review.repo());
+
+        request()
+            .put(
+                url(&self.base_url)
+                    .path_segments([
+                        "api",
+                        "v4",
+                        "projects",
+                        project_path.as_str(),
+                        "merge_requests",
+                        self.code_review.id().as_str(),
+                        "merge",
+                    ])
+                    .build()
+                    .value(),
+            )
+            .build()
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

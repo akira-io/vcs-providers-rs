@@ -28,6 +28,11 @@ fn bitbucket_facade_builds_code_review_requests() {
         code_review.url().value(),
         "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/pullrequests/42"
     );
+    assert_eq!(code_review.merge().method(), &RequestMethod::Post);
+    assert_eq!(
+        code_review.merge().url().value(),
+        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/pullrequests/42/merge"
+    );
 }
 
 #[test]

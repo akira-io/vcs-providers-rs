@@ -66,6 +66,17 @@ fn gitlab_code_review_update_builds_put_request() {
 }
 
 #[test]
+fn gitlab_code_review_merge_builds_put_request() {
+    let merge_request = code_review_resource().merge();
+
+    assert_eq!(merge_request.method(), &RequestMethod::Put);
+    assert_eq!(
+        merge_request.url().as_str(),
+        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/merge_requests/42/merge"
+    );
+}
+
+#[test]
 fn gitlab_code_review_close_builds_put_request() {
     assert_eq!(code_review_resource().close().method(), &RequestMethod::Put);
 }

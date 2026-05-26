@@ -22,8 +22,8 @@ pub use drafts::{
 pub use list::{CodeReviewListOperation, CodeReviewListPaginationOperation};
 #[allow(unused_imports)]
 pub use operations::{
-    CodeReviewCloseOperation, CodeReviewCreateOperation, CodeReviewUpdateOperation,
-    CodeReviewsFluent,
+    CodeReviewCloseOperation, CodeReviewCreateOperation, CodeReviewMergeOperation,
+    CodeReviewUpdateOperation, CodeReviewsFluent,
 };
 pub use patches::CodeReviewPatchBuilder;
 pub use scoped::ScopedCodeReviewOperation;

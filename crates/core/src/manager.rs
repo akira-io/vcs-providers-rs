@@ -147,6 +147,8 @@ pub trait ManagedCodeReviewProvider: ManagedProvider {
 
     fn code_review_update_request(&self, patch: &CodeReviewPatch) -> crate::Request;
 
+    fn code_review_merge_request(&self, code_review: &CodeReview) -> crate::Request;
+
     fn code_review_close_request(&self, code_review: &CodeReview) -> crate::Request;
 }
 

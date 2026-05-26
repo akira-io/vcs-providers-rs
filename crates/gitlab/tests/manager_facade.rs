@@ -43,6 +43,11 @@ fn gitlab_facade_builds_code_review_requests() {
         code_review.url().value(),
         "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/merge_requests/42"
     );
+    assert_eq!(code_review.merge().method(), &RequestMethod::Put);
+    assert_eq!(
+        code_review.merge().url().value(),
+        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/merge_requests/42/merge"
+    );
 }
 
 #[test]

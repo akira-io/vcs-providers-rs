@@ -16,6 +16,7 @@ pub fn bitbucket_capabilities() -> CapabilitySet {
         Capability::CodeReviewList,
         Capability::CodeReviewCreate,
         Capability::CodeReviewUpdate,
+        Capability::CodeReviewMerge,
         Capability::CodeReviewClose,
         Capability::Pipelines,
         Capability::PipelineGet,

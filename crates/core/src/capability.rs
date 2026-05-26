@@ -25,6 +25,7 @@ pub enum Capability {
     CodeReviewList,
     CodeReviewCreate,
     CodeReviewUpdate,
+    CodeReviewMerge,
     CodeReviewClose,
     CodeReviewDelete,
     Pipelines,

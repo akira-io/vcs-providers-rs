@@ -38,6 +38,24 @@ impl GitHubCodeReview {
             .build()
     }
 
+    pub fn merge(&self) -> Request {
+        request()
+            .put(
+                url(&self.base_url)
+                    .path_segments([
+                        "repos",
+                        self.code_review.repo().owner().as_str(),
+                        self.code_review.repo().name().as_str(),
+                        "pulls",
+                        self.code_review.id().as_str(),
+                        "merge",
+                    ])
+                    .build()
+                    .value(),
+            )
+            .build()
+    }
+
     pub fn close(&self) -> Request {
         request()
             .patch(self.url().value())

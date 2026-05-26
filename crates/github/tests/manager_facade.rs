@@ -43,6 +43,11 @@ fn github_facade_builds_code_review_requests() {
         code_review.url().value(),
         "https://api.github.com/repos/akira-io/vcs-providers-rs/pulls/42"
     );
+    assert_eq!(code_review.merge().method(), &RequestMethod::Put);
+    assert_eq!(
+        code_review.merge().url().value(),
+        "https://api.github.com/repos/akira-io/vcs-providers-rs/pulls/42/merge"
+    );
 }
 
 #[test]
