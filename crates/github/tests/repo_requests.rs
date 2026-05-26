@@ -86,10 +86,16 @@ fn github_repo_create_builds_post_request() {
         .repo()
         .draft(repo.clone())
         .visibility(Visibility::Private)
+        .description("Universal provider layer")
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Post);
-    assert!(create_request.body().is_some());
+    assert_eq!(
+        request_body(&create_request),
+        Some(
+            r#"{"name":"vcs-providers-rs","private":true,"description":"Universal provider layer"}"#
+        )
+    );
 }
 
 #[test]
@@ -101,11 +107,15 @@ fn github_repo_update_builds_patch_request() {
         .get();
     let repository_patch = RepositoryPatchBuilder::make(repo.clone().into())
         .visibility(Visibility::Public)
+        .description("Stable universal provider layer")
         .get();
     let update_request = repo.update(&repository_patch);
 
     assert_eq!(update_request.method(), &RequestMethod::Patch);
-    assert!(update_request.body().is_some());
+    assert_eq!(
+        request_body(&update_request),
+        Some(r#"{"private":false,"description":"Stable universal provider layer"}"#)
+    );
 }
 
 #[test]
@@ -117,4 +127,8 @@ fn github_repo_delete_builds_delete_request() {
         .get();
 
     assert_eq!(repo.delete().method(), &RequestMethod::Delete);
+}
+
+fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
+    request.body().map(vcs_provider_core::RequestBody::as_str)
 }

@@ -1,6 +1,8 @@
+use serde::Serialize;
 use vcs_provider_core::{
     PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
-    RepositorySearchQuery, Request, RequestBody, RequestUrl, RequestUrlBuilder, request, url,
+    RepositorySearchQuery, Request, RequestBody, RequestUrl, RequestUrlBuilder, Visibility,
+    request, url,
 };
 
 use crate::DEFAULT_BASE_URL;
@@ -124,13 +126,51 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
 }
 
 fn repository_draft_body(draft: &RepositoryDraft) -> RequestBody {
-    RequestBody::make(format!(
-        "{{\"name\":\"{}\",\"path\":\"{}\"}}",
-        draft.repo().name().as_str(),
-        draft.repo().name().as_str()
-    ))
+    json_body(&GitLabRepositoryDraftBody {
+        name: draft.repo().name().as_str(),
+        path: draft.repo().name().as_str(),
+        namespace_path: draft.repo().owner().as_str(),
+        visibility: gitlab_visibility(draft.visibility()),
+        description: draft.description(),
+    })
 }
 
-fn repository_patch_body(_patch: &RepositoryPatch) -> RequestBody {
-    RequestBody::make("{}")
+fn repository_patch_body(patch: &RepositoryPatch) -> RequestBody {
+    json_body(&GitLabRepositoryPatchBody {
+        visibility: patch.visibility().map(gitlab_visibility),
+        description: patch.description(),
+    })
+}
+
+fn gitlab_visibility(visibility: &Visibility) -> &'static str {
+    match visibility {
+        Visibility::Public => "public",
+        Visibility::Private => "private",
+        Visibility::Internal => "internal",
+    }
+}
+
+#[derive(Serialize)]
+struct GitLabRepositoryDraftBody<'a> {
+    name: &'a str,
+    path: &'a str,
+    namespace_path: &'a str,
+    visibility: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct GitLabRepositoryPatchBody<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    visibility: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+}
+
+fn json_body(payload: &impl Serialize) -> RequestBody {
+    match serde_json::to_string(payload) {
+        Ok(body) => RequestBody::make(body),
+        Err(_) => RequestBody::make("{}"),
+    }
 }

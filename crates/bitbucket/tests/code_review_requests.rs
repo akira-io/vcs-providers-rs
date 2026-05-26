@@ -54,14 +54,22 @@ fn bitbucket_code_review_create_builds_post_request() {
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Post);
-    assert!(create_request.body().is_some());
+    assert_eq!(
+        request_body(&create_request),
+        Some(
+            r#"{"title":"Add mutable operations","source":{"branch":{"name":"feature"}},"destination":{"branch":{"name":"main"}},"description":"Details"}"#
+        )
+    );
 }
 
 #[test]
 fn bitbucket_code_review_update_builds_put_request() {
+    let update_request = code_review_resource().update(&code_review_patch());
+
+    assert_eq!(update_request.method(), &RequestMethod::Put);
     assert_eq!(
-        code_review_resource().update(&code_review_patch()).method(),
-        &RequestMethod::Put
+        request_body(&update_request),
+        Some(r#"{"title":"Add safe mutable operations","description":"Updated details"}"#)
     );
 }
 
@@ -99,6 +107,11 @@ fn code_review_resource()
 
 fn code_review_patch() -> vcs_provider_core::CodeReviewPatch {
     CodeReviewPatchBuilder::make(code_review_resource().code_review().clone())
-        .closed()
+        .title("Add safe mutable operations")
+        .body("Updated details")
         .get()
+}
+
+fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
+    request.body().map(vcs_provider_core::RequestBody::as_str)
 }

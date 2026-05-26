@@ -1,3 +1,4 @@
+use serde::Serialize;
 use vcs_provider_core::{
     CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, PageRequest, Request,
     RequestBody, RequestUrl, RequestUrlBuilder, request, url,
@@ -140,9 +141,59 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
 }
 
 fn code_review_draft_body(draft: &CodeReviewDraft) -> RequestBody {
-    RequestBody::make(format!("{{\"title\":\"{}\"}}", draft.title()))
+    json_body(&BitbucketCodeReviewDraftBody {
+        title: draft.title(),
+        source: draft.source().map(bitbucket_branch_body),
+        destination: draft.target().map(bitbucket_branch_body),
+        description: draft.body(),
+    })
 }
 
-fn code_review_patch_body(_patch: &CodeReviewPatch) -> RequestBody {
-    RequestBody::make("{}")
+fn code_review_patch_body(patch: &CodeReviewPatch) -> RequestBody {
+    json_body(&BitbucketCodeReviewPatchBody {
+        title: patch.title(),
+        description: patch.body(),
+    })
+}
+
+fn bitbucket_branch_body(name: &str) -> BitbucketBranchBody<'_> {
+    BitbucketBranchBody {
+        branch: BitbucketBranchNameBody { name },
+    }
+}
+
+#[derive(Serialize)]
+struct BitbucketCodeReviewDraftBody<'a> {
+    title: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    source: Option<BitbucketBranchBody<'a>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    destination: Option<BitbucketBranchBody<'a>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct BitbucketBranchBody<'a> {
+    branch: BitbucketBranchNameBody<'a>,
+}
+
+#[derive(Serialize)]
+struct BitbucketBranchNameBody<'a> {
+    name: &'a str,
+}
+
+#[derive(Serialize)]
+struct BitbucketCodeReviewPatchBody<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    title: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<&'a str>,
+}
+
+fn json_body(payload: &impl Serialize) -> RequestBody {
+    match serde_json::to_string(payload) {
+        Ok(body) => RequestBody::make(body),
+        Err(_) => RequestBody::make("{}"),
+    }
 }
