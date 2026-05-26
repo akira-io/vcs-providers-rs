@@ -136,4 +136,13 @@ where
             self.mapper.code_review(&code_review, &response)
         })
     }
+
+    fn delete(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<()>> {
+        Box::pin(async move {
+            let request = self.driver.code_review_delete_request(&code_review)?;
+            self.send_request(request).await?;
+
+            Ok(())
+        })
+    }
 }

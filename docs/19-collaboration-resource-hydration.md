@@ -53,7 +53,7 @@ let closed_issue = github()
     .await?;
 ```
 
-The fluent operation names are the action names: `create`, `update` and `close`.
+The fluent operation names are the action names: `create`, `update`, `close` and `delete`. GitLab issue deletion maps to the GitLab issue delete endpoint. GitHub issue deletion is intentionally reported as `VcsError::UnsupportedOperation`; GitHub callers should use `close`.
 
 ## Code Reviews
 
@@ -95,7 +95,17 @@ let updated_code_review = gitlab()
     .title("Add hydrated collaboration resources")
     .update()
     .await?;
+
+gitlab()
+    .transport(transport)
+    .code_reviews()
+    .location(repo.into())
+    .id(created_code_review.id().as_str())
+    .delete()
+    .await?;
 ```
+
+GitLab merge request deletion is available through `delete`. GitHub and Bitbucket code reviews use `close` for lifecycle changes and report `VcsError::UnsupportedOperation` for async `delete`.
 
 ## Releases
 

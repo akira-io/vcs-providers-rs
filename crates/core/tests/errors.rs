@@ -14,6 +14,10 @@ fn error_builder_maps_http_status_to_universal_error() {
         error().from_status(&ResponseStatus::make(503)),
         Some(VcsError::ProviderUnavailable)
     );
+    assert_eq!(
+        error().unsupported_operation("issue delete").kind(),
+        vcs_provider_core::ErrorKind::UnsupportedOperation
+    );
     assert_eq!(error().from_status(&ResponseStatus::make(204)), None);
 }
 

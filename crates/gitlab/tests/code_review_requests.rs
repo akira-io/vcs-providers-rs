@@ -102,11 +102,12 @@ fn gitlab_code_review_close_builds_put_request() {
 }
 
 #[test]
-fn gitlab_code_review_delete_builds_delete_request() {
-    assert_eq!(
-        code_review_resource().delete().method(),
-        &RequestMethod::Delete
-    );
+fn gitlab_code_review_delete_builds_delete_request() -> vcs_provider_core::VcsResult<()> {
+    let delete_request = code_review_resource().delete()?;
+
+    assert_eq!(delete_request.method(), &RequestMethod::Delete);
+
+    Ok(())
 }
 
 fn repository() -> vcs_provider_core::ManagedRepo<vcs_provider_gitlab::GitLabProvider> {

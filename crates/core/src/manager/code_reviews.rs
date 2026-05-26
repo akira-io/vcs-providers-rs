@@ -6,7 +6,7 @@ use crate::{
     RequestUrl,
 };
 
-use super::{ManagedCodeReviewDeleteProvider, ManagedCodeReviewProvider, VcsManager};
+use super::{ManagedCodeReviewProvider, VcsManager};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedCodeReviewBuilder<Driver, RepoState, CodeReviewIdState> {
@@ -188,13 +188,7 @@ where
             .driver
             .code_review_merge_request(&self.code_review)
     }
-}
-
-impl<Driver> ManagedCodeReview<Driver>
-where
-    Driver: ManagedCodeReviewDeleteProvider,
-{
-    pub fn delete(&self) -> Request {
+    pub fn delete(&self) -> crate::VcsResult<Request> {
         self.manager
             .driver
             .code_review_delete_request(&self.code_review)

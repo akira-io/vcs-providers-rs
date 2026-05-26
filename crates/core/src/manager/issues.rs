@@ -4,7 +4,7 @@ use crate::{
     ProvidedIssueRepo, ProvidedIssueTitle, Repo, Request, RequestUrl,
 };
 
-use super::{ManagedIssueDeleteProvider, ManagedIssueProvider, VcsManager};
+use super::{ManagedIssueProvider, VcsManager};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedIssueBuilder<Driver, RepoState, IssueIdState> {
@@ -160,9 +160,9 @@ where
 
 impl<Driver> ManagedIssue<Driver>
 where
-    Driver: ManagedIssueDeleteProvider,
+    Driver: ManagedIssueProvider,
 {
-    pub fn delete(&self) -> Request {
+    pub fn delete(&self) -> crate::VcsResult<Request> {
         self.manager.driver.issue_delete_request(&self.issue)
     }
 }

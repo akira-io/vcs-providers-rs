@@ -13,6 +13,8 @@ pub trait IssuesFluent {
     fn update(self) -> IssueUpdateOperation;
 
     fn close(self) -> IssueCloseOperation;
+
+    fn delete(self) -> IssueDeleteOperation;
 }
 
 impl IssuesFluent for Box<dyn Issues> {
@@ -46,6 +48,14 @@ impl IssuesFluent for Box<dyn Issues> {
 
     fn close(self) -> IssueCloseOperation {
         IssueCloseOperation {
+            issues: self,
+            repo: None,
+            id: None,
+        }
+    }
+
+    fn delete(self) -> IssueDeleteOperation {
+        IssueDeleteOperation {
             issues: self,
             repo: None,
             id: None,
@@ -200,6 +210,39 @@ impl IssueCloseOperation {
         let patch = IssuePatchBuilder::make(issue).closed().get();
 
         Box::pin(async move { Issues::close(&*issues, patch).await })
+    }
+}
+
+pub struct IssueDeleteOperation {
+    issues: Box<dyn Issues>,
+    repo: Option<Repo>,
+    id: Option<String>,
+}
+
+impl IssueDeleteOperation {
+    pub fn location(mut self, repo: Repo) -> Self {
+        self.repo = Some(repo);
+        self
+    }
+
+    pub fn id(mut self, id: impl Into<String>) -> Self {
+        self.id = Some(id.into());
+        self
+    }
+
+    pub fn delete(self) -> BoxFuture<'static, VcsResult<()>> {
+        let Some(repo) = self.repo else {
+            return Box::pin(async { Err(error().invalid_input("repository is required")) });
+        };
+
+        let Some(id) = self.id else {
+            return Box::pin(async { Err(error().invalid_input("issue id is required")) });
+        };
+
+        let issues = self.issues;
+        let issue = Issue::make(repo, IssueId::make(id));
+
+        Box::pin(async move { Issues::delete(&*issues, issue).await })
     }
 }
 

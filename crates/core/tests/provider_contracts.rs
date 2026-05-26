@@ -44,10 +44,13 @@ fn issue_contract_reports_unconfigured_transport() -> VcsResult<()> {
             .location(repo)
             .list(),
     );
+    let delete_result =
+        futures::executor::block_on(TransportNotConfiguredIssues.delete(issue_resource.clone()));
 
     assert_eq!(issue_resource.id().as_str(), "1");
     assert_eq!(result, Err(VcsError::TransportNotConfigured));
     assert_eq!(list_result, Err(VcsError::TransportNotConfigured));
+    assert_eq!(delete_result, Err(VcsError::TransportNotConfigured));
 
     Ok(())
 }
@@ -67,7 +70,11 @@ fn code_review_contract_reports_unconfigured_transport() -> VcsResult<()> {
         Err(VcsError::TransportNotConfigured)
     );
     assert_eq!(
-        futures::executor::block_on(TransportNotConfiguredCodeReviews.merge(code_review)),
+        futures::executor::block_on(TransportNotConfiguredCodeReviews.merge(code_review.clone())),
+        Err(VcsError::TransportNotConfigured)
+    );
+    assert_eq!(
+        futures::executor::block_on(TransportNotConfiguredCodeReviews.delete(code_review.clone())),
         Err(VcsError::TransportNotConfigured)
     );
     assert_eq!(

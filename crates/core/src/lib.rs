@@ -29,13 +29,14 @@ pub use auth::{
 };
 pub use capability::{Capability, CapabilitySet};
 pub use code_reviews::{
-    CodeReview, CodeReviewBuilder, CodeReviewDraft, CodeReviewDraftBuilder, CodeReviewId,
-    CodeReviewListOperation, CodeReviewListPaginationOperation, CodeReviewListQuery,
-    CodeReviewPatch, CodeReviewPatchBuilder, CodeReviewQueryBuilder, CodeReviewResponseMapper,
-    CodeReviews, CodeReviewsFluent, MissingCodeReviewDraftRepo, MissingCodeReviewId,
-    MissingCodeReviewRepo, MissingCodeReviewTitle, ProvidedCodeReviewDraftRepo,
-    ProvidedCodeReviewId, ProvidedCodeReviewRepo, ProvidedCodeReviewTitle,
-    ScopedCodeReviewOperation, TransportBackedCodeReviews, TransportNotConfiguredCodeReviews,
+    CodeReview, CodeReviewBuilder, CodeReviewDeleteOperation, CodeReviewDraft,
+    CodeReviewDraftBuilder, CodeReviewId, CodeReviewListOperation,
+    CodeReviewListPaginationOperation, CodeReviewListQuery, CodeReviewPatch,
+    CodeReviewPatchBuilder, CodeReviewQueryBuilder, CodeReviewResponseMapper, CodeReviews,
+    CodeReviewsFluent, MissingCodeReviewDraftRepo, MissingCodeReviewId, MissingCodeReviewRepo,
+    MissingCodeReviewTitle, ProvidedCodeReviewDraftRepo, ProvidedCodeReviewId,
+    ProvidedCodeReviewRepo, ProvidedCodeReviewTitle, ScopedCodeReviewOperation,
+    TransportBackedCodeReviews, TransportNotConfiguredCodeReviews,
 };
 pub(crate) use errors::transport_not_configured;
 pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
@@ -48,22 +49,21 @@ pub use helpers::{
 };
 pub use http::{HttpBuilder, HttpTransport, HttpTransportBuilder};
 pub use issues::{
-    Issue, IssueBuilder, IssueDraft, IssueDraftBuilder, IssueId, IssueListOperation,
-    IssueListPaginationOperation, IssueListQuery, IssuePatch, IssuePatchBuilder, IssueQueryBuilder,
-    IssueResponseMapper, Issues, IssuesFluent, MissingIssueId, MissingIssueRepo, MissingIssueTitle,
-    ProvidedIssueId, ProvidedIssueRepo, ProvidedIssueTitle, ScopedIssueOperation,
-    TransportBackedIssues, TransportNotConfiguredIssues,
+    Issue, IssueBuilder, IssueDeleteOperation, IssueDraft, IssueDraftBuilder, IssueId,
+    IssueListOperation, IssueListPaginationOperation, IssueListQuery, IssuePatch,
+    IssuePatchBuilder, IssueQueryBuilder, IssueResponseMapper, Issues, IssuesFluent,
+    MissingIssueId, MissingIssueRepo, MissingIssueTitle, ProvidedIssueId, ProvidedIssueRepo,
+    ProvidedIssueTitle, ScopedIssueOperation, TransportBackedIssues, TransportNotConfiguredIssues,
 };
 pub use manager::{
     ManagedCodeReview, ManagedCodeReviewBuilder, ManagedCodeReviewCollection,
-    ManagedCodeReviewDeleteProvider, ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider,
-    ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDeleteProvider,
-    ManagedIssueDraftBuilder, ManagedIssueProvider, ManagedIssueUpdateBuilder, ManagedPipeline,
-    ManagedPipelineBuilder, ManagedPipelineCollection, ManagedProvider, ManagedRelease,
-    ManagedReleaseBuilder, ManagedReleaseCollection, ManagedReleaseDraftBuilder,
-    ManagedReleaseProvider, ManagedReleaseUpdateBuilder, ManagedRepo, ManagedRepoBuilder,
-    ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination, ManagedRepoCollection,
-    ManagedRepoIssues, ManagedRepoIssuesPagination, ManagedRepoPipelines,
+    ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider, ManagedIssue, ManagedIssueBuilder,
+    ManagedIssueCollection, ManagedIssueDraftBuilder, ManagedIssueProvider,
+    ManagedIssueUpdateBuilder, ManagedPipeline, ManagedPipelineBuilder, ManagedPipelineCollection,
+    ManagedProvider, ManagedRelease, ManagedReleaseBuilder, ManagedReleaseCollection,
+    ManagedReleaseDraftBuilder, ManagedReleaseProvider, ManagedReleaseUpdateBuilder, ManagedRepo,
+    ManagedRepoBuilder, ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination,
+    ManagedRepoCollection, ManagedRepoIssues, ManagedRepoIssuesPagination, ManagedRepoPipelines,
     ManagedRepoPipelinesPagination, ManagedRepoReleases, ManagedRepoReleasesPagination,
     ManagedRepositoryDraftBuilder, ManagedRepositoryUpdateBuilder, VcsManager, VcsManagerBuilder,
     VcsManagerWithDriverBuilder,

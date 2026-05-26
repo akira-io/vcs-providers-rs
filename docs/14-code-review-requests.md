@@ -131,8 +131,22 @@ let update_request = gitlab()
 
 let code_review = gitlab().code_review().repo(repo).id("42").get();
 let close_request = code_review.close();
-let delete_request = code_review.delete();
+let delete_request = code_review.delete()?;
 ```
+
+The async client uses the same terminal action names:
+
+```rust
+gitlab()
+    .transport(transport)
+    .code_reviews()
+    .location(repo)
+    .id("42")
+    .delete()
+    .await?;
+```
+
+GitHub pull requests and Bitbucket pull requests do not expose a universal delete operation. Use `close` for those providers. Calling async `delete` returns `VcsError::UnsupportedOperation` unless the provider maps it to a real delete endpoint.
 
 Provider support:
 

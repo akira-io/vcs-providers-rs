@@ -14,12 +14,12 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
 
       - name: Install git-cliff
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@8f531eaecd1898bc3da7d104ad91bee98d1b97bd
         with:
           tool: git-cliff
 
@@ -59,7 +59,7 @@ jobs:
             --latest
 
       - name: Send GitHub Release to Discord
-        uses: SethCohen/github-releases-to-discord@v1.20.0
+        uses: SethCohen/github-releases-to-discord@24d166886aee4646d448c8a389ff9e1ebcab3682
         with:
           webhook_url: ${{ secrets.DISCORD }}
           release_name: ${{ github.ref_name }}
