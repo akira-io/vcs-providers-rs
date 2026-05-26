@@ -1,7 +1,8 @@
 use vcs_provider_bitbucket::{DISPLAY_NAME, PROVIDER_ID, bitbucket};
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, RecordingTransport, VcsError,
-    VcsResult, auth, provider, repo, response, run_async_test,
+    AuthHeaderStyle, AuthKind, Capability, HeaderMiddleware, Provider, ProviderId,
+    RecordingTransport, VcsError, VcsResult, Visibility, auth, middleware, provider, repo,
+    response, run_async_test,
 };
 
 #[test]
@@ -58,16 +59,20 @@ fn bitbucket_provider_maps_oauth_header() {
 }
 
 #[test]
-fn bitbucket_client_sends_documented_headers_and_auth() -> VcsResult<()> {
+fn bitbucket_client_routes_auth_and_middleware_through_transport() -> VcsResult<()> {
     let transport = RecordingTransport::make(
         response()
             .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":true}"#)
             .build(),
     );
+    let pipeline = middleware()
+        .with(HeaderMiddleware::make("x-vcs-trace", "trace-1"))
+        .transport(transport.clone())
+        .build();
 
     run_async_test(async {
-        bitbucket()
-            .client(transport.clone())
+        let repository = bitbucket()
+            .client(pipeline)
             .auth(auth().oauth("test-token"))
             .repos()
             .get(repo().owner("akira-io").name("vcs-providers-rs").get())
@@ -75,9 +80,11 @@ fn bitbucket_client_sends_documented_headers_and_auth() -> VcsResult<()> {
 
         let requests = transport.requests();
 
+        assert_eq!(repository.provider().as_str(), PROVIDER_ID);
+        assert_eq!(repository.visibility(), &Visibility::Private);
         assert_eq!(
             requests.first().map(|request| request.headers().len()),
-            Some(2)
+            Some(3)
         );
         assert_eq!(
             requests
@@ -92,6 +99,13 @@ fn bitbucket_client_sends_documented_headers_and_auth() -> VcsResult<()> {
                 .and_then(|request| request.headers().get(1))
                 .map(|header| header.value().as_str()),
             Some("Bearer test-token")
+        );
+        assert_eq!(
+            requests
+                .first()
+                .and_then(|request| request.headers().get(2))
+                .map(|header| header.name().as_str()),
+            Some("x-vcs-trace")
         );
 
         Ok(())
