@@ -66,7 +66,10 @@ fn github_release_create_builds_post_request() {
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Post);
-    assert!(create_request.body().is_some());
+    assert_eq!(
+        create_request.body().map(|body| body.as_str()),
+        Some(r#"{"tag_name":"v1.0.0","name":"v1.0.0","body":"Release notes"}"#)
+    );
 }
 
 #[test]
@@ -84,6 +87,13 @@ fn github_release_update_builds_patch_request() {
     assert_eq!(
         release_resource.update(&release_patch).method(),
         &RequestMethod::Patch
+    );
+    assert_eq!(
+        release_resource
+            .update(&release_patch)
+            .body()
+            .map(|body| body.as_str()),
+        Some(r#"{"body":"Updated"}"#)
     );
 }
 

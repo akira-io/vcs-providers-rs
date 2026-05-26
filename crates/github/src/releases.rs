@@ -1,3 +1,4 @@
+use serde::Serialize;
 use vcs_provider_core::{
     PageRequest, Release, ReleaseDraft, ReleaseListQuery, ReleasePatch, Request, RequestBody,
     RequestUrl, RequestUrlBuilder, request, url,
@@ -107,10 +108,41 @@ fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> Req
     }
 }
 
-fn release_draft_body(draft: &ReleaseDraft) -> RequestBody {
-    RequestBody::make(format!("{{\"tag_name\":\"{}\"}}", draft.tag()))
+#[derive(Serialize)]
+struct GitHubReleaseDraftBody<'a> {
+    tag_name: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    body: Option<&'a str>,
 }
 
-fn release_patch_body(_patch: &ReleasePatch) -> RequestBody {
-    RequestBody::make("{}")
+#[derive(Serialize)]
+struct GitHubReleasePatchBody<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    name: Option<&'a str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    body: Option<&'a str>,
+}
+
+fn release_draft_body(draft: &ReleaseDraft) -> RequestBody {
+    json_body(&GitHubReleaseDraftBody {
+        tag_name: draft.tag(),
+        name: draft.name(),
+        body: draft.body(),
+    })
+}
+
+fn release_patch_body(patch: &ReleasePatch) -> RequestBody {
+    json_body(&GitHubReleasePatchBody {
+        name: patch.name(),
+        body: patch.body(),
+    })
+}
+
+fn json_body(payload: &impl Serialize) -> RequestBody {
+    match serde_json::to_string(payload) {
+        Ok(body) => RequestBody::make(body),
+        Err(_) => RequestBody::make("{}"),
+    }
 }
