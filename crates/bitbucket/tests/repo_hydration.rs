@@ -1,17 +1,14 @@
 use vcs_provider_bitbucket::bitbucket;
 use vcs_provider_core::{
-    LifecycleState, Repo, ReposFluent, SingleResponseTransport, Visibility, provider_response,
-    repo, run_async_test,
+    LifecycleState, Repo, ReposFluent, Visibility, provider_response, repo, run_async_test,
 };
 
 #[test]
 fn bitbucket_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repository = bitbucket()
-            .client(provider_response_body(
-                r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#,
-            ))
             .repos()
+            .response_body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
             .get(repository_location())
             .await?;
 
@@ -29,10 +26,10 @@ fn bitbucket_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
 fn bitbucket_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repositories = bitbucket()
-            .client(provider_response_body(
-                r#"{"values":[{"full_name":"akira-io/vcs-providers-rs","is_private":true}]}"#,
-            ))
             .repos()
+            .response_body(
+                r#"{"values":[{"full_name":"akira-io/vcs-providers-rs","is_private":true}]}"#,
+            )
             .list(bitbucket().repo().query().optional_pagination(None).list())
             .await?;
 
@@ -47,10 +44,8 @@ fn bitbucket_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<(
 fn bitbucket_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repository = bitbucket()
-            .client(provider_response_body(
-                r#"{"full_name":"akira-io/vcs-providers-rs","is_private":true}"#,
-            ))
             .repos()
+            .response_body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":true}"#)
             .create()
             .location(repository_location())
             .visibility(Visibility::Private)
@@ -68,10 +63,8 @@ fn bitbucket_client_hydrates_repository_create() -> vcs_provider_core::VcsResult
 fn bitbucket_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repository = bitbucket()
-            .client(provider_response_body(
-                r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#,
-            ))
             .repos()
+            .response_body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
             .update()
             .location(repository_location())
             .visibility(Visibility::Public)
@@ -100,13 +93,13 @@ fn bitbucket_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
 fn bitbucket_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let branch_page = bitbucket()
-            .client(provider_response_body(r#"{"values":[{"name":"main"}]}"#))
             .repos()
+            .response_body(r#"{"values":[{"name":"main"}]}"#)
             .branches(repository_location())
             .await?;
         let commit_page = bitbucket()
-            .client(provider_response_body(r#"{"values":[{"hash":"abc123"}]}"#))
             .repos()
+            .response_body(r#"{"values":[{"hash":"abc123"}]}"#)
             .commits(repository_location())
             .await?;
 
@@ -119,8 +112,4 @@ fn bitbucket_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsRes
 
 fn repository_location() -> Repo {
     repo().owner("akira-io").name("vcs-providers-rs").get()
-}
-
-fn provider_response_body(body: &str) -> SingleResponseTransport {
-    provider_response().body(body).get()
 }

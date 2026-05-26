@@ -18,7 +18,7 @@ fn github_provider_exposes_universal_contracts() {
     let provider = github();
 
     assert!(provider.capabilities().supports(&Capability::Repos));
-    drop(provider.repos());
+    drop(Provider::repos(&provider));
     drop(Provider::issues(&provider));
     drop(Provider::code_reviews(&provider));
     drop(Provider::pipelines(&provider));

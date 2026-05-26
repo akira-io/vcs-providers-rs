@@ -1,6 +1,5 @@
 use vcs_provider_core::{
-    LifecycleState, Repo, ReposFluent, SingleResponseTransport, Visibility, provider_response,
-    repo, run_async_test,
+    LifecycleState, Repo, ReposFluent, Visibility, provider_response, repo, run_async_test,
 };
 use vcs_provider_github::github;
 
@@ -8,10 +7,10 @@ use vcs_provider_github::github;
 fn github_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repository = github()
-            .client(provider_response_body(
-                r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
-            ))
             .repos()
+            .response_body(
+                r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
+            )
             .get(repository_location())
             .await?;
 
@@ -29,10 +28,10 @@ fn github_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
 fn github_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repositories = github()
-            .client(provider_response_body(
-                r#"[{"full_name":"akira-io/vcs-providers-rs","private":true,"archived":true,"disabled":false}]"#,
-            ))
             .repos()
+            .response_body(
+                r#"[{"full_name":"akira-io/vcs-providers-rs","private":true,"archived":true,"disabled":false}]"#,
+            )
             .list(github().repo().query().optional_pagination(None).list())
             .await?;
 
@@ -51,10 +50,10 @@ fn github_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> 
 fn github_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repository = github()
-            .client(provider_response_body(
-                r#"{"full_name":"akira-io/vcs-providers-rs","private":true,"archived":false,"disabled":false}"#,
-            ))
             .repos()
+            .response_body(
+                r#"{"full_name":"akira-io/vcs-providers-rs","private":true,"archived":false,"disabled":false}"#,
+            )
             .create()
             .location(repository_location())
             .visibility(Visibility::Private)
@@ -72,10 +71,10 @@ fn github_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()
 fn github_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repository = github()
-            .client(provider_response_body(
-                r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
-            ))
             .repos()
+            .response_body(
+                r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
+            )
             .update()
             .location(repository_location())
             .visibility(Visibility::Public)
@@ -104,13 +103,13 @@ fn github_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
 fn github_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let branch_page = github()
-            .client(provider_response_body(r#"[{"name":"main"}]"#))
             .repos()
+            .response_body(r#"[{"name":"main"}]"#)
             .branches(repository_location())
             .await?;
         let commit_page = github()
-            .client(provider_response_body(r#"[{"sha":"abc123"}]"#))
             .repos()
+            .response_body(r#"[{"sha":"abc123"}]"#)
             .commits(repository_location())
             .await?;
 
@@ -123,8 +122,4 @@ fn github_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult
 
 fn repository_location() -> Repo {
     repo().owner("akira-io").name("vcs-providers-rs").get()
-}
-
-fn provider_response_body(body: &str) -> SingleResponseTransport {
-    provider_response().body(body).get()
 }

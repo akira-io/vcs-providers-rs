@@ -19,7 +19,7 @@ fn gitlab_provider_exposes_universal_contracts() {
     let provider = gitlab();
 
     assert!(provider.capabilities().supports(&Capability::Repos));
-    drop(provider.repos());
+    drop(Provider::repos(&provider));
     drop(Provider::issues(&provider));
     drop(Provider::code_reviews(&provider));
     drop(Provider::pipelines(&provider));
