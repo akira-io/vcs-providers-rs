@@ -9,6 +9,9 @@ use crate::{
     TransportPipelineBuilder, VcsManagerBuilder,
 };
 
+#[cfg(feature = "testing")]
+use crate::ProviderConformanceBuilder;
+
 pub fn auth() -> AuthBuilder {
     AuthBuilder
 }
@@ -58,6 +61,11 @@ pub fn commit(id: impl Into<String>) -> Commit {
 
 pub fn provider() -> ProviderRegistryBuilder {
     ProviderRegistry::builder()
+}
+
+#[cfg(feature = "testing")]
+pub fn conformance() -> ProviderConformanceBuilder {
+    crate::testing::conformance()
 }
 
 pub fn vcs<Driver>(driver: Driver) -> crate::VcsManager<Driver>

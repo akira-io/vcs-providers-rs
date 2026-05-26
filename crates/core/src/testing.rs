@@ -1,7 +1,14 @@
 use std::future::Future;
 use std::sync::{Arc, Mutex};
 
+#[cfg(feature = "testing")]
+#[path = "testing/conformance.rs"]
+mod conformance;
+
 use crate::{BoxFuture, Request, Response, ResponseBuilder, Transport, VcsResult, response};
+
+#[cfg(feature = "testing")]
+pub use conformance::{ProviderConformance, ProviderConformanceBuilder};
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct EchoTransport;
@@ -120,6 +127,11 @@ impl RecordingTransport {
             .map(|requests| requests.clone())
             .unwrap_or_default()
     }
+}
+
+#[cfg(feature = "testing")]
+pub fn conformance() -> ProviderConformanceBuilder {
+    ProviderConformanceBuilder
 }
 
 impl Transport for RecordingTransport {

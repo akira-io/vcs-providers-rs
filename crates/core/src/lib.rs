@@ -38,6 +38,8 @@ pub use code_reviews::{
 };
 pub(crate) use errors::transport_not_configured;
 pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
+#[cfg(feature = "testing")]
+pub use helpers::conformance;
 pub use helpers::{
     CapabilitySetBuilder, auth, branch, capabilities, code_review, commit, error, http, issue,
     middleware, pagination, pipeline, provider, rate_limit, release, repo, request, response,
@@ -112,6 +114,8 @@ pub use testing::{
     EchoTransport, ProviderResponseBuilder, ProviderResponseTransportBuilder, RecordingTransport,
     SingleResponseTransport, provider_response, run_async_test,
 };
+#[cfg(feature = "testing")]
+pub use testing::{ProviderConformance, ProviderConformanceBuilder};
 pub use transport::{
     Request, RequestBody, RequestBuilder, RequestHeader, RequestHeaderName, RequestHeaderValue,
     RequestMethod, Response, ResponseBody, ResponseBuilder, ResponseStatus, Transport,
