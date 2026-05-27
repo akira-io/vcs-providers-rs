@@ -10,26 +10,38 @@ use vcs_provider_core::{
 use crate::mappers::{
     BitbucketCodeReviewMapper, BitbucketPipelineMapper, BitbucketRepositoryMapper,
 };
-use crate::{BitbucketProvider, DEFAULT_BASE_URL, bitbucket};
+use crate::{BitbucketProvider, bitbucket};
 
 #[derive(Clone)]
 pub struct BitbucketClient {
+    provider: BitbucketProvider,
     transport: Arc<dyn Transport>,
     headers: Vec<RequestHeader>,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct BitbucketPipelinesTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BitbucketPipelinesTransportBuilder {
+    provider: BitbucketProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct BitbucketReposTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BitbucketReposTransportBuilder {
+    provider: BitbucketProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct BitbucketCodeReviewsTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BitbucketCodeReviewsTransportBuilder {
+    provider: BitbucketProvider,
+}
 
 impl BitbucketClient {
     pub fn make(transport: impl Transport + 'static) -> Self {
+        Self::with_provider(bitbucket(), transport)
+    }
+
+    pub fn with_provider(provider: BitbucketProvider, transport: impl Transport + 'static) -> Self {
         Self {
+            provider,
             transport: Arc::new(transport),
             headers: default_headers(),
         }
@@ -38,7 +50,7 @@ impl BitbucketClient {
     pub fn code_reviews(&self) -> Box<dyn CodeReviews> {
         Box::new(
             TransportBackedCodeReviews::make(
-                bitbucket(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 BitbucketCodeReviewMapper,
             )
@@ -49,7 +61,7 @@ impl BitbucketClient {
     pub fn repos(&self) -> Box<dyn Repos> {
         Box::new(
             TransportBackedRepos::make(
-                bitbucket(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 BitbucketRepositoryMapper,
             )
@@ -60,7 +72,7 @@ impl BitbucketClient {
     pub fn pipelines(&self) -> Box<dyn Pipelines> {
         Box::new(
             TransportBackedPipelines::make(
-                bitbucket(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 BitbucketPipelineMapper,
             )
@@ -69,7 +81,7 @@ impl BitbucketClient {
     }
 
     pub fn auth(mut self, credential: AuthCredential) -> Self {
-        if let Some(header) = bitbucket().auth_header(&credential) {
+        if let Some(header) = self.provider.auth_header(&credential) {
             self.headers.push(RequestHeader::make(
                 header.name().as_str(),
                 header.value().as_str(),
@@ -82,7 +94,7 @@ impl BitbucketClient {
 
 impl Provider for BitbucketClient {
     fn descriptor(&self) -> ProviderDescriptor {
-        bitbucket().descriptor()
+        self.provider.descriptor()
     }
 
     fn repos(&self) -> Box<dyn Repos> {
@@ -106,14 +118,14 @@ impl Provider for BitbucketClient {
     }
 
     fn default_base_url(&self) -> &str {
-        DEFAULT_BASE_URL
+        self.provider.default_base_url()
     }
 
     fn auth_header_style(
         &self,
         auth_kind: vcs_provider_core::AuthKind,
     ) -> vcs_provider_core::AuthHeaderStyle {
-        bitbucket().auth_header_style(auth_kind)
+        self.provider.auth_header_style(auth_kind)
     }
 }
 
@@ -125,23 +137,23 @@ impl ProviderClient for BitbucketClient {
 
 impl BitbucketProvider {
     pub fn repos(self) -> BitbucketReposTransportBuilder {
-        BitbucketReposTransportBuilder
+        BitbucketReposTransportBuilder { provider: self }
     }
 
     pub fn code_reviews(self) -> BitbucketCodeReviewsTransportBuilder {
-        BitbucketCodeReviewsTransportBuilder
+        BitbucketCodeReviewsTransportBuilder { provider: self }
     }
 
     pub fn pipelines(self) -> BitbucketPipelinesTransportBuilder {
-        BitbucketPipelinesTransportBuilder
+        BitbucketPipelinesTransportBuilder { provider: self }
     }
 
     pub fn client(self, transport: impl Transport + 'static) -> BitbucketClient {
-        BitbucketClient::make(transport)
+        BitbucketClient::with_provider(self, transport)
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> BitbucketClient {
-        BitbucketClient::make(transport)
+        BitbucketClient::with_provider(self, transport)
     }
 }
 
@@ -149,38 +161,49 @@ impl ManagedClientProvider for BitbucketProvider {
     type Client = BitbucketClient;
 
     fn client(&self, transport: impl Transport + 'static) -> Self::Client {
-        BitbucketClient::make(transport)
+        BitbucketClient::with_provider(self.clone(), transport)
     }
 }
 
 impl BitbucketReposTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Repos> {
-        BitbucketClient::make(vcs_provider_core::provider_response().body(body).get()).repos()
+        BitbucketClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .repos()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Repos> {
-        BitbucketClient::make(transport).repos()
+        BitbucketClient::with_provider(self.provider, transport).repos()
     }
 }
 
 impl BitbucketCodeReviewsTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn CodeReviews> {
-        BitbucketClient::make(vcs_provider_core::provider_response().body(body).get())
-            .code_reviews()
+        BitbucketClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .code_reviews()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn CodeReviews> {
-        BitbucketClient::make(transport).code_reviews()
+        BitbucketClient::with_provider(self.provider, transport).code_reviews()
     }
 }
 
 impl BitbucketPipelinesTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Pipelines> {
-        BitbucketClient::make(vcs_provider_core::provider_response().body(body).get()).pipelines()
+        BitbucketClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .pipelines()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Pipelines> {
-        BitbucketClient::make(transport).pipelines()
+        BitbucketClient::with_provider(self.provider, transport).pipelines()
     }
 }
 

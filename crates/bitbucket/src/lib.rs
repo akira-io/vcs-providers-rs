@@ -25,21 +25,32 @@ pub const PROVIDER_ID: &str = "bitbucket";
 pub const DISPLAY_NAME: &str = "Bitbucket";
 pub const DEFAULT_BASE_URL: &str = "https://api.bitbucket.org/2.0";
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct BitbucketProvider;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BitbucketProvider {
+    base_url: String,
+}
 
 impl BitbucketProvider {
+    pub fn base_url(mut self, base_url: impl Into<String>) -> Self {
+        self.base_url = base_url.into();
+        self
+    }
+
+    pub fn api_base_url(&self) -> &str {
+        &self.base_url
+    }
+
     pub fn repo(
         &self,
     ) -> vcs_provider_core::ManagedRepoBuilder<Self, MissingOwnerName, MissingRepositoryName> {
-        vcs_provider_core::vcs(*self).repo()
+        vcs_provider_core::vcs(self.clone()).repo()
     }
 
     pub fn code_review(
         &self,
     ) -> vcs_provider_core::ManagedCodeReviewBuilder<Self, MissingCodeReviewRepo, MissingCodeReviewId>
     {
-        vcs_provider_core::vcs(*self).code_review()
+        vcs_provider_core::vcs(self.clone()).code_review()
     }
 
     pub fn pagination(&self) -> vcs_provider_core::PaginationBuilder {
@@ -49,7 +60,7 @@ impl BitbucketProvider {
 
 impl ManagedProvider for BitbucketProvider {
     fn repo_url(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::RequestUrl {
-        BitbucketRepo::make(DEFAULT_BASE_URL, repo.clone()).url()
+        BitbucketRepo::make(self.api_base_url(), repo.clone()).url()
     }
 
     fn repo_branches_url(
@@ -57,7 +68,7 @@ impl ManagedProvider for BitbucketProvider {
         repo: &vcs_provider_core::Repo,
         page: Option<&vcs_provider_core::PageRequest>,
     ) -> vcs_provider_core::RequestUrl {
-        BitbucketRepo::make(DEFAULT_BASE_URL, repo.clone()).branches(page)
+        BitbucketRepo::make(self.api_base_url(), repo.clone()).branches(page)
     }
 
     fn repo_commits_url(
@@ -65,39 +76,39 @@ impl ManagedProvider for BitbucketProvider {
         repo: &vcs_provider_core::Repo,
         page: Option<&vcs_provider_core::PageRequest>,
     ) -> vcs_provider_core::RequestUrl {
-        BitbucketRepo::make(DEFAULT_BASE_URL, repo.clone()).commits(page)
+        BitbucketRepo::make(self.api_base_url(), repo.clone()).commits(page)
     }
 
     fn repo_list_url(
         &self,
         query: &vcs_provider_core::RepositoryListQuery,
     ) -> vcs_provider_core::RequestUrl {
-        BitbucketRepoCollection::make(DEFAULT_BASE_URL).list(query)
+        BitbucketRepoCollection::make(self.api_base_url()).list(query)
     }
 
     fn repo_search_url(
         &self,
         query: &vcs_provider_core::RepositorySearchQuery,
     ) -> vcs_provider_core::RequestUrl {
-        BitbucketRepoCollection::make(DEFAULT_BASE_URL).search(query)
+        BitbucketRepoCollection::make(self.api_base_url()).search(query)
     }
 
     fn repo_create_request(
         &self,
         draft: &vcs_provider_core::RepositoryDraft,
     ) -> vcs_provider_core::Request {
-        BitbucketRepo::make(DEFAULT_BASE_URL, draft.repo().clone()).create(draft)
+        BitbucketRepo::make(self.api_base_url(), draft.repo().clone()).create(draft)
     }
 
     fn repo_update_request(
         &self,
         patch: &vcs_provider_core::RepositoryPatch,
     ) -> vcs_provider_core::Request {
-        BitbucketRepo::make(DEFAULT_BASE_URL, patch.repo().clone()).update(patch)
+        BitbucketRepo::make(self.api_base_url(), patch.repo().clone()).update(patch)
     }
 
     fn repo_delete_request(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::Request {
-        BitbucketRepo::make(DEFAULT_BASE_URL, repo.clone()).delete()
+        BitbucketRepo::make(self.api_base_url(), repo.clone()).delete()
     }
 }
 
@@ -106,42 +117,42 @@ impl ManagedCodeReviewProvider for BitbucketProvider {
         &self,
         code_review: &vcs_provider_core::CodeReview,
     ) -> vcs_provider_core::RequestUrl {
-        BitbucketCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).url()
+        BitbucketCodeReview::make(self.api_base_url(), code_review.clone()).url()
     }
 
     fn code_review_list_url(
         &self,
         query: &vcs_provider_core::CodeReviewListQuery,
     ) -> vcs_provider_core::RequestUrl {
-        BitbucketCodeReviewCollection::make(DEFAULT_BASE_URL).list(query)
+        BitbucketCodeReviewCollection::make(self.api_base_url()).list(query)
     }
 
     fn code_review_create_request(
         &self,
         draft: &vcs_provider_core::CodeReviewDraft,
     ) -> vcs_provider_core::Request {
-        BitbucketCodeReviewCollection::make(DEFAULT_BASE_URL).create(draft)
+        BitbucketCodeReviewCollection::make(self.api_base_url()).create(draft)
     }
 
     fn code_review_update_request(
         &self,
         patch: &vcs_provider_core::CodeReviewPatch,
     ) -> vcs_provider_core::Request {
-        BitbucketCodeReview::make(DEFAULT_BASE_URL, patch.code_review().clone()).update(patch)
+        BitbucketCodeReview::make(self.api_base_url(), patch.code_review().clone()).update(patch)
     }
 
     fn code_review_merge_request(
         &self,
         code_review: &vcs_provider_core::CodeReview,
     ) -> vcs_provider_core::Request {
-        BitbucketCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).merge()
+        BitbucketCodeReview::make(self.api_base_url(), code_review.clone()).merge()
     }
 
     fn code_review_close_request(
         &self,
         code_review: &vcs_provider_core::CodeReview,
     ) -> vcs_provider_core::Request {
-        BitbucketCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).close()
+        BitbucketCodeReview::make(self.api_base_url(), code_review.clone()).close()
     }
 }
 
@@ -175,7 +186,7 @@ impl Provider for BitbucketProvider {
     }
 
     fn default_base_url(&self) -> &str {
-        DEFAULT_BASE_URL
+        self.api_base_url()
     }
 
     fn auth_header_style(&self, auth_kind: AuthKind) -> AuthHeaderStyle {
@@ -190,5 +201,13 @@ impl Provider for BitbucketProvider {
 }
 
 pub fn bitbucket() -> BitbucketProvider {
-    BitbucketProvider
+    BitbucketProvider::default()
+}
+
+impl Default for BitbucketProvider {
+    fn default() -> Self {
+        Self {
+            base_url: DEFAULT_BASE_URL.into(),
+        }
+    }
 }

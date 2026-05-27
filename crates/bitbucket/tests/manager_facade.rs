@@ -16,6 +16,20 @@ fn bitbucket_facade_builds_repo_requests() {
 }
 
 #[test]
+fn bitbucket_facade_uses_configured_base_url() {
+    let repository = vcs(bitbucket().base_url("https://bitbucket.internal.example/rest"))
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+
+    assert_eq!(
+        repository.url().value(),
+        "https://bitbucket.internal.example/rest/repositories/akira-io/vcs-providers-rs"
+    );
+}
+
+#[test]
 fn bitbucket_facade_builds_code_review_requests() {
     let code_review = vcs(bitbucket())
         .repo()
@@ -97,8 +111,34 @@ fn bitbucket_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsRe
 
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
         assert_eq!(
+            requests[0].url().value(),
+            "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs"
+        );
+        assert_eq!(
             auth_header.map(|header| header.value().as_str()),
             Some("Bearer bitbucket-token")
+        );
+
+        Ok(())
+    })
+}
+
+#[test]
+fn bitbucket_facade_executes_client_with_configured_base_url() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let transport = provider_response()
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
+            .record();
+
+        vcs(bitbucket().base_url("https://bitbucket.internal.example/rest"))
+            .transport(transport.clone())
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+
+        assert_eq!(
+            transport.requests()[0].url().value(),
+            "https://bitbucket.internal.example/rest/repositories/akira-io/vcs-providers-rs"
         );
 
         Ok(())

@@ -11,32 +11,48 @@ use crate::mappers::{
     GitHubCodeReviewMapper, GitHubIssueMapper, GitHubPipelineMapper, GitHubReleaseMapper,
     GitHubRepositoryMapper,
 };
-use crate::{DEFAULT_BASE_URL, GitHubProvider, github};
+use crate::{GitHubProvider, github};
 
 #[derive(Clone)]
 pub struct GitHubClient {
+    provider: GitHubProvider,
     transport: Arc<dyn Transport>,
     headers: Vec<RequestHeader>,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitHubPipelinesTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitHubPipelinesTransportBuilder {
+    provider: GitHubProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitHubReposTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitHubReposTransportBuilder {
+    provider: GitHubProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitHubIssuesTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitHubIssuesTransportBuilder {
+    provider: GitHubProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitHubCodeReviewsTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitHubCodeReviewsTransportBuilder {
+    provider: GitHubProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitHubReleasesTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitHubReleasesTransportBuilder {
+    provider: GitHubProvider,
+}
 
 impl GitHubClient {
     pub fn make(transport: impl Transport + 'static) -> Self {
+        Self::with_provider(github(), transport)
+    }
+
+    pub fn with_provider(provider: GitHubProvider, transport: impl Transport + 'static) -> Self {
         Self {
+            provider,
             transport: Arc::new(transport),
             headers: default_headers(),
         }
@@ -44,15 +60,19 @@ impl GitHubClient {
 
     pub fn issues(&self) -> Box<dyn Issues> {
         Box::new(
-            TransportBackedIssues::make(github(), Arc::clone(&self.transport), GitHubIssueMapper)
-                .with_headers(self.headers.clone()),
+            TransportBackedIssues::make(
+                self.provider.clone(),
+                Arc::clone(&self.transport),
+                GitHubIssueMapper,
+            )
+            .with_headers(self.headers.clone()),
         )
     }
 
     pub fn code_reviews(&self) -> Box<dyn CodeReviews> {
         Box::new(
             TransportBackedCodeReviews::make(
-                github(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 GitHubCodeReviewMapper,
             )
@@ -63,7 +83,7 @@ impl GitHubClient {
     pub fn releases(&self) -> Box<dyn Releases> {
         Box::new(
             TransportBackedReleases::make(
-                github(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 GitHubReleaseMapper,
             )
@@ -74,7 +94,7 @@ impl GitHubClient {
     pub fn pipelines(&self) -> Box<dyn Pipelines> {
         Box::new(
             TransportBackedPipelines::make(
-                github(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 GitHubPipelineMapper,
             )
@@ -85,7 +105,7 @@ impl GitHubClient {
     pub fn repos(&self) -> Box<dyn Repos> {
         Box::new(
             TransportBackedRepos::make(
-                github(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 GitHubRepositoryMapper,
             )
@@ -94,7 +114,7 @@ impl GitHubClient {
     }
 
     pub fn auth(mut self, credential: AuthCredential) -> Self {
-        if let Some(header) = github().auth_header(&credential) {
+        if let Some(header) = self.provider.auth_header(&credential) {
             self.headers.push(RequestHeader::make(
                 header.name().as_str(),
                 header.value().as_str(),
@@ -107,7 +127,7 @@ impl GitHubClient {
 
 impl Provider for GitHubClient {
     fn descriptor(&self) -> ProviderDescriptor {
-        github().descriptor()
+        self.provider.descriptor()
     }
 
     fn repos(&self) -> Box<dyn Repos> {
@@ -131,14 +151,14 @@ impl Provider for GitHubClient {
     }
 
     fn default_base_url(&self) -> &str {
-        DEFAULT_BASE_URL
+        self.provider.default_base_url()
     }
 
     fn auth_header_style(
         &self,
         auth_kind: vcs_provider_core::AuthKind,
     ) -> vcs_provider_core::AuthHeaderStyle {
-        github().auth_header_style(auth_kind)
+        self.provider.auth_header_style(auth_kind)
     }
 }
 
@@ -150,31 +170,31 @@ impl ProviderClient for GitHubClient {
 
 impl GitHubProvider {
     pub fn repos(self) -> GitHubReposTransportBuilder {
-        GitHubReposTransportBuilder
+        GitHubReposTransportBuilder { provider: self }
     }
 
     pub fn issues(self) -> GitHubIssuesTransportBuilder {
-        GitHubIssuesTransportBuilder
+        GitHubIssuesTransportBuilder { provider: self }
     }
 
     pub fn code_reviews(self) -> GitHubCodeReviewsTransportBuilder {
-        GitHubCodeReviewsTransportBuilder
+        GitHubCodeReviewsTransportBuilder { provider: self }
     }
 
     pub fn pipelines(self) -> GitHubPipelinesTransportBuilder {
-        GitHubPipelinesTransportBuilder
+        GitHubPipelinesTransportBuilder { provider: self }
     }
 
     pub fn releases(self) -> GitHubReleasesTransportBuilder {
-        GitHubReleasesTransportBuilder
+        GitHubReleasesTransportBuilder { provider: self }
     }
 
     pub fn client(self, transport: impl Transport + 'static) -> GitHubClient {
-        GitHubClient::make(transport)
+        GitHubClient::with_provider(self, transport)
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> GitHubClient {
-        GitHubClient::make(transport)
+        GitHubClient::with_provider(self, transport)
     }
 }
 
@@ -182,57 +202,77 @@ impl ManagedClientProvider for GitHubProvider {
     type Client = GitHubClient;
 
     fn client(&self, transport: impl Transport + 'static) -> Self::Client {
-        GitHubClient::make(transport)
+        GitHubClient::with_provider(self.clone(), transport)
     }
 }
 
 impl GitHubReposTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Repos> {
-        GitHubClient::make(vcs_provider_core::provider_response().body(body).get()).repos()
+        GitHubClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .repos()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Repos> {
-        GitHubClient::make(transport).repos()
+        GitHubClient::with_provider(self.provider, transport).repos()
     }
 }
 
 impl GitHubIssuesTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Issues> {
-        GitHubClient::make(vcs_provider_core::provider_response().body(body).get()).issues()
+        GitHubClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .issues()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Issues> {
-        GitHubClient::make(transport).issues()
+        GitHubClient::with_provider(self.provider, transport).issues()
     }
 }
 
 impl GitHubCodeReviewsTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn CodeReviews> {
-        GitHubClient::make(vcs_provider_core::provider_response().body(body).get()).code_reviews()
+        GitHubClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .code_reviews()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn CodeReviews> {
-        GitHubClient::make(transport).code_reviews()
+        GitHubClient::with_provider(self.provider, transport).code_reviews()
     }
 }
 
 impl GitHubPipelinesTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Pipelines> {
-        GitHubClient::make(vcs_provider_core::provider_response().body(body).get()).pipelines()
+        GitHubClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .pipelines()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Pipelines> {
-        GitHubClient::make(transport).pipelines()
+        GitHubClient::with_provider(self.provider, transport).pipelines()
     }
 }
 
 impl GitHubReleasesTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Releases> {
-        GitHubClient::make(vcs_provider_core::provider_response().body(body).get()).releases()
+        GitHubClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .releases()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Releases> {
-        GitHubClient::make(transport).releases()
+        GitHubClient::with_provider(self.provider, transport).releases()
     }
 }
 

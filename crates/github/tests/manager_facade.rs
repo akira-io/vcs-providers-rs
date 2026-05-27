@@ -16,6 +16,20 @@ fn github_facade_builds_repo_requests() {
 }
 
 #[test]
+fn github_facade_uses_configured_base_url() {
+    let repository = vcs(github().base_url("https://github.enterprise.test/api/v3"))
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+
+    assert_eq!(
+        repository.url().value(),
+        "https://github.enterprise.test/api/v3/repos/akira-io/vcs-providers-rs"
+    );
+}
+
+#[test]
 fn github_facade_builds_issue_requests() {
     let issue = vcs(github())
         .repo()
@@ -128,8 +142,34 @@ fn github_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResul
 
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
         assert_eq!(
+            requests[0].url().value(),
+            "https://api.github.com/repos/akira-io/vcs-providers-rs"
+        );
+        assert_eq!(
             auth_header.map(|header| header.value().as_str()),
             Some("Bearer github-token")
+        );
+
+        Ok(())
+    })
+}
+
+#[test]
+fn github_facade_executes_client_with_configured_base_url() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let transport = provider_response()
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+            .record();
+
+        vcs(github().base_url("https://github.enterprise.test/api/v3"))
+            .transport(transport.clone())
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+
+        assert_eq!(
+            transport.requests()[0].url().value(),
+            "https://github.enterprise.test/api/v3/repos/akira-io/vcs-providers-rs"
         );
 
         Ok(())

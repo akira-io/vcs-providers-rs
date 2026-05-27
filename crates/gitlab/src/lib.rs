@@ -1,6 +1,5 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, CodeReviewPatchBuilder, CodeReviews, Issues,
-    ManagedCodeReviewProvider, ManagedIssueProvider, ManagedProvider, MissingCodeReviewId,
+    AuthHeaderStyle, AuthKind, CodeReviews, Issues, ManagedProvider, MissingCodeReviewId,
     MissingCodeReviewRepo, MissingOwnerName, MissingReleaseId, MissingReleaseRepo,
     MissingRepositoryName, Pipelines, Provider, ProviderDescriptor, ProviderId, Releases, Repos,
     TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
@@ -13,6 +12,7 @@ mod code_reviews;
 mod issues;
 mod mappers;
 mod pipelines;
+mod provider_collaboration;
 mod provider_pipelines;
 mod releases;
 mod repos;
@@ -30,14 +30,25 @@ pub const PROVIDER_ID: &str = "gitlab";
 pub const DISPLAY_NAME: &str = "GitLab";
 pub const DEFAULT_BASE_URL: &str = "https://gitlab.com";
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitLabProvider;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitLabProvider {
+    base_url: String,
+}
 
 impl GitLabProvider {
+    pub fn base_url(mut self, base_url: impl Into<String>) -> Self {
+        self.base_url = base_url.into();
+        self
+    }
+
+    pub fn api_base_url(&self) -> &str {
+        &self.base_url
+    }
+
     pub fn repo(
         &self,
     ) -> vcs_provider_core::ManagedRepoBuilder<Self, MissingOwnerName, MissingRepositoryName> {
-        vcs_provider_core::vcs(*self).repo()
+        vcs_provider_core::vcs(self.clone()).repo()
     }
 
     pub fn issue(
@@ -47,20 +58,20 @@ impl GitLabProvider {
         vcs_provider_core::MissingIssueRepo,
         vcs_provider_core::MissingIssueId,
     > {
-        vcs_provider_core::vcs(*self).issue()
+        vcs_provider_core::vcs(self.clone()).issue()
     }
 
     pub fn code_review(
         &self,
     ) -> vcs_provider_core::ManagedCodeReviewBuilder<Self, MissingCodeReviewRepo, MissingCodeReviewId>
     {
-        vcs_provider_core::vcs(*self).code_review()
+        vcs_provider_core::vcs(self.clone()).code_review()
     }
 
     pub fn release(
         &self,
     ) -> vcs_provider_core::ManagedReleaseBuilder<Self, MissingReleaseRepo, MissingReleaseId> {
-        vcs_provider_core::vcs(*self).release()
+        vcs_provider_core::vcs(self.clone()).release()
     }
 
     pub fn pagination(&self) -> vcs_provider_core::PaginationBuilder {
@@ -70,7 +81,7 @@ impl GitLabProvider {
 
 impl ManagedProvider for GitLabProvider {
     fn repo_url(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::RequestUrl {
-        GitLabRepo::make(DEFAULT_BASE_URL, repo.clone()).url()
+        GitLabRepo::make(self.api_base_url(), repo.clone()).url()
     }
 
     fn repo_branches_url(
@@ -78,7 +89,7 @@ impl ManagedProvider for GitLabProvider {
         repo: &vcs_provider_core::Repo,
         page: Option<&vcs_provider_core::PageRequest>,
     ) -> vcs_provider_core::RequestUrl {
-        GitLabRepo::make(DEFAULT_BASE_URL, repo.clone()).branches(page)
+        GitLabRepo::make(self.api_base_url(), repo.clone()).branches(page)
     }
 
     fn repo_commits_url(
@@ -86,162 +97,39 @@ impl ManagedProvider for GitLabProvider {
         repo: &vcs_provider_core::Repo,
         page: Option<&vcs_provider_core::PageRequest>,
     ) -> vcs_provider_core::RequestUrl {
-        GitLabRepo::make(DEFAULT_BASE_URL, repo.clone()).commits(page)
+        GitLabRepo::make(self.api_base_url(), repo.clone()).commits(page)
     }
 
     fn repo_list_url(
         &self,
         query: &vcs_provider_core::RepositoryListQuery,
     ) -> vcs_provider_core::RequestUrl {
-        GitLabRepoCollection::make(DEFAULT_BASE_URL).list(query)
+        GitLabRepoCollection::make(self.api_base_url()).list(query)
     }
 
     fn repo_search_url(
         &self,
         query: &vcs_provider_core::RepositorySearchQuery,
     ) -> vcs_provider_core::RequestUrl {
-        GitLabRepoCollection::make(DEFAULT_BASE_URL).search(query)
+        GitLabRepoCollection::make(self.api_base_url()).search(query)
     }
 
     fn repo_create_request(
         &self,
         draft: &vcs_provider_core::RepositoryDraft,
     ) -> vcs_provider_core::Request {
-        GitLabRepoCollection::make(DEFAULT_BASE_URL).create(draft)
+        GitLabRepoCollection::make(self.api_base_url()).create(draft)
     }
 
     fn repo_update_request(
         &self,
         patch: &vcs_provider_core::RepositoryPatch,
     ) -> vcs_provider_core::Request {
-        GitLabRepo::make(DEFAULT_BASE_URL, patch.repo().clone()).update(patch)
+        GitLabRepo::make(self.api_base_url(), patch.repo().clone()).update(patch)
     }
 
     fn repo_delete_request(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::Request {
-        GitLabRepo::make(DEFAULT_BASE_URL, repo.clone()).delete()
-    }
-}
-
-impl ManagedIssueProvider for GitLabProvider {
-    fn issue_url(&self, issue: &vcs_provider_core::Issue) -> vcs_provider_core::RequestUrl {
-        GitLabIssue::make(DEFAULT_BASE_URL, issue.clone()).url()
-    }
-
-    fn issue_list_url(
-        &self,
-        query: &vcs_provider_core::IssueListQuery,
-    ) -> vcs_provider_core::RequestUrl {
-        GitLabIssueCollection::make(DEFAULT_BASE_URL).list(query)
-    }
-
-    fn issue_create_request(
-        &self,
-        draft: &vcs_provider_core::IssueDraft,
-    ) -> vcs_provider_core::Request {
-        GitLabIssueCollection::make(DEFAULT_BASE_URL).create(draft)
-    }
-
-    fn issue_update_request(
-        &self,
-        patch: &vcs_provider_core::IssuePatch,
-    ) -> vcs_provider_core::Request {
-        GitLabIssue::make(DEFAULT_BASE_URL, patch.issue().clone()).update(patch)
-    }
-
-    fn issue_delete_request(
-        &self,
-        issue: &vcs_provider_core::Issue,
-    ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
-        Ok(GitLabIssue::make(DEFAULT_BASE_URL, issue.clone()).delete())
-    }
-}
-
-impl ManagedCodeReviewProvider for GitLabProvider {
-    fn code_review_url(
-        &self,
-        code_review: &vcs_provider_core::CodeReview,
-    ) -> vcs_provider_core::RequestUrl {
-        GitLabCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).url()
-    }
-
-    fn code_review_list_url(
-        &self,
-        query: &vcs_provider_core::CodeReviewListQuery,
-    ) -> vcs_provider_core::RequestUrl {
-        GitLabCodeReviewCollection::make(DEFAULT_BASE_URL).list(query)
-    }
-
-    fn code_review_create_request(
-        &self,
-        draft: &vcs_provider_core::CodeReviewDraft,
-    ) -> vcs_provider_core::Request {
-        GitLabCodeReviewCollection::make(DEFAULT_BASE_URL).create(draft)
-    }
-
-    fn code_review_update_request(
-        &self,
-        patch: &vcs_provider_core::CodeReviewPatch,
-    ) -> vcs_provider_core::Request {
-        GitLabCodeReview::make(DEFAULT_BASE_URL, patch.code_review().clone()).update(patch)
-    }
-
-    fn code_review_merge_request(
-        &self,
-        code_review: &vcs_provider_core::CodeReview,
-    ) -> vcs_provider_core::Request {
-        GitLabCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).merge()
-    }
-
-    fn code_review_close_request(
-        &self,
-        code_review: &vcs_provider_core::CodeReview,
-    ) -> vcs_provider_core::Request {
-        let close_patch = CodeReviewPatchBuilder::make(code_review.clone())
-            .closed()
-            .get();
-
-        GitLabCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).update(&close_patch)
-    }
-
-    fn code_review_delete_request(
-        &self,
-        code_review: &vcs_provider_core::CodeReview,
-    ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
-        Ok(GitLabCodeReview::make(DEFAULT_BASE_URL, code_review.clone()).delete())
-    }
-}
-
-impl vcs_provider_core::ManagedReleaseProvider for GitLabProvider {
-    fn release_url(&self, release: &vcs_provider_core::Release) -> vcs_provider_core::RequestUrl {
-        GitLabRelease::make(DEFAULT_BASE_URL, release.clone()).url()
-    }
-
-    fn release_list_url(
-        &self,
-        query: &vcs_provider_core::ReleaseListQuery,
-    ) -> vcs_provider_core::RequestUrl {
-        GitLabReleaseCollection::make(DEFAULT_BASE_URL).list(query)
-    }
-
-    fn release_create_request(
-        &self,
-        draft: &vcs_provider_core::ReleaseDraft,
-    ) -> vcs_provider_core::Request {
-        GitLabReleaseCollection::make(DEFAULT_BASE_URL).create(draft)
-    }
-
-    fn release_update_request(
-        &self,
-        patch: &vcs_provider_core::ReleasePatch,
-    ) -> vcs_provider_core::Request {
-        GitLabRelease::make(DEFAULT_BASE_URL, patch.release().clone()).update(patch)
-    }
-
-    fn release_delete_request(
-        &self,
-        release: &vcs_provider_core::Release,
-    ) -> vcs_provider_core::Request {
-        GitLabRelease::make(DEFAULT_BASE_URL, release.clone()).delete()
+        GitLabRepo::make(self.api_base_url(), repo.clone()).delete()
     }
 }
 
@@ -275,7 +163,7 @@ impl Provider for GitLabProvider {
     }
 
     fn default_base_url(&self) -> &str {
-        DEFAULT_BASE_URL
+        self.api_base_url()
     }
 
     fn auth_header_style(&self, auth_kind: AuthKind) -> AuthHeaderStyle {
@@ -290,5 +178,13 @@ impl Provider for GitLabProvider {
 }
 
 pub fn gitlab() -> GitLabProvider {
-    GitLabProvider
+    GitLabProvider::default()
+}
+
+impl Default for GitLabProvider {
+    fn default() -> Self {
+        Self {
+            base_url: DEFAULT_BASE_URL.into(),
+        }
+    }
 }

@@ -53,6 +53,19 @@ let repository = vcs(github())
 
 The return type is `Repository`, not a provider payload.
 
+Enterprise and self-managed installations are configured on the provider before it enters the facade:
+
+```rust
+let repository = vcs(gitlab().base_url("https://gitlab.internal.example"))
+    .transport(http().transport().get()?)
+    .auth(auth().personal_access_token("token"))
+    .repos()
+    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .await?;
+```
+
+Use `github().base_url("https://github.enterprise.test/api/v3")` for GitHub Enterprise Server. GitLab expects the instance origin, for example `https://gitlab.internal.example`, and the provider builds REST paths under `/api/v4`.
+
 ## Middleware
 
 Middleware wraps transport, not domain logic. Each request still enters the same provider client and mapper path.

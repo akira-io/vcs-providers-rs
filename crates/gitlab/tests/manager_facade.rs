@@ -16,6 +16,20 @@ fn gitlab_facade_builds_repo_requests() {
 }
 
 #[test]
+fn gitlab_facade_uses_configured_base_url() {
+    let repository = vcs(gitlab().base_url("https://gitlab.internal.example"))
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+
+    assert_eq!(
+        repository.url().value(),
+        "https://gitlab.internal.example/api/v4/projects/akira-io%2Fvcs-providers-rs"
+    );
+}
+
+#[test]
 fn gitlab_facade_builds_issue_requests() {
     let issue = vcs(gitlab())
         .repo()
@@ -128,8 +142,34 @@ fn gitlab_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResul
 
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
         assert_eq!(
+            requests[0].url().value(),
+            "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs"
+        );
+        assert_eq!(
             auth_header.map(|header| header.value().as_str()),
             Some("gitlab-token")
+        );
+
+        Ok(())
+    })
+}
+
+#[test]
+fn gitlab_facade_executes_client_with_configured_base_url() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let transport = provider_response()
+            .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
+            .record();
+
+        vcs(gitlab().base_url("https://gitlab.internal.example"))
+            .transport(transport.clone())
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+
+        assert_eq!(
+            transport.requests()[0].url().value(),
+            "https://gitlab.internal.example/api/v4/projects/akira-io%2Fvcs-providers-rs"
         );
 
         Ok(())
