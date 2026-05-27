@@ -5,15 +5,15 @@ use vcs_provider_gitlab::gitlab;
 fn gitlab_client_hydrates_pipeline_get_and_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let pipeline_resource = gitlab()
+            .body(r#"{"id":42}"#)
             .pipelines()
-            .response_body(r#"{"id":42}"#)
             .location(repository_location())
             .id("42")
             .get()
             .await?;
         let pipeline_page = gitlab()
+            .body(r#"[{"id":42}]"#)
             .pipelines()
-            .response_body(r#"[{"id":42}]"#)
             .location(repository_location())
             .list()
             .await?;
@@ -29,15 +29,15 @@ fn gitlab_client_hydrates_pipeline_get_and_list() -> vcs_provider_core::VcsResul
 fn gitlab_client_hydrates_pipeline_commands() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let retried_pipeline = gitlab()
+            .body(r#"{"id":42}"#)
             .pipelines()
-            .response_body(r#"{"id":42}"#)
             .location(repository_location())
             .id("42")
             .rerun()
             .await?;
         let canceled_pipeline = gitlab()
+            .body(r#"{"id":42}"#)
             .pipelines()
-            .response_body(r#"{"id":42}"#)
             .location(repository_location())
             .id("42")
             .cancel()

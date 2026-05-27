@@ -43,16 +43,12 @@ Provider payload structs remain private. Public APIs expose only universal resou
 
 ## Response Body Fixtures
 
-`Response` carries an optional `ResponseBody`. Tests can use `provider_response()` to provide one response without exposing the low-level transport implementation in each test:
+`Response` carries an optional `ResponseBody`. Provider tests can attach a fixture directly to the provider facade without exposing transport setup in the hydration flow:
 
 ```rust
 run_async_test(async {
-    let repository = vcs(github())
-        .transport(
-            provider_response()
-                .body(r#"{"full_name":"akira-io/vcs-providers-rs"}"#)
-                .get(),
-        )
+    let repository = github()
+        .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
         .repos()
         .get(repo().owner("akira-io").name("vcs-providers-rs").get())
         .await?;

@@ -1,16 +1,14 @@
-use vcs_provider_core::{
-    LifecycleState, Repo, ReposFluent, Visibility, provider_response, repo, run_async_test,
-};
+use vcs_provider_core::{LifecycleState, Repo, ReposFluent, Visibility, repo, run_async_test};
 use vcs_provider_gitlab::gitlab;
 
 #[test]
 fn gitlab_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repository = gitlab()
-            .repos()
-            .response_body(
+            .body(
                 r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"internal","archived":false}"#,
             )
+            .repos()
             .get(repository_location())
             .await?;
 
@@ -28,10 +26,10 @@ fn gitlab_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
 fn gitlab_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repositories = gitlab()
-            .repos()
-            .response_body(
+            .body(
                 r#"[{"path_with_namespace":"platform/akira-io/vcs-providers-rs","visibility":"private","archived":true}]"#,
             )
+            .repos()
             .list(gitlab().repo().query().optional_pagination(None).list())
             .await?;
 
@@ -54,10 +52,10 @@ fn gitlab_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> 
 fn gitlab_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repository = gitlab()
-            .repos()
-            .response_body(
+            .body(
                 r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"private","archived":false}"#,
             )
+            .repos()
             .create()
             .location(repository_location())
             .visibility(Visibility::Private)
@@ -75,10 +73,10 @@ fn gitlab_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()
 fn gitlab_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let repository = gitlab()
-            .repos()
-            .response_body(
+            .body(
                 r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public","archived":false}"#,
             )
+            .repos()
             .update()
             .location(repository_location())
             .visibility(Visibility::Public)
@@ -96,7 +94,7 @@ fn gitlab_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()
 fn gitlab_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         gitlab()
-            .client(provider_response().status(202).get())
+            .status(202)
             .repos()
             .delete(repository_location())
             .await
@@ -107,13 +105,13 @@ fn gitlab_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
 fn gitlab_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let branch_page = gitlab()
+            .body(r#"[{"name":"main"}]"#)
             .repos()
-            .response_body(r#"[{"name":"main"}]"#)
             .branches(repository_location())
             .await?;
         let commit_page = gitlab()
+            .body(r#"[{"id":"abc123"}]"#)
             .repos()
-            .response_body(r#"[{"id":"abc123"}]"#)
             .commits(repository_location())
             .await?;
 

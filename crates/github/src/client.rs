@@ -207,70 +207,30 @@ impl ManagedClientProvider for GitHubProvider {
 }
 
 impl GitHubReposTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Repos> {
-        GitHubClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .repos()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Repos> {
         GitHubClient::with_provider(self.provider, transport).repos()
     }
 }
 
 impl GitHubIssuesTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Issues> {
-        GitHubClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .issues()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Issues> {
         GitHubClient::with_provider(self.provider, transport).issues()
     }
 }
 
 impl GitHubCodeReviewsTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn CodeReviews> {
-        GitHubClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .code_reviews()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn CodeReviews> {
         GitHubClient::with_provider(self.provider, transport).code_reviews()
     }
 }
 
 impl GitHubPipelinesTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Pipelines> {
-        GitHubClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .pipelines()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Pipelines> {
         GitHubClient::with_provider(self.provider, transport).pipelines()
     }
 }
 
 impl GitHubReleasesTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Releases> {
-        GitHubClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .releases()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Releases> {
         GitHubClient::with_provider(self.provider, transport).releases()
     }
