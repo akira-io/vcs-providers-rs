@@ -1,4 +1,7 @@
-use vcs_provider_core::{RequestHeader, Response, ResponseStatus, rate_limit};
+use vcs_provider_core::{
+    RequestHeader, Response, ResponseStatus, Transport, provider_response, rate_limit, request,
+    run_async_test,
+};
 
 #[test]
 fn rate_limit_profile_reads_configured_headers() {
@@ -71,4 +74,49 @@ fn rate_limit_profile_matches_headers_case_insensitively() {
         observation.remaining().map(|quota| quota.as_u64()),
         Some(42)
     );
+}
+
+#[test]
+fn rate_limit_transport_records_configured_headers() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let recorder = rate_limit().recorder();
+        let transport = rate_limit()
+            .transport(
+                provider_response()
+                    .header("x-ratelimit-remaining", "42")
+                    .header("x-ratelimit-reset", "1710000000")
+                    .header("retry-after", "30")
+                    .body(r#"{"ok":true}"#)
+                    .get(),
+            )
+            .remaining(["x-ratelimit-remaining"])
+            .reset_at(["x-ratelimit-reset"])
+            .retry_after(["retry-after"])
+            .recorder(recorder.clone())
+            .build();
+
+        transport
+            .send(request().get("https://api.example.test/repos").build())
+            .await?;
+
+        let observations = recorder.observations();
+
+        assert_eq!(observations.len(), 1);
+        assert_eq!(
+            observations[0].remaining().map(|quota| quota.as_u64()),
+            Some(42)
+        );
+        assert_eq!(
+            observations[0].reset_at().map(|reset_at| reset_at.as_str()),
+            Some("1710000000")
+        );
+        assert_eq!(
+            observations[0]
+                .retry_after()
+                .map(|retry_after| retry_after.as_str()),
+            Some("30")
+        );
+
+        Ok(())
+    })
 }

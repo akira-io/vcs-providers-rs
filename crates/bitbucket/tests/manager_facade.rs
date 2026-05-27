@@ -1,6 +1,7 @@
 use vcs_provider_bitbucket::{BitbucketProvider, bitbucket};
 use vcs_provider_core::{
-    RequestMethod, auth, provider_response, provider_responses, repo, run_async_test, vcs,
+    RequestMethod, auth, provider_response, provider_responses, rate_limit, repo, run_async_test,
+    vcs,
 };
 
 #[test]
@@ -164,6 +165,44 @@ fn bitbucket_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsR
 
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
         assert_eq!(provider_transport.requests().len(), 2);
+
+        Ok(())
+    })
+}
+
+#[test]
+fn bitbucket_facade_observes_rate_limit_headers() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let recorder = rate_limit().recorder();
+        let provider_transport = provider_response()
+            .header("x-ratelimit-remaining", "40")
+            .header("x-ratelimit-reset", "1710000002")
+            .header("retry-after", "32")
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
+            .record();
+        let repository = vcs(bitbucket())
+            .rate_limit(provider_transport)
+            .remaining(["x-ratelimit-remaining"])
+            .reset_at(["x-ratelimit-reset"])
+            .retry_after(["retry-after"])
+            .recorder(recorder.clone())
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+        let observations = recorder.observations();
+
+        assert_eq!(repository.repo().owner().as_str(), "akira-io");
+        assert_eq!(observations.len(), 1);
+        assert_eq!(
+            observations[0].remaining().map(|quota| quota.as_u64()),
+            Some(40)
+        );
+        assert_eq!(
+            observations[0]
+                .retry_after()
+                .map(|retry_after| retry_after.as_str()),
+            Some("32")
+        );
 
         Ok(())
     })

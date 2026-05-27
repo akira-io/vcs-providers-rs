@@ -1,5 +1,6 @@
 use vcs_provider_core::{
-    RequestMethod, auth, provider_response, provider_responses, repo, run_async_test, vcs,
+    RequestMethod, auth, provider_response, provider_responses, rate_limit, repo, run_async_test,
+    vcs,
 };
 use vcs_provider_github::{GitHubProvider, github};
 
@@ -195,6 +196,41 @@ fn github_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResu
 
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
         assert_eq!(provider_transport.requests().len(), 2);
+
+        Ok(())
+    })
+}
+
+#[test]
+fn github_facade_observes_rate_limit_headers() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let recorder = rate_limit().recorder();
+        let provider_transport = provider_response()
+            .header("x-ratelimit-remaining", "42")
+            .header("x-ratelimit-reset", "1710000000")
+            .header("retry-after", "30")
+            .header("x-ratelimit-used", "7")
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+            .record();
+        let repository = vcs(github())
+            .rate_limit(provider_transport)
+            .remaining(["x-ratelimit-remaining"])
+            .reset_at(["x-ratelimit-reset"])
+            .retry_after(["retry-after"])
+            .cost(["x-ratelimit-used"])
+            .recorder(recorder.clone())
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+        let observations = recorder.observations();
+
+        assert_eq!(repository.repo().owner().as_str(), "akira-io");
+        assert_eq!(observations.len(), 1);
+        assert_eq!(
+            observations[0].remaining().map(|quota| quota.as_u64()),
+            Some(42)
+        );
+        assert_eq!(observations[0].cost().map(|cost| cost.as_u64()), Some(7));
 
         Ok(())
     })
