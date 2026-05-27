@@ -58,3 +58,11 @@ run_async_test(async {
 ```
 
 The body is plain text at the client boundary. Providers choose the parser privately and must map parse failures into `VcsError`.
+
+Tests that need request assertions can terminate the same fixture with `record()`:
+
+```rust
+let transport = github()
+    .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+    .record();
+```

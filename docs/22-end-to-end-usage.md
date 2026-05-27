@@ -182,7 +182,32 @@ run_async_test(async {
 })?;
 ```
 
-Tests that need to inspect the final outbound request should use `RecordingTransport`.
+Tests that need to inspect the final outbound request should record through the provider fixture:
+
+```rust
+let transport = github()
+    .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+    .record();
+
+let repository = vcs(github())
+    .transport(transport.clone())
+    .repos()
+    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .await?;
+
+assert_eq!(transport.requests().len(), 1);
+assert_eq!(repository.repo().owner().as_str(), "akira-io");
+```
+
+Retry tests can provide multiple provider responses without constructing transports directly:
+
+```rust
+let transport = github()
+    .responses()
+    .status(500)
+    .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+    .record();
+```
 
 ## Capability Checks
 

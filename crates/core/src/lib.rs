@@ -124,8 +124,9 @@ pub use telemetry::{
 };
 pub use testing::{
     EchoTransport, ProviderResponseBuilder, ProviderResponseSequenceBuilder,
-    ProviderResponseTransportBuilder, RecordingTransport, ResponseSequenceTransport,
-    SingleResponseTransport, provider_response, provider_responses, run_async_test,
+    ProviderResponseSequenceResponseBuilder, ProviderResponseTransportBuilder, RecordingTransport,
+    ResponseSequenceTransport, SingleResponseTransport, provider_response, provider_responses,
+    run_async_test,
 };
 #[cfg(feature = "testing")]
 pub use testing::{ProviderConformance, ProviderConformanceBuilder};

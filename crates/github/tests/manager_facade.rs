@@ -1,7 +1,4 @@
-use vcs_provider_core::{
-    RequestMethod, auth, provider_response, provider_responses, rate_limit, repo, run_async_test,
-    vcs,
-};
+use vcs_provider_core::{RequestMethod, auth, rate_limit, repo, run_async_test, vcs};
 use vcs_provider_github::{GitHubProvider, github};
 
 #[test]
@@ -128,7 +125,7 @@ fn github_facade_builds_mutation_requests() {
 #[test]
 fn github_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let transport = provider_response()
+        let transport = github()
             .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
             .record();
         let repository = vcs(github())
@@ -160,7 +157,7 @@ fn github_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResul
 #[test]
 fn github_facade_executes_repo_client_with_middleware() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let transport = provider_response()
+        let transport = github()
             .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
             .record();
         let repository = vcs(github())
@@ -189,7 +186,7 @@ fn github_facade_executes_repo_client_with_middleware() -> vcs_provider_core::Vc
 #[test]
 fn github_facade_executes_client_with_configured_base_url() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let transport = provider_response()
+        let transport = github()
             .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
             .record();
 
@@ -211,7 +208,8 @@ fn github_facade_executes_client_with_configured_base_url() -> vcs_provider_core
 #[test]
 fn github_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let provider_transport = provider_responses()
+        let provider_transport = github()
+            .responses()
             .status(500)
             .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
             .record();
@@ -234,7 +232,7 @@ fn github_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResu
 fn github_facade_observes_rate_limit_headers() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
-        let provider_transport = provider_response()
+        let provider_transport = github()
             .header("x-ratelimit-remaining", "42")
             .header("x-ratelimit-reset", "1710000000")
             .header("retry-after", "30")

@@ -1,7 +1,4 @@
-use vcs_provider_core::{
-    ResponseSequenceTransport, TelemetryEvent, auth, rate_limit, repo, response, run_async_test,
-    telemetry, vcs,
-};
+use vcs_provider_core::{TelemetryEvent, auth, rate_limit, repo, run_async_test, telemetry, vcs};
 use vcs_provider_gitlab::gitlab;
 
 #[test]
@@ -9,18 +6,17 @@ fn gitlab_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_core
     run_async_test(async {
         let recorder = rate_limit().recorder();
         let telemetry_recorder = telemetry().recorder();
-        let provider_transport = ResponseSequenceTransport::make([
-            response()
-                .status(429)
-                .header("ratelimit-remaining", "0")
-                .build(),
-            response()
-                .header("ratelimit-remaining", "41")
-                .body(
-                    r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#,
-                )
-                .build(),
-        ]);
+        let provider_transport = gitlab()
+            .responses()
+            .response()
+            .status(429)
+            .header("ratelimit-remaining", "0")
+            .next_response()
+            .response()
+            .header("ratelimit-remaining", "41")
+            .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
+            .next_response()
+            .record();
         let repository = vcs(gitlab())
             .middleware(provider_transport.clone())
             .header("x-request-id", "request-1")

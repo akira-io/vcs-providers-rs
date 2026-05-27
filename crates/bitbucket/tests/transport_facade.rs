@@ -1,24 +1,22 @@
 use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::{
-    ResponseSequenceTransport, TelemetryEvent, auth, rate_limit, repo, response, run_async_test,
-    telemetry, vcs,
-};
+use vcs_provider_core::{TelemetryEvent, auth, rate_limit, repo, run_async_test, telemetry, vcs};
 
 #[test]
 fn bitbucket_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
         let telemetry_recorder = telemetry().recorder();
-        let provider_transport = ResponseSequenceTransport::make([
-            response()
-                .status(429)
-                .header("x-ratelimit-remaining", "0")
-                .build(),
-            response()
-                .header("x-ratelimit-remaining", "40")
-                .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
-                .build(),
-        ]);
+        let provider_transport = bitbucket()
+            .responses()
+            .response()
+            .status(429)
+            .header("x-ratelimit-remaining", "0")
+            .next_response()
+            .response()
+            .header("x-ratelimit-remaining", "40")
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
+            .next_response()
+            .record();
         let repository = vcs(bitbucket())
             .middleware(provider_transport.clone())
             .header("x-request-id", "request-1")

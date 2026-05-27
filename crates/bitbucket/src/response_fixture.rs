@@ -1,5 +1,6 @@
 use vcs_provider_core::{
-    CodeReviews, Pipelines, Repos, ResponseBuilder, SingleResponseTransport, response,
+    CodeReviews, Pipelines, RecordingTransport, Repos, ResponseBuilder, SingleResponseTransport,
+    provider_responses, response,
 };
 
 use crate::{BitbucketClient, BitbucketProvider};
@@ -45,6 +46,10 @@ impl BitbucketResponseBuilder {
         self.client().pipelines()
     }
 
+    pub fn record(self) -> RecordingTransport {
+        RecordingTransport::make(self.response.build())
+    }
+
     fn client(self) -> BitbucketClient {
         BitbucketClient::with_provider(
             self.provider,
@@ -68,5 +73,9 @@ impl BitbucketProvider {
 
     pub fn body(self, body: impl Into<String>) -> BitbucketResponseBuilder {
         BitbucketResponseBuilder::make(self).body(body)
+    }
+
+    pub fn responses(self) -> vcs_provider_core::ProviderResponseSequenceBuilder {
+        provider_responses()
     }
 }

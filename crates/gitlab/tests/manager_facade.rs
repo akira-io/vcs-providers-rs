@@ -1,7 +1,4 @@
-use vcs_provider_core::{
-    RequestMethod, auth, provider_response, provider_responses, rate_limit, repo, run_async_test,
-    vcs,
-};
+use vcs_provider_core::{RequestMethod, auth, rate_limit, repo, run_async_test, vcs};
 use vcs_provider_gitlab::{GitLabProvider, gitlab};
 
 #[test]
@@ -128,7 +125,7 @@ fn gitlab_facade_builds_mutation_requests() {
 #[test]
 fn gitlab_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let transport = provider_response()
+        let transport = gitlab()
             .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
             .record();
         let repository = vcs(gitlab())
@@ -160,7 +157,7 @@ fn gitlab_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResul
 #[test]
 fn gitlab_facade_executes_repo_client_with_middleware() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let transport = provider_response()
+        let transport = gitlab()
             .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
             .record();
         let repository = vcs(gitlab())
@@ -188,7 +185,7 @@ fn gitlab_facade_executes_repo_client_with_middleware() -> vcs_provider_core::Vc
 #[test]
 fn gitlab_facade_executes_client_with_configured_base_url() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let transport = provider_response()
+        let transport = gitlab()
             .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
             .record();
 
@@ -210,7 +207,8 @@ fn gitlab_facade_executes_client_with_configured_base_url() -> vcs_provider_core
 #[test]
 fn gitlab_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let provider_transport = provider_responses()
+        let provider_transport = gitlab()
+            .responses()
             .status(503)
             .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
             .record();
@@ -233,7 +231,7 @@ fn gitlab_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResu
 fn gitlab_facade_observes_rate_limit_headers() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
-        let provider_transport = provider_response()
+        let provider_transport = gitlab()
             .header("ratelimit-remaining", "41")
             .header("ratelimit-reset", "1710000001")
             .header("retry-after", "31")

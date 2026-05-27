@@ -1,6 +1,6 @@
 use vcs_provider_core::{
-    CodeReviews, Issues, Pipelines, Releases, Repos, ResponseBuilder, SingleResponseTransport,
-    response,
+    CodeReviews, Issues, Pipelines, RecordingTransport, Releases, Repos, ResponseBuilder,
+    SingleResponseTransport, provider_responses, response,
 };
 
 use crate::{GitLabClient, GitLabProvider};
@@ -54,6 +54,10 @@ impl GitLabResponseBuilder {
         self.client().pipelines()
     }
 
+    pub fn record(self) -> RecordingTransport {
+        RecordingTransport::make(self.response.build())
+    }
+
     fn client(self) -> GitLabClient {
         GitLabClient::with_provider(
             self.provider,
@@ -77,5 +81,9 @@ impl GitLabProvider {
 
     pub fn body(self, body: impl Into<String>) -> GitLabResponseBuilder {
         GitLabResponseBuilder::make(self).body(body)
+    }
+
+    pub fn responses(self) -> vcs_provider_core::ProviderResponseSequenceBuilder {
+        provider_responses()
     }
 }
