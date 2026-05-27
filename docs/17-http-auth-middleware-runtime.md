@@ -31,6 +31,13 @@ Middleware remains transport-level and provider-neutral:
 let repository = vcs(github())
     .middleware(http().transport().get()?)
     .header("x-request-id", "request-1")
+    .retry()
+    .attempts(3)
+    .on_statuses([429, 500, 502, 503, 504])
+    .rate_limit()
+    .remaining(["x-ratelimit-remaining"])
+    .reset_at(["x-ratelimit-reset"])
+    .retry_after(["retry-after"])
     .auth(auth().personal_access_token("token"))
     .repos()
     .get(repo().owner("akira-io").name("vcs-providers-rs").get())
@@ -68,7 +75,7 @@ let repository = vcs(gitlab())
 The request path is:
 
 ```text
-Provider client -> provider headers -> auth header -> middleware -> retry -> HttpTransport -> typed Response -> mapper
+Provider client -> provider headers -> auth header -> retry -> rate-limit observation -> middleware -> HttpTransport -> typed Response -> mapper
 ```
 
-Retry decisions use response status codes only. Provider-specific rate-limit headers remain observable through `rate_limit().headers()`, and callers decide which statuses are retryable for their workload.
+Retry decisions use response status codes only. Rate-limit observation reads configured response headers without provider-specific logic in core.
