@@ -1,6 +1,4 @@
-use vcs_provider_core::{
-    RecordingTransport, RequestMethod, auth, repo, response, run_async_test, vcs,
-};
+use vcs_provider_core::{RequestMethod, auth, provider_response, repo, run_async_test, vcs};
 use vcs_provider_github::{GitHubProvider, github};
 
 #[test]
@@ -113,11 +111,9 @@ fn github_facade_builds_mutation_requests() {
 #[test]
 fn github_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let transport = RecordingTransport::make(
-            response()
-                .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
-                .build(),
-        );
+        let transport = provider_response()
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+            .record();
         let repository = vcs(github())
             .transport(transport.clone())
             .auth(auth().personal_access_token("github-token"))

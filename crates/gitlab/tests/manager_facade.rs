@@ -1,6 +1,4 @@
-use vcs_provider_core::{
-    RecordingTransport, RequestMethod, auth, repo, response, run_async_test, vcs,
-};
+use vcs_provider_core::{RequestMethod, auth, provider_response, repo, run_async_test, vcs};
 use vcs_provider_gitlab::{GitLabProvider, gitlab};
 
 #[test]
@@ -113,13 +111,9 @@ fn gitlab_facade_builds_mutation_requests() {
 #[test]
 fn gitlab_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let transport = RecordingTransport::make(
-            response()
-                .body(
-                    r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#,
-                )
-                .build(),
-        );
+        let transport = provider_response()
+            .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
+            .record();
         let repository = vcs(gitlab())
             .transport(transport.clone())
             .auth(auth().personal_access_token("gitlab-token"))

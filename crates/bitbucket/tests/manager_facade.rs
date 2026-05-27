@@ -1,7 +1,5 @@
 use vcs_provider_bitbucket::{BitbucketProvider, bitbucket};
-use vcs_provider_core::{
-    RecordingTransport, RequestMethod, auth, repo, response, run_async_test, vcs,
-};
+use vcs_provider_core::{RequestMethod, auth, provider_response, repo, run_async_test, vcs};
 
 #[test]
 fn bitbucket_facade_builds_repo_requests() {
@@ -82,11 +80,9 @@ fn bitbucket_facade_builds_mutation_requests() {
 #[test]
 fn bitbucket_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let transport = RecordingTransport::make(
-            response()
-                .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
-                .build(),
-        );
+        let transport = provider_response()
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
+            .record();
         let repository = vcs(bitbucket())
             .transport(transport.clone())
             .auth(auth().oauth("bitbucket-token"))

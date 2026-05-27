@@ -97,6 +97,10 @@ impl ProviderResponseTransportBuilder {
     pub fn get(self) -> SingleResponseTransport {
         SingleResponseTransport::make(self.response.build())
     }
+
+    pub fn record(self) -> RecordingTransport {
+        RecordingTransport::make(self.response.build())
+    }
 }
 
 pub fn provider_response() -> ProviderResponseBuilder {
