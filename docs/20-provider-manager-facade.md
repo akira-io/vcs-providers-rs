@@ -35,6 +35,32 @@ Provider-specific path rules stay inside the provider crate:
 | GitLab | `/api/v4/projects/{owner}%2F{repo}` |
 | Bitbucket | `/repositories/{workspace}/{repo_slug}` |
 
+## Configured Base URLs
+
+Providers keep their public defaults, but applications can pass an explicit API base URL when they target an enterprise, self-managed, or compatible deployment.
+
+```rust
+let github_repository = vcs(vcs_provider_github::github().base_url("https://github.enterprise.test/api/v3"))
+    .repo()
+    .owner("akira-io")
+    .name("vcs-providers-rs")
+    .get();
+
+let gitlab_repository = vcs(vcs_provider_gitlab::gitlab().base_url("https://gitlab.internal.example"))
+    .repo()
+    .owner("akira-io")
+    .name("vcs-providers-rs")
+    .get();
+
+let bitbucket_repository = vcs(vcs_provider_bitbucket::bitbucket().base_url("https://bitbucket.internal.example/rest"))
+    .repo()
+    .owner("akira-io")
+    .name("vcs-providers-rs")
+    .get();
+```
+
+GitHub Enterprise Server REST endpoints use the instance host plus `/api/v3`. GitLab uses the instance origin and the provider appends `/api/v4` for REST calls. Bitbucket defaults to Bitbucket Cloud REST 2.0; custom Bitbucket base URLs are for compatible deployments and tests.
+
 ## Nested Resources
 
 Nested resource builders inherit the facade driver from the repository chain.

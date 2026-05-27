@@ -11,32 +11,48 @@ use crate::mappers::{
     GitLabCodeReviewMapper, GitLabIssueMapper, GitLabPipelineMapper, GitLabReleaseMapper,
     GitLabRepositoryMapper,
 };
-use crate::{DEFAULT_BASE_URL, GitLabProvider, gitlab};
+use crate::{GitLabProvider, gitlab};
 
 #[derive(Clone)]
 pub struct GitLabClient {
+    provider: GitLabProvider,
     transport: Arc<dyn Transport>,
     headers: Vec<RequestHeader>,
 }
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitLabPipelinesTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitLabPipelinesTransportBuilder {
+    provider: GitLabProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitLabReposTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitLabReposTransportBuilder {
+    provider: GitLabProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitLabIssuesTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitLabIssuesTransportBuilder {
+    provider: GitLabProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitLabCodeReviewsTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitLabCodeReviewsTransportBuilder {
+    provider: GitLabProvider,
+}
 
-#[derive(Clone, Copy, Debug, Default)]
-pub struct GitLabReleasesTransportBuilder;
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GitLabReleasesTransportBuilder {
+    provider: GitLabProvider,
+}
 
 impl GitLabClient {
     pub fn make(transport: impl Transport + 'static) -> Self {
+        Self::with_provider(gitlab(), transport)
+    }
+
+    pub fn with_provider(provider: GitLabProvider, transport: impl Transport + 'static) -> Self {
         Self {
+            provider,
             transport: Arc::new(transport),
             headers: default_headers(),
         }
@@ -44,15 +60,19 @@ impl GitLabClient {
 
     pub fn issues(&self) -> Box<dyn Issues> {
         Box::new(
-            TransportBackedIssues::make(gitlab(), Arc::clone(&self.transport), GitLabIssueMapper)
-                .with_headers(self.headers.clone()),
+            TransportBackedIssues::make(
+                self.provider.clone(),
+                Arc::clone(&self.transport),
+                GitLabIssueMapper,
+            )
+            .with_headers(self.headers.clone()),
         )
     }
 
     pub fn code_reviews(&self) -> Box<dyn CodeReviews> {
         Box::new(
             TransportBackedCodeReviews::make(
-                gitlab(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 GitLabCodeReviewMapper,
             )
@@ -63,7 +83,7 @@ impl GitLabClient {
     pub fn releases(&self) -> Box<dyn Releases> {
         Box::new(
             TransportBackedReleases::make(
-                gitlab(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 GitLabReleaseMapper,
             )
@@ -74,7 +94,7 @@ impl GitLabClient {
     pub fn pipelines(&self) -> Box<dyn Pipelines> {
         Box::new(
             TransportBackedPipelines::make(
-                gitlab(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 GitLabPipelineMapper,
             )
@@ -85,7 +105,7 @@ impl GitLabClient {
     pub fn repos(&self) -> Box<dyn Repos> {
         Box::new(
             TransportBackedRepos::make(
-                gitlab(),
+                self.provider.clone(),
                 Arc::clone(&self.transport),
                 GitLabRepositoryMapper,
             )
@@ -94,7 +114,7 @@ impl GitLabClient {
     }
 
     pub fn auth(mut self, credential: AuthCredential) -> Self {
-        if let Some(header) = gitlab().auth_header(&credential) {
+        if let Some(header) = self.provider.auth_header(&credential) {
             self.headers.push(RequestHeader::make(
                 header.name().as_str(),
                 header.value().as_str(),
@@ -107,7 +127,7 @@ impl GitLabClient {
 
 impl Provider for GitLabClient {
     fn descriptor(&self) -> ProviderDescriptor {
-        gitlab().descriptor()
+        self.provider.descriptor()
     }
 
     fn repos(&self) -> Box<dyn Repos> {
@@ -131,14 +151,14 @@ impl Provider for GitLabClient {
     }
 
     fn default_base_url(&self) -> &str {
-        DEFAULT_BASE_URL
+        self.provider.default_base_url()
     }
 
     fn auth_header_style(
         &self,
         auth_kind: vcs_provider_core::AuthKind,
     ) -> vcs_provider_core::AuthHeaderStyle {
-        gitlab().auth_header_style(auth_kind)
+        self.provider.auth_header_style(auth_kind)
     }
 }
 
@@ -150,31 +170,31 @@ impl ProviderClient for GitLabClient {
 
 impl GitLabProvider {
     pub fn repos(self) -> GitLabReposTransportBuilder {
-        GitLabReposTransportBuilder
+        GitLabReposTransportBuilder { provider: self }
     }
 
     pub fn issues(self) -> GitLabIssuesTransportBuilder {
-        GitLabIssuesTransportBuilder
+        GitLabIssuesTransportBuilder { provider: self }
     }
 
     pub fn code_reviews(self) -> GitLabCodeReviewsTransportBuilder {
-        GitLabCodeReviewsTransportBuilder
+        GitLabCodeReviewsTransportBuilder { provider: self }
     }
 
     pub fn pipelines(self) -> GitLabPipelinesTransportBuilder {
-        GitLabPipelinesTransportBuilder
+        GitLabPipelinesTransportBuilder { provider: self }
     }
 
     pub fn releases(self) -> GitLabReleasesTransportBuilder {
-        GitLabReleasesTransportBuilder
+        GitLabReleasesTransportBuilder { provider: self }
     }
 
     pub fn client(self, transport: impl Transport + 'static) -> GitLabClient {
-        GitLabClient::make(transport)
+        GitLabClient::with_provider(self, transport)
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> GitLabClient {
-        GitLabClient::make(transport)
+        GitLabClient::with_provider(self, transport)
     }
 }
 
@@ -182,57 +202,77 @@ impl ManagedClientProvider for GitLabProvider {
     type Client = GitLabClient;
 
     fn client(&self, transport: impl Transport + 'static) -> Self::Client {
-        GitLabClient::make(transport)
+        GitLabClient::with_provider(self.clone(), transport)
     }
 }
 
 impl GitLabReposTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Repos> {
-        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).repos()
+        GitLabClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .repos()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Repos> {
-        GitLabClient::make(transport).repos()
+        GitLabClient::with_provider(self.provider, transport).repos()
     }
 }
 
 impl GitLabIssuesTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Issues> {
-        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).issues()
+        GitLabClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .issues()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Issues> {
-        GitLabClient::make(transport).issues()
+        GitLabClient::with_provider(self.provider, transport).issues()
     }
 }
 
 impl GitLabCodeReviewsTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn CodeReviews> {
-        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).code_reviews()
+        GitLabClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .code_reviews()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn CodeReviews> {
-        GitLabClient::make(transport).code_reviews()
+        GitLabClient::with_provider(self.provider, transport).code_reviews()
     }
 }
 
 impl GitLabPipelinesTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Pipelines> {
-        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).pipelines()
+        GitLabClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .pipelines()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Pipelines> {
-        GitLabClient::make(transport).pipelines()
+        GitLabClient::with_provider(self.provider, transport).pipelines()
     }
 }
 
 impl GitLabReleasesTransportBuilder {
     pub fn response_body(self, body: impl Into<String>) -> Box<dyn Releases> {
-        GitLabClient::make(vcs_provider_core::provider_response().body(body).get()).releases()
+        GitLabClient::with_provider(
+            self.provider,
+            vcs_provider_core::provider_response().body(body).get(),
+        )
+        .releases()
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Releases> {
-        GitLabClient::make(transport).releases()
+        GitLabClient::with_provider(self.provider, transport).releases()
     }
 }
 

@@ -1,20 +1,20 @@
 use vcs_provider_core::ManagedPipelineProvider;
 
-use crate::{BitbucketPipeline, BitbucketPipelineCollection, BitbucketProvider, DEFAULT_BASE_URL};
+use crate::{BitbucketPipeline, BitbucketPipelineCollection, BitbucketProvider};
 
 impl ManagedPipelineProvider for BitbucketProvider {
     fn pipeline_url(
         &self,
         pipeline: &vcs_provider_core::Pipeline,
     ) -> vcs_provider_core::RequestUrl {
-        BitbucketPipeline::make(DEFAULT_BASE_URL, pipeline.clone()).url()
+        BitbucketPipeline::make(self.api_base_url(), pipeline.clone()).url()
     }
 
     fn pipeline_list_url(
         &self,
         query: &vcs_provider_core::PipelineListQuery,
     ) -> vcs_provider_core::RequestUrl {
-        BitbucketPipelineCollection::make(DEFAULT_BASE_URL).list(query)
+        BitbucketPipelineCollection::make(self.api_base_url()).list(query)
     }
 
     fn pipeline_rerun_request(
@@ -30,6 +30,6 @@ impl ManagedPipelineProvider for BitbucketProvider {
         &self,
         pipeline: &vcs_provider_core::Pipeline,
     ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
-        Ok(BitbucketPipeline::make(DEFAULT_BASE_URL, pipeline.clone()).cancel())
+        Ok(BitbucketPipeline::make(self.api_base_url(), pipeline.clone()).cancel())
     }
 }
