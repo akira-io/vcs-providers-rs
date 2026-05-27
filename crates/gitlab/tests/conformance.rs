@@ -43,11 +43,13 @@ fn gitlab_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::ReleaseCreate,
             Capability::ReleaseUpdate,
             Capability::ReleaseDelete,
-            Capability::Organizations,
-            Capability::Webhooks,
             Capability::SelfHosted,
         ])
-        .does_not_support([Capability::Discussions])
+        .does_not_support([
+            Capability::Organizations,
+            Capability::Discussions,
+            Capability::Webhooks,
+        ])
         .auth(
             AuthKind::PersonalAccessToken,
             AuthHeaderStyle::CustomHeader("private-token".into()),

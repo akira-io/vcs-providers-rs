@@ -41,13 +41,13 @@ fn github_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::ReleaseCreate,
             Capability::ReleaseUpdate,
             Capability::ReleaseDelete,
-            Capability::Organizations,
-            Capability::Discussions,
-            Capability::Webhooks,
         ])
         .does_not_support([
             Capability::IssueDelete,
             Capability::CodeReviewDelete,
+            Capability::Organizations,
+            Capability::Discussions,
+            Capability::Webhooks,
             Capability::SelfHosted,
         ])
         .auth(

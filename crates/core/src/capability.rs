@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum Capability {
     Repos,
     RepoGet,
@@ -43,6 +43,52 @@ pub enum Capability {
     Discussions,
     Webhooks,
     SelfHosted,
+}
+
+impl Capability {
+    pub fn all() -> &'static [Capability] {
+        &[
+            Capability::Repos,
+            Capability::RepoGet,
+            Capability::RepoList,
+            Capability::RepoSearch,
+            Capability::RepoBranches,
+            Capability::RepoCommits,
+            Capability::RepoCreate,
+            Capability::RepoUpdate,
+            Capability::RepoDelete,
+            Capability::Issues,
+            Capability::IssueGet,
+            Capability::IssueList,
+            Capability::IssueCreate,
+            Capability::IssueUpdate,
+            Capability::IssueClose,
+            Capability::IssueDelete,
+            Capability::CodeReviews,
+            Capability::CodeReviewGet,
+            Capability::CodeReviewList,
+            Capability::CodeReviewCreate,
+            Capability::CodeReviewUpdate,
+            Capability::CodeReviewMerge,
+            Capability::CodeReviewClose,
+            Capability::CodeReviewDelete,
+            Capability::Pipelines,
+            Capability::PipelineGet,
+            Capability::PipelineList,
+            Capability::PipelineRerun,
+            Capability::PipelineCancel,
+            Capability::Releases,
+            Capability::ReleaseGet,
+            Capability::ReleaseList,
+            Capability::ReleaseCreate,
+            Capability::ReleaseUpdate,
+            Capability::ReleaseDelete,
+            Capability::Organizations,
+            Capability::Discussions,
+            Capability::Webhooks,
+            Capability::SelfHosted,
+        ]
+    }
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]

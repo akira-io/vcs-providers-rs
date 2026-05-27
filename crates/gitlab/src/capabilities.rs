@@ -37,8 +37,6 @@ pub fn gitlab_capabilities() -> CapabilitySet {
         Capability::ReleaseCreate,
         Capability::ReleaseUpdate,
         Capability::ReleaseDelete,
-        Capability::Organizations,
-        Capability::Webhooks,
         Capability::SelfHosted,
     ])
 }

@@ -22,6 +22,5 @@ pub fn bitbucket_capabilities() -> CapabilitySet {
         Capability::PipelineGet,
         Capability::PipelineList,
         Capability::PipelineCancel,
-        Capability::Webhooks,
     ])
 }

@@ -188,3 +188,5 @@ if github().capabilities().supports(&Capability::Releases) {
 ```
 
 Runtime capability checks are part of the public contract. Provider-specific features should stay in provider crates or extensions.
+
+Capabilities describe framework-supported universal contracts, not every upstream provider endpoint. A provider can have native webhooks or organization APIs without exposing those capabilities until `vcs-provider-core` has typed contracts for them.

@@ -28,7 +28,6 @@ fn bitbucket_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::PipelineGet,
             Capability::PipelineList,
             Capability::PipelineCancel,
-            Capability::Webhooks,
         ])
         .does_not_support([
             Capability::Issues,
@@ -46,6 +45,7 @@ fn bitbucket_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::ReleaseDelete,
             Capability::Organizations,
             Capability::Discussions,
+            Capability::Webhooks,
             Capability::SelfHosted,
             Capability::CodeReviewDelete,
             Capability::PipelineRerun,

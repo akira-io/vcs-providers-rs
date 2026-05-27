@@ -100,6 +100,19 @@ where
     fn check_capabilities(&self) -> VcsResult<()> {
         let capabilities = self.provider.capabilities();
 
+        for capability in Capability::all() {
+            let expected_supported = self.supported_capabilities.contains(capability);
+            let expected_unsupported = self.unsupported_capabilities.contains(capability);
+
+            if expected_supported && expected_unsupported {
+                return Err(error().invalid_input("capability expectation conflicts"));
+            }
+
+            if !expected_supported && !expected_unsupported {
+                return Err(error().invalid_input("capability expectation missing"));
+            }
+        }
+
         for capability in &self.supported_capabilities {
             if !capabilities.supports(capability) {
                 return Err(error().invalid_input("supported capability is missing"));

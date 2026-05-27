@@ -23,6 +23,13 @@ fn bitbucket_provider_exposes_provider_descriptor() {
             .supports(&Capability::PipelineRerun)
     );
     assert!(!descriptor.capabilities().supports(&Capability::Issues));
+    assert!(
+        !descriptor
+            .capabilities()
+            .supports(&Capability::Organizations)
+    );
+    assert!(!descriptor.capabilities().supports(&Capability::Discussions));
+    assert!(!descriptor.capabilities().supports(&Capability::Webhooks));
 }
 
 #[test]

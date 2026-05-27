@@ -18,6 +18,7 @@ The suite validates:
 
 - Provider descriptor id and display name.
 - Supported and unsupported capabilities.
+- Every known capability is explicitly classified by the provider test.
 - Auth header style expectations.
 - Object-safe access to universal contracts.
 - Supported universal contracts fail with `TransportNotConfigured` when no client is attached.
@@ -25,6 +26,8 @@ The suite validates:
 - Registry registration, duplicate rejection and capability filtering.
 
 Provider crates own their expected capability list. Core does not import provider crates or hardcode provider names.
+
+A supported capability means the framework exposes a typed contract for that provider today. Do not mark provider API features as supported just because the upstream provider has an endpoint. Organizations, discussions and webhooks stay unsupported in conformance until they have core contracts and provider implementations.
 
 ## Adding A Provider
 

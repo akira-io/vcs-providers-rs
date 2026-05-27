@@ -35,8 +35,5 @@ pub fn github_capabilities() -> CapabilitySet {
         Capability::ReleaseCreate,
         Capability::ReleaseUpdate,
         Capability::ReleaseDelete,
-        Capability::Organizations,
-        Capability::Discussions,
-        Capability::Webhooks,
     ])
 }

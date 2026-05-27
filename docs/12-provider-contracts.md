@@ -21,11 +21,11 @@ The core `Provider` trait exposes small domain contracts instead of one large in
 
 | Contract | Responsibility |
 | --- | --- |
-| `Repos` | Repository lookup, listing, search, branches, and commits. |
-| `Issues` | Issue lookup and listing. |
-| `CodeReviews` | Code review lookup, listing, creation, merge, and close. |
+| `Repos` | Repository lookup, listing, search, mutation, branches, and commits. |
+| `Issues` | Issue lookup, listing, creation, update, close, and delete where supported. |
+| `CodeReviews` | Code review lookup, listing, creation, update, merge, close, and delete where supported. |
 | `Pipelines` | Pipeline lookup, listing, rerun, and cancel. |
-| `Releases` | Release lookup and listing. |
+| `Releases` | Release lookup, listing, creation, update, and delete where supported. |
 
 Provider crates implement the universal trait surface and keep provider-specific endpoint routing inside their own crates.
 
@@ -115,6 +115,8 @@ if provider.capabilities().supports(&Capability::Pipelines) {
 ```
 
 Calling a contract that is not transport-backed returns `VcsError::TransportNotConfigured` until the provider wires transport and response mapping for that domain.
+
+A provider must only advertise capabilities backed by the current universal contract surface. Provider APIs can expose more concepts than the core crate models today. GitHub organizations, GitHub discussions, GitLab groups and provider webhooks are real provider APIs, but they are not advertised as `Capability::Organizations`, `Capability::Discussions` or `Capability::Webhooks` until the framework has typed contracts, request builders, hydration and conformance coverage for them.
 
 ## Provider Isolation
 

@@ -15,3 +15,12 @@ fn capability_set_reports_supported_capabilities() {
     assert!(capabilities.supports(&Capability::PipelineRerun));
     assert!(!capabilities.supports(&Capability::Releases));
 }
+
+#[test]
+fn capability_catalog_contains_contract_and_reserved_capabilities() {
+    let all_capabilities = Capability::all();
+
+    assert!(all_capabilities.contains(&Capability::Repos));
+    assert!(all_capabilities.contains(&Capability::ReleaseDelete));
+    assert!(all_capabilities.contains(&Capability::Webhooks));
+}
