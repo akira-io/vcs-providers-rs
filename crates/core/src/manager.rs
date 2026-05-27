@@ -14,6 +14,7 @@ mod code_reviews;
 mod issue_mutations;
 mod issues;
 mod pipelines;
+mod rate_limit;
 mod release_mutations;
 mod releases;
 mod repo_mutations;
@@ -36,6 +37,7 @@ pub use pipelines::{
     ManagedPipeline, ManagedPipelineBuilder, ManagedPipelineCollection, ManagedRepoPipelines,
     ManagedRepoPipelinesPagination,
 };
+pub use rate_limit::ManagedRateLimitTransportBuilder;
 #[allow(unused_imports)]
 pub use release_mutations::ManagedReleaseUpdateBuilder;
 pub use releases::{
@@ -127,6 +129,13 @@ where
         transport: impl Transport + 'static,
     ) -> ManagedRetryTransportBuilder<Driver, impl Transport + 'static> {
         ManagedRetryTransportBuilder::make(self.clone(), transport)
+    }
+
+    pub fn rate_limit(
+        &self,
+        transport: impl Transport + 'static,
+    ) -> ManagedRateLimitTransportBuilder<Driver, impl Transport + 'static> {
+        ManagedRateLimitTransportBuilder::make(self.clone(), transport)
     }
 }
 

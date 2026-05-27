@@ -1,6 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-use crate::Response;
+use crate::{Response, Transport};
+
+mod transport;
+
+pub use transport::{
+    ProvidedRateLimitTransport, RateLimitRecorder, RateLimitSink, RateLimitTransport,
+    RateLimitTransportBuilder,
+};
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct RateLimitBuilder;
@@ -8,6 +15,17 @@ pub struct RateLimitBuilder;
 impl RateLimitBuilder {
     pub fn headers(self) -> RateLimitHeaderProfileBuilder {
         RateLimitHeaderProfileBuilder::default()
+    }
+
+    pub fn recorder(self) -> RateLimitRecorder {
+        RateLimitRecorder::default()
+    }
+
+    pub fn transport(
+        self,
+        transport: impl Transport + 'static,
+    ) -> RateLimitTransportBuilder<ProvidedRateLimitTransport> {
+        RateLimitTransportBuilder::make(transport)
     }
 }
 

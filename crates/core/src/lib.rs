@@ -62,14 +62,14 @@ pub use manager::{
     ManagedCodeReviewCollection, ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider,
     ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDraftBuilder,
     ManagedIssueProvider, ManagedIssueUpdateBuilder, ManagedPipeline, ManagedPipelineBuilder,
-    ManagedPipelineCollection, ManagedProvider, ManagedRelease, ManagedReleaseBuilder,
-    ManagedReleaseCollection, ManagedReleaseDraftBuilder, ManagedReleaseProvider,
-    ManagedReleaseUpdateBuilder, ManagedRepo, ManagedRepoBuilder, ManagedRepoCodeReviews,
-    ManagedRepoCodeReviewsPagination, ManagedRepoCollection, ManagedRepoIssues,
-    ManagedRepoIssuesPagination, ManagedRepoPipelines, ManagedRepoPipelinesPagination,
-    ManagedRepoReleases, ManagedRepoReleasesPagination, ManagedRepositoryDraftBuilder,
-    ManagedRepositoryUpdateBuilder, ManagedRetryTransportBuilder, ProviderClient, VcsManager,
-    VcsManagerBuilder, VcsManagerWithDriverBuilder,
+    ManagedPipelineCollection, ManagedProvider, ManagedRateLimitTransportBuilder, ManagedRelease,
+    ManagedReleaseBuilder, ManagedReleaseCollection, ManagedReleaseDraftBuilder,
+    ManagedReleaseProvider, ManagedReleaseUpdateBuilder, ManagedRepo, ManagedRepoBuilder,
+    ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination, ManagedRepoCollection,
+    ManagedRepoIssues, ManagedRepoIssuesPagination, ManagedRepoPipelines,
+    ManagedRepoPipelinesPagination, ManagedRepoReleases, ManagedRepoReleasesPagination,
+    ManagedRepositoryDraftBuilder, ManagedRepositoryUpdateBuilder, ManagedRetryTransportBuilder,
+    ProviderClient, VcsManager, VcsManagerBuilder, VcsManagerWithDriverBuilder,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
@@ -86,8 +86,8 @@ pub use pipelines::{
 };
 pub use rate_limit::{
     RateLimitBuilder, RateLimitCost, RateLimitHeaderName, RateLimitHeaderProfile,
-    RateLimitHeaderProfileBuilder, RateLimitObservation, RateLimitQuota, RateLimitReset,
-    RetryAfter,
+    RateLimitHeaderProfileBuilder, RateLimitObservation, RateLimitQuota, RateLimitRecorder,
+    RateLimitReset, RateLimitSink, RateLimitTransport, RateLimitTransportBuilder, RetryAfter,
 };
 pub use registry::{ProviderRegistry, ProviderRegistryBuilder};
 pub use releases::{
