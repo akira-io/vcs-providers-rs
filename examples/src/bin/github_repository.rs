@@ -4,8 +4,8 @@ use vcs_provider_github::github;
 fn main() -> VcsResult<()> {
     run_async_test(async {
         let repository = github()
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
             .repos()
-            .response_body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
             .get(repo().owner("akira-io").name("vcs-providers-rs").get())
             .await?;
 

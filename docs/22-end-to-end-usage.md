@@ -163,19 +163,15 @@ Bitbucket supports code reviews and pipelines in the current universal capabilit
 
 ## Testing Without Network
 
-Provider crates can use the shared test transport to verify hydration without real HTTP:
+Provider crates can attach response fixtures directly to the provider facade to verify hydration without real HTTP:
 
 ```rust
-use vcs_provider_core::{provider_response, repo, run_async_test, vcs};
+use vcs_provider_core::{repo, run_async_test};
 use vcs_provider_github::github;
 
 run_async_test(async {
-    let repository = vcs(github())
-        .transport(
-            provider_response()
-                .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
-                .get(),
-        )
+    let repository = github()
+        .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
         .repos()
         .get(repo().owner("akira-io").name("vcs-providers-rs").get())
         .await?;

@@ -207,70 +207,30 @@ impl ManagedClientProvider for GitLabProvider {
 }
 
 impl GitLabReposTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Repos> {
-        GitLabClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .repos()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Repos> {
         GitLabClient::with_provider(self.provider, transport).repos()
     }
 }
 
 impl GitLabIssuesTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Issues> {
-        GitLabClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .issues()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Issues> {
         GitLabClient::with_provider(self.provider, transport).issues()
     }
 }
 
 impl GitLabCodeReviewsTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn CodeReviews> {
-        GitLabClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .code_reviews()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn CodeReviews> {
         GitLabClient::with_provider(self.provider, transport).code_reviews()
     }
 }
 
 impl GitLabPipelinesTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Pipelines> {
-        GitLabClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .pipelines()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Pipelines> {
         GitLabClient::with_provider(self.provider, transport).pipelines()
     }
 }
 
 impl GitLabReleasesTransportBuilder {
-    pub fn response_body(self, body: impl Into<String>) -> Box<dyn Releases> {
-        GitLabClient::with_provider(
-            self.provider,
-            vcs_provider_core::provider_response().body(body).get(),
-        )
-        .releases()
-    }
-
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Releases> {
         GitLabClient::with_provider(self.provider, transport).releases()
     }

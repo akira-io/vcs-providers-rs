@@ -21,15 +21,20 @@ let page_request = pagination()
 Resources that return lists use `Page<T>`.
 
 ```rust
+let page_request = pagination()
+    .request()
+    .limit(50)
+    .build();
+
+let repositories_query = github()
+    .repo()
+    .query()
+    .pagination(page_request)
+    .list();
+
 let repositories = github()
     .repos()
-    .list(
-        github()
-            .repo()
-            .query()
-            .pagination(pagination().request().limit(50).build())
-            .list(),
-    )
+    .list(repositories_query)
     .await?;
 
 let next_page = repositories.next();
@@ -38,21 +43,24 @@ let next_page = repositories.next();
 `PageCursor` is intentionally opaque to application code. Pass it back through the provider query builder instead of parsing it.
 
 ```rust
+let next_page_cursor = next_page
+    .ok_or(VcsError::InvalidInput("missing next cursor".into()))?;
+
+let next_page_request = pagination()
+    .request()
+    .limit(50)
+    .cursor(next_page_cursor.as_str())
+    .build();
+
+let next_repositories_query = github()
+    .repo()
+    .query()
+    .pagination(next_page_request)
+    .list();
+
 let next_repositories = github()
     .repos()
-    .list(
-        github()
-            .repo()
-            .query()
-            .pagination(
-                pagination()
-                    .request()
-                    .limit(50)
-                    .cursor(next_page.ok_or(VcsError::InvalidInput("missing next cursor".into()))?.as_str())
-                    .build(),
-            )
-            .list(),
-    )
+    .list(next_repositories_query)
     .await?;
 ```
 
