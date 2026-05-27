@@ -3,7 +3,7 @@ mod support;
 use std::sync::{Arc, Mutex};
 
 use vcs_provider_core::{
-    BoxFuture, HeaderMiddleware, Middleware, Request, Transport, VcsResult, middleware, request,
+    BoxFuture, Middleware, Request, Transport, VcsResult, middleware, request, run_async_test,
 };
 
 use support::EchoTransport;
@@ -12,12 +12,6 @@ use support::EchoTransport;
 struct RecordingMiddleware {
     name: &'static str,
     calls: Arc<Mutex<Vec<&'static str>>>,
-}
-
-impl RecordingMiddleware {
-    fn make(name: &'static str, calls: Arc<Mutex<Vec<&'static str>>>) -> Self {
-        Self { name, calls }
-    }
 }
 
 impl Middleware for RecordingMiddleware {
@@ -32,17 +26,24 @@ impl Middleware for RecordingMiddleware {
     }
 }
 
+fn recording_middleware(
+    name: &'static str,
+    calls: Arc<Mutex<Vec<&'static str>>>,
+) -> RecordingMiddleware {
+    RecordingMiddleware { name, calls }
+}
+
 #[test]
 fn middleware_pipeline_runs_middleware_before_transport() -> VcsResult<()> {
     let calls = Arc::new(Mutex::new(Vec::new()));
     let pipeline = middleware()
-        .with(RecordingMiddleware::make("first", Arc::clone(&calls)))
-        .with(RecordingMiddleware::make("second", Arc::clone(&calls)))
+        .with(recording_middleware("first", Arc::clone(&calls)))
+        .with(recording_middleware("second", Arc::clone(&calls)))
         .transport(EchoTransport)
         .build();
     let request = request().get("https://api.example.test/repos").build();
 
-    let response = futures::executor::block_on(pipeline.send(request))?;
+    let response = run_async_test(pipeline.send(request))?;
 
     assert_eq!(response.status().code(), 200);
     assert_eq!(
@@ -56,12 +57,12 @@ fn middleware_pipeline_runs_middleware_before_transport() -> VcsResult<()> {
 #[test]
 fn header_middleware_adds_request_header() -> VcsResult<()> {
     let pipeline = middleware()
-        .with(HeaderMiddleware::make("accept", "application/json"))
+        .header("accept", "application/json")
         .transport(EchoTransport)
         .build();
     let request = request().get("https://api.example.test/repos").build();
 
-    let response = futures::executor::block_on(pipeline.send(request))?;
+    let response = run_async_test(pipeline.send(request))?;
 
     assert_eq!(response.headers().len(), 1);
     assert_eq!(response.headers()[0].name().as_str(), "accept");

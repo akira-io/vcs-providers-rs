@@ -4,7 +4,7 @@ Middleware composes request mutation before transport execution.
 
 ```rust
 let pipeline = middleware()
-    .with(HeaderMiddleware::make("accept", "application/json"))
+    .header("accept", "application/json")
     .transport(transport)
     .build();
 ```

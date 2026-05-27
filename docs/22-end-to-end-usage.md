@@ -71,10 +71,10 @@ Use `github().base_url("https://github.enterprise.test/api/v3")` for GitHub Ente
 Middleware wraps transport, not domain logic. Each request still enters the same provider client and mapper path.
 
 ```rust
-use vcs_provider_core::{HeaderMiddleware, http, middleware, repo, vcs};
+use vcs_provider_core::{http, middleware, repo, vcs};
 
 let transport = middleware()
-    .with(HeaderMiddleware::make("x-request-id", "request-1"))
+    .header("x-request-id", "request-1")
     .transport(http().transport().get()?)
     .build();
 

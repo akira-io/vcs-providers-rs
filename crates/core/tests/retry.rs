@@ -1,4 +1,4 @@
-use vcs_provider_core::{Transport, VcsResult, provider_responses, request, retry};
+use vcs_provider_core::{Transport, VcsResult, provider_responses, request, retry, run_async_test};
 
 #[test]
 fn retry_transport_retries_configured_response_statuses() -> VcsResult<()> {
@@ -10,7 +10,7 @@ fn retry_transport_retries_configured_response_statuses() -> VcsResult<()> {
         .build();
     let request = request().get("https://api.example.test/repos").build();
 
-    let response = futures::executor::block_on(transport.send(request))?;
+    let response = run_async_test(transport.send(request))?;
 
     assert_eq!(response.status().code(), 200);
     assert_eq!(provider_transport.requests().len(), 2);
@@ -32,7 +32,7 @@ fn retry_transport_stops_after_max_attempts() -> VcsResult<()> {
         .build();
     let request = request().get("https://api.example.test/repos").build();
 
-    let response = futures::executor::block_on(transport.send(request))?;
+    let response = run_async_test(transport.send(request))?;
 
     assert_eq!(response.status().code(), 503);
     assert_eq!(provider_transport.requests().len(), 2);
@@ -46,7 +46,7 @@ fn retry_transport_keeps_successful_responses_single_attempt() -> VcsResult<()> 
     let transport = retry().transport(provider_transport.clone()).build();
     let request = request().get("https://api.example.test/repos").build();
 
-    let response = futures::executor::block_on(transport.send(request))?;
+    let response = run_async_test(transport.send(request))?;
 
     assert_eq!(response.status().code(), 200);
     assert_eq!(provider_transport.requests().len(), 1);

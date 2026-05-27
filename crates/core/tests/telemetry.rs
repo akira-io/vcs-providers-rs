@@ -1,6 +1,6 @@
 mod support;
 
-use vcs_provider_core::{TelemetryEvent, Transport, VcsResult, request, telemetry};
+use vcs_provider_core::{TelemetryEvent, Transport, VcsResult, request, run_async_test, telemetry};
 
 use support::EchoTransport;
 
@@ -14,7 +14,7 @@ fn telemetry_transport_records_request_lifecycle() -> VcsResult<()> {
     let request = request().get("https://api.example.test/repos").build();
     let request_telemetry = telemetry().request().make(&request);
 
-    let response = futures::executor::block_on(transport.send(request))?;
+    let response = run_async_test(transport.send(request))?;
     let events = recorder.events();
 
     assert_eq!(response.status().code(), 200);

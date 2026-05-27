@@ -1,6 +1,6 @@
 use crate::{
-    Capability, CodeReviewId, IssueId, PipelineId, Provider, ReleaseId, VcsResult, Visibility,
-    code_review, issue, pipeline, release, repo,
+    Capability, CodeReviewId, PipelineId, Provider, VcsResult, Visibility, code_review, issue,
+    issue_id, pipeline, release, release_id, repo, testing::run_async_test,
 };
 
 #[path = "contracts/support.rs"]
@@ -23,17 +23,14 @@ fn check_repos(provider: &impl Provider) -> VcsResult<()> {
     let repo_location = sample_repo_location();
     let repos = provider.repos();
 
-    assert_transport_not_configured(
-        "repo get",
-        futures::executor::block_on(repos.get(repo_location.clone())),
-    )?;
+    assert_transport_not_configured("repo get", run_async_test(repos.get(repo_location.clone())))?;
     assert_transport_not_configured(
         "repo list",
-        futures::executor::block_on(repos.list(repo().query().optional_pagination(None).list())),
+        run_async_test(repos.list(repo().query().optional_pagination(None).list())),
     )?;
     assert_transport_not_configured(
         "repo search",
-        futures::executor::block_on(
+        run_async_test(
             repos.search(
                 repo()
                     .query()
@@ -45,7 +42,7 @@ fn check_repos(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_transport_not_configured(
         "repo create",
-        futures::executor::block_on(
+        run_async_test(
             repos.create(
                 repo_location
                     .clone()
@@ -57,7 +54,7 @@ fn check_repos(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_transport_not_configured(
         "repo update",
-        futures::executor::block_on(
+        run_async_test(
             repos.update(
                 repo_location
                     .clone()
@@ -69,16 +66,13 @@ fn check_repos(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_transport_not_configured(
         "repo delete",
-        futures::executor::block_on(repos.delete(repo_location.clone())),
+        run_async_test(repos.delete(repo_location.clone())),
     )?;
     assert_transport_not_configured(
         "repo branches",
-        futures::executor::block_on(repos.branches(repo_location.clone())),
+        run_async_test(repos.branches(repo_location.clone())),
     )?;
-    assert_transport_not_configured(
-        "repo commits",
-        futures::executor::block_on(repos.commits(repo_location)),
-    )
+    assert_transport_not_configured("repo commits", run_async_test(repos.commits(repo_location)))
 }
 
 fn check_issues(provider: &impl Provider) -> VcsResult<()> {
@@ -89,19 +83,17 @@ fn check_issues(provider: &impl Provider) -> VcsResult<()> {
 
     assert_capability_contract_error(
         "issue get",
-        futures::executor::block_on(issues.get(repo_location.clone(), IssueId::make("42"))),
+        run_async_test(issues.get(repo_location.clone(), issue_id("42"))),
         supported,
     )?;
     assert_capability_contract_error(
         "issue list",
-        futures::executor::block_on(
-            issues.list(issue().query().location(repo_location.clone()).list()),
-        ),
+        run_async_test(issues.list(issue().query().location(repo_location.clone()).list())),
         supported,
     )?;
     assert_capability_contract_error(
         "issue create",
-        futures::executor::block_on(
+        run_async_test(
             issues.create(
                 issue()
                     .draft()
@@ -114,29 +106,17 @@ fn check_issues(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_capability_contract_error(
         "issue update",
-        futures::executor::block_on(
-            issues.update(
-                crate::IssuePatchBuilder::make(issue_resource.clone())
-                    .title("Fix")
-                    .get(),
-            ),
-        ),
+        run_async_test(issues.update(issue_resource.patch().title("Fix").get())),
         supported,
     )?;
     assert_capability_contract_error(
         "issue close",
-        futures::executor::block_on(
-            issues.close(
-                crate::IssuePatchBuilder::make(issue_resource)
-                    .closed()
-                    .get(),
-            ),
-        ),
+        run_async_test(issues.close(issue_resource.patch().closed().get())),
         supported,
     )?;
     assert_capability_contract_error(
         "issue delete",
-        futures::executor::block_on(issues.delete(sample_issue(sample_repo_location()))),
+        run_async_test(issues.delete(sample_issue(sample_repo_location()))),
         supported,
     )
 }
@@ -148,19 +128,17 @@ fn check_code_reviews(provider: &impl Provider) -> VcsResult<()> {
 
     assert_transport_not_configured(
         "code review get",
-        futures::executor::block_on(
-            code_reviews.get(repo_location.clone(), CodeReviewId::make("42")),
-        ),
+        run_async_test(code_reviews.get(repo_location.clone(), CodeReviewId::make("42"))),
     )?;
     assert_transport_not_configured(
         "code review list",
-        futures::executor::block_on(
+        run_async_test(
             code_reviews.list(code_review().query().location(repo_location.clone()).list()),
         ),
     )?;
     assert_transport_not_configured(
         "code review create",
-        futures::executor::block_on(
+        run_async_test(
             code_reviews.create(
                 code_review()
                     .draft()
@@ -172,9 +150,10 @@ fn check_code_reviews(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_transport_not_configured(
         "code review update",
-        futures::executor::block_on(
+        run_async_test(
             code_reviews.update(
-                crate::CodeReviewPatchBuilder::make(code_review_resource.clone())
+                code_review_resource
+                    .patch()
                     .title("Update conformance checks")
                     .get(),
             ),
@@ -182,15 +161,15 @@ fn check_code_reviews(provider: &impl Provider) -> VcsResult<()> {
     )?;
     assert_transport_not_configured(
         "code review merge",
-        futures::executor::block_on(code_reviews.merge(code_review_resource.clone())),
+        run_async_test(code_reviews.merge(code_review_resource.clone())),
     )?;
     assert_transport_not_configured(
         "code review close",
-        futures::executor::block_on(code_reviews.close(code_review_resource.clone())),
+        run_async_test(code_reviews.close(code_review_resource.clone())),
     )?;
     assert_transport_not_configured(
         "code review delete",
-        futures::executor::block_on(code_reviews.delete(code_review_resource)),
+        run_async_test(code_reviews.delete(code_review_resource)),
     )
 }
 
@@ -201,21 +180,19 @@ fn check_pipelines(provider: &impl Provider) -> VcsResult<()> {
 
     assert_transport_not_configured(
         "pipeline get",
-        futures::executor::block_on(pipelines.get(repo_location.clone(), PipelineId::make("42"))),
+        run_async_test(pipelines.get(repo_location.clone(), PipelineId::make("42"))),
     )?;
     assert_transport_not_configured(
         "pipeline list",
-        futures::executor::block_on(
-            pipelines.list(pipeline().query().location(repo_location).list()),
-        ),
+        run_async_test(pipelines.list(pipeline().query().location(repo_location).list())),
     )?;
     assert_transport_not_configured(
         "pipeline rerun",
-        futures::executor::block_on(pipelines.rerun(pipeline_resource.clone())),
+        run_async_test(pipelines.rerun(pipeline_resource.clone())),
     )?;
     assert_transport_not_configured(
         "pipeline cancel",
-        futures::executor::block_on(pipelines.cancel(pipeline_resource)),
+        run_async_test(pipelines.cancel(pipeline_resource)),
     )
 }
 
@@ -227,37 +204,27 @@ fn check_releases(provider: &impl Provider) -> VcsResult<()> {
 
     assert_capability_contract_error(
         "release get",
-        futures::executor::block_on(releases.get(repo_location.clone(), ReleaseId::make("v1.0.0"))),
+        run_async_test(releases.get(repo_location.clone(), release_id("v1.0.0"))),
         supported,
     )?;
     assert_capability_contract_error(
         "release list",
-        futures::executor::block_on(
-            releases.list(release().query().location(repo_location.clone()).list()),
-        ),
+        run_async_test(releases.list(release().query().location(repo_location.clone()).list())),
         supported,
     )?;
     assert_capability_contract_error(
         "release create",
-        futures::executor::block_on(
-            releases.create(release().draft().repo(repo_location).tag("v1.0.0").get()),
-        ),
+        run_async_test(releases.create(release().draft().repo(repo_location).tag("v1.0.0").get())),
         supported,
     )?;
     assert_capability_contract_error(
         "release update",
-        futures::executor::block_on(
-            releases.update(
-                crate::ReleasePatchBuilder::make(release_resource.clone())
-                    .body("Release notes")
-                    .get(),
-            ),
-        ),
+        run_async_test(releases.update(release_resource.patch().body("Release notes").get())),
         supported,
     )?;
     assert_capability_contract_error(
         "release delete",
-        futures::executor::block_on(releases.delete(release_resource)),
+        run_async_test(releases.delete(release_resource)),
         supported,
     )
 }

@@ -1,6 +1,8 @@
 mod support;
 
-use vcs_provider_core::{VcsError, VcsResult, auth, error, response, runtime, telemetry};
+use vcs_provider_core::{
+    VcsError, VcsResult, auth, error, response, run_async_test, runtime, telemetry,
+};
 
 use support::EchoTransport;
 
@@ -24,7 +26,7 @@ fn runtime_builds_provider_request_with_auth() {
 #[test]
 fn runtime_executes_transport_with_telemetry() -> VcsResult<()> {
     let recorder = telemetry().recorder();
-    let response = futures::executor::block_on(async {
+    let response = run_async_test(async {
         runtime()
             .provider()
             .telemetry(recorder.clone())

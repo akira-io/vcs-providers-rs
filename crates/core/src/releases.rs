@@ -93,6 +93,10 @@ impl Release {
     pub fn id(&self) -> &ReleaseId {
         &self.id
     }
+
+    pub fn patch(&self) -> ReleasePatchBuilder {
+        ReleasePatchBuilder::make(self.clone())
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

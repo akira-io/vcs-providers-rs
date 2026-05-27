@@ -1,7 +1,7 @@
 use vcs_provider_bitbucket::{DISPLAY_NAME, PROVIDER_ID, bitbucket};
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, IssuesFluent, Provider, ProviderId, ReleasesFluent,
-    VcsError, VcsResult, Visibility, auth, provider, repo, run_async_test, vcs,
+    AuthHeaderStyle, AuthKind, Capability, IssuesFluent, Provider, ReleasesFluent, VcsError,
+    VcsResult, Visibility, auth, provider, provider_id, repo, run_async_test, vcs,
 };
 
 #[test]
@@ -155,7 +155,7 @@ fn bitbucket_releases_report_unsupported_operation() {
 fn bitbucket_provider_registers_through_core_registry() -> VcsResult<()> {
     let registry = provider().register(bitbucket())?.build();
 
-    assert!(registry.contains_provider(&ProviderId::make(PROVIDER_ID)));
+    assert!(registry.contains_provider(&provider_id(PROVIDER_ID)));
 
     Ok(())
 }
