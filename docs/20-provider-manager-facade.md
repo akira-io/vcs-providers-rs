@@ -71,6 +71,24 @@ let request = vcs(gitlab())
 
 The terminal method describes the command being built: `create`, `update`, `delete`, or `close` where the provider supports it.
 
+## Hydrated Client Execution
+
+The same facade can configure a provider client and execute hydrated contracts through the shared transport abstraction:
+
+```rust
+use vcs_provider_core::{auth, http, repo, vcs};
+use vcs_provider_github::github;
+
+let repository = vcs(github())
+    .transport(http().transport().get()?)
+    .auth(auth().personal_access_token("token"))
+    .repos()
+    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .await?;
+```
+
+The driver is still selected once at the edge. The provider crate owns the concrete client, auth header style, default headers, URL mapping, and response hydration. Core only knows the `ManagedClientProvider` and `ProviderClient` contracts.
+
 ## Dependency Boundary
 
 `vcs(driver)` lives in `vcs-provider-core`, but it receives the driver from the application. Core does not import provider crates and providers do not register themselves globally.

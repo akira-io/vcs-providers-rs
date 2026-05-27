@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
 use vcs_provider_core::{
-    AuthCredential, CodeReviews, Issues, Pipelines, Provider, ProviderDescriptor, Releases, Repos,
-    RequestHeader, Transport, TransportBackedCodeReviews, TransportBackedIssues,
-    TransportBackedPipelines, TransportBackedReleases, TransportBackedRepos,
+    AuthCredential, CodeReviews, Issues, ManagedClientProvider, Pipelines, Provider,
+    ProviderClient, ProviderDescriptor, Releases, Repos, RequestHeader, Transport,
+    TransportBackedCodeReviews, TransportBackedIssues, TransportBackedPipelines,
+    TransportBackedReleases, TransportBackedRepos,
 };
 
 use crate::mappers::{
@@ -141,6 +142,12 @@ impl Provider for GitLabClient {
     }
 }
 
+impl ProviderClient for GitLabClient {
+    fn auth(self, credential: AuthCredential) -> Self {
+        GitLabClient::auth(self, credential)
+    }
+}
+
 impl GitLabProvider {
     pub fn repos(self) -> GitLabReposTransportBuilder {
         GitLabReposTransportBuilder
@@ -167,6 +174,14 @@ impl GitLabProvider {
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> GitLabClient {
+        GitLabClient::make(transport)
+    }
+}
+
+impl ManagedClientProvider for GitLabProvider {
+    type Client = GitLabClient;
+
+    fn client(&self, transport: impl Transport + 'static) -> Self::Client {
         GitLabClient::make(transport)
     }
 }

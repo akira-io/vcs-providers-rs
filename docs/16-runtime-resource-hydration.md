@@ -3,8 +3,8 @@
 Provider request builders create provider-specific HTTP requests. Runtime-backed provider clients execute those requests through a configured HTTP transport and hydrate provider-neutral resources.
 
 ```rust
-let repository = github()
-    .client(my_http_transport)
+let repository = vcs(github())
+    .transport(my_http_transport)
     .repos()
     .get(repo().owner("akira-io").name("vcs-providers-rs").get())
     .await?;
@@ -47,10 +47,12 @@ Provider payload structs remain private. Public APIs expose only universal resou
 
 ```rust
 run_async_test(async {
-    let repository = github()
-        .client(provider_response()
-            .body(r#"{"full_name":"akira-io/vcs-providers-rs"}"#)
-            .get())
+    let repository = vcs(github())
+        .transport(
+            provider_response()
+                .body(r#"{"full_name":"akira-io/vcs-providers-rs"}"#)
+                .get(),
+        )
         .repos()
         .get(repo().owner("akira-io").name("vcs-providers-rs").get())
         .await?;

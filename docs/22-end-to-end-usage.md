@@ -40,11 +40,12 @@ let bitbucket_repository = vcs_provider_core::vcs(vcs_provider_bitbucket::bitbuc
 Provider clients execute requests through the universal transport contract. The provider owns URL construction, default headers, auth mapping, and response mapping.
 
 ```rust
-use vcs_provider_core::{http, repo};
+use vcs_provider_core::{auth, http, repo, vcs};
 use vcs_provider_github::github;
 
-let repository = github()
-    .client(http().transport().get()?)
+let repository = vcs(github())
+    .transport(http().transport().get()?)
+    .auth(auth().personal_access_token("token"))
     .repos()
     .get(repo().owner("akira-io").name("vcs-providers-rs").get())
     .await?;
@@ -57,15 +58,15 @@ The return type is `Repository`, not a provider payload.
 Middleware wraps transport, not domain logic. Each request still enters the same provider client and mapper path.
 
 ```rust
-use vcs_provider_core::{HeaderMiddleware, http, middleware};
+use vcs_provider_core::{HeaderMiddleware, http, middleware, repo, vcs};
 
 let transport = middleware()
     .with(HeaderMiddleware::make("x-request-id", "request-1"))
     .transport(http().transport().get()?)
     .build();
 
-let repository = vcs_provider_gitlab::gitlab()
-    .client(transport)
+let repository = vcs(vcs_provider_gitlab::gitlab())
+    .transport(transport)
     .repos()
     .get(repo().owner("akira-io").name("vcs-providers-rs").get())
     .await?;
@@ -78,10 +79,14 @@ Repositories use the same contract across GitHub, GitLab, and Bitbucket.
 ```rust
 let location = repo().owner("akira-io").name("vcs-providers-rs").get();
 
-let repository = github().client(transport).repos().get(location.clone()).await?;
+let repository = vcs(github())
+    .transport(transport)
+    .repos()
+    .get(location.clone())
+    .await?;
 
-let page = github()
-    .client(transport)
+let page = vcs(github())
+    .transport(transport)
     .repos()
     .branches(location.clone())
     .await?;
@@ -90,8 +95,8 @@ let page = github()
 Create, update, and delete operations use explicit terminal verbs:
 
 ```rust
-let created = gitlab()
-    .client(transport)
+let created = vcs(gitlab())
+    .transport(transport.clone())
     .repos()
     .create()
     .location(location.clone())
@@ -99,7 +104,11 @@ let created = gitlab()
     .create()
     .await?;
 
-gitlab().client(transport).repos().delete(location).await?;
+vcs(gitlab())
+    .transport(transport)
+    .repos()
+    .delete(location)
+    .await?;
 ```
 
 ## Collaboration Operations
@@ -107,8 +116,8 @@ gitlab().client(transport).repos().delete(location).await?;
 Issues, code reviews, and releases use provider-neutral resources.
 
 ```rust
-let issue = github()
-    .client(transport)
+let issue = vcs(github())
+    .transport(transport.clone())
     .issues()
     .location(location.clone())
     .title("Fix payment state")
@@ -116,8 +125,8 @@ let issue = github()
     .create()
     .await?;
 
-let code_review = gitlab()
-    .client(transport)
+let code_review = vcs(gitlab())
+    .transport(transport.clone())
     .code_reviews()
     .location(location.clone())
     .title("Add provider contract checks")
@@ -126,8 +135,8 @@ let code_review = gitlab()
     .create()
     .await?;
 
-let release = github()
-    .client(transport)
+let release = vcs(github())
+    .transport(transport)
     .releases()
     .location(location)
     .tag("v1.0.0")
@@ -144,12 +153,16 @@ Bitbucket supports code reviews and pipelines in the current universal capabilit
 Provider crates can use the shared test transport to verify hydration without real HTTP:
 
 ```rust
-use vcs_provider_core::{provider_response, repo, run_async_test};
+use vcs_provider_core::{provider_response, repo, run_async_test, vcs};
 use vcs_provider_github::github;
 
 run_async_test(async {
-    let repository = github()
-        .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+    let repository = vcs(github())
+        .transport(
+            provider_response()
+                .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+                .get(),
+        )
         .repos()
         .get(repo().owner("akira-io").name("vcs-providers-rs").get())
         .await?;
@@ -170,7 +183,7 @@ Do not assume every provider supports every resource.
 use vcs_provider_core::Capability;
 
 if github().capabilities().supports(&Capability::Releases) {
-    // Build or execute release operations.
+    github().releases();
 }
 ```
 

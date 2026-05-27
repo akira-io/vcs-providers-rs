@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
 use vcs_provider_core::{
-    AuthCredential, CodeReviews, Issues, Pipelines, Provider, ProviderDescriptor, Releases, Repos,
-    RequestHeader, Transport, TransportBackedCodeReviews, TransportBackedIssues,
-    TransportBackedPipelines, TransportBackedReleases, TransportBackedRepos,
+    AuthCredential, CodeReviews, Issues, ManagedClientProvider, Pipelines, Provider,
+    ProviderClient, ProviderDescriptor, Releases, Repos, RequestHeader, Transport,
+    TransportBackedCodeReviews, TransportBackedIssues, TransportBackedPipelines,
+    TransportBackedReleases, TransportBackedRepos,
 };
 
 use crate::mappers::{
@@ -141,6 +142,12 @@ impl Provider for GitHubClient {
     }
 }
 
+impl ProviderClient for GitHubClient {
+    fn auth(self, credential: AuthCredential) -> Self {
+        GitHubClient::auth(self, credential)
+    }
+}
+
 impl GitHubProvider {
     pub fn repos(self) -> GitHubReposTransportBuilder {
         GitHubReposTransportBuilder
@@ -167,6 +174,14 @@ impl GitHubProvider {
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> GitHubClient {
+        GitHubClient::make(transport)
+    }
+}
+
+impl ManagedClientProvider for GitHubProvider {
+    type Client = GitHubClient;
+
+    fn client(&self, transport: impl Transport + 'static) -> Self::Client {
         GitHubClient::make(transport)
     }
 }

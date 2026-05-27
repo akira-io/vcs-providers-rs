@@ -1,4 +1,4 @@
-use vcs_provider_core::{RequestMethod, vcs};
+use vcs_provider_core::{RequestMethod, auth, provider_response, repo, run_async_test, vcs};
 use vcs_provider_gitlab::{GitLabProvider, gitlab};
 
 #[test]
@@ -106,6 +106,34 @@ fn gitlab_facade_builds_mutation_requests() {
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Post);
+}
+
+#[test]
+fn gitlab_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let transport = provider_response()
+            .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
+            .record();
+        let repository = vcs(gitlab())
+            .transport(transport.clone())
+            .auth(auth().personal_access_token("gitlab-token"))
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+        let requests = transport.requests();
+        let auth_header = requests[0]
+            .headers()
+            .iter()
+            .find(|header| header.name().as_str() == "private-token");
+
+        assert_eq!(repository.repo().owner().as_str(), "akira-io");
+        assert_eq!(
+            auth_header.map(|header| header.value().as_str()),
+            Some("gitlab-token")
+        );
+
+        Ok(())
+    })
 }
 
 fn repository() -> vcs_provider_core::ManagedRepo<GitLabProvider> {

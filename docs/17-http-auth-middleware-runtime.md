@@ -3,8 +3,8 @@
 The core crate owns HTTP execution through the universal `Transport` trait. `HttpTransport` is the real HTTP implementation, but it does not expose `reqwest` in public function signatures.
 
 ```rust
-let repository = github()
-    .client(http().transport().get()?)
+let repository = vcs(github())
+    .transport(http().transport().get()?)
     .auth(auth().personal_access_token("token"))
     .repos()
     .get(repo().owner("akira-io").name("vcs-providers-rs").get())
@@ -37,8 +37,8 @@ let transport = middleware()
 Provider clients can then use that composed transport:
 
 ```rust
-let repository = gitlab()
-    .client(transport)
+let repository = vcs(gitlab())
+    .transport(transport)
     .auth(auth().personal_access_token("token"))
     .repos()
     .get(repo().owner("akira-io").name("vcs-providers-rs").get())

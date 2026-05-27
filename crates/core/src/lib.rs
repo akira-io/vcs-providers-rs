@@ -56,16 +56,17 @@ pub use issues::{
     ProvidedIssueTitle, ScopedIssueOperation, TransportBackedIssues, TransportNotConfiguredIssues,
 };
 pub use manager::{
-    ManagedCodeReview, ManagedCodeReviewBuilder, ManagedCodeReviewCollection,
-    ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider, ManagedIssue, ManagedIssueBuilder,
-    ManagedIssueCollection, ManagedIssueDraftBuilder, ManagedIssueProvider,
-    ManagedIssueUpdateBuilder, ManagedPipeline, ManagedPipelineBuilder, ManagedPipelineCollection,
-    ManagedProvider, ManagedRelease, ManagedReleaseBuilder, ManagedReleaseCollection,
-    ManagedReleaseDraftBuilder, ManagedReleaseProvider, ManagedReleaseUpdateBuilder, ManagedRepo,
-    ManagedRepoBuilder, ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination,
-    ManagedRepoCollection, ManagedRepoIssues, ManagedRepoIssuesPagination, ManagedRepoPipelines,
-    ManagedRepoPipelinesPagination, ManagedRepoReleases, ManagedRepoReleasesPagination,
-    ManagedRepositoryDraftBuilder, ManagedRepositoryUpdateBuilder, VcsManager, VcsManagerBuilder,
+    ManagedClientProvider, ManagedCodeReview, ManagedCodeReviewBuilder,
+    ManagedCodeReviewCollection, ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider,
+    ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDraftBuilder,
+    ManagedIssueProvider, ManagedIssueUpdateBuilder, ManagedPipeline, ManagedPipelineBuilder,
+    ManagedPipelineCollection, ManagedProvider, ManagedRelease, ManagedReleaseBuilder,
+    ManagedReleaseCollection, ManagedReleaseDraftBuilder, ManagedReleaseProvider,
+    ManagedReleaseUpdateBuilder, ManagedRepo, ManagedRepoBuilder, ManagedRepoCodeReviews,
+    ManagedRepoCodeReviewsPagination, ManagedRepoCollection, ManagedRepoIssues,
+    ManagedRepoIssuesPagination, ManagedRepoPipelines, ManagedRepoPipelinesPagination,
+    ManagedRepoReleases, ManagedRepoReleasesPagination, ManagedRepositoryDraftBuilder,
+    ManagedRepositoryUpdateBuilder, ProviderClient, VcsManager, VcsManagerBuilder,
     VcsManagerWithDriverBuilder,
 };
 pub use middleware::{

@@ -5,8 +5,8 @@ Repository runtime clients expose read and write operations through the universa
 ```rust
 let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
 
-let repository = github()
-    .client(http().transport().get()?)
+let repository = vcs(github())
+    .transport(http().transport().get()?)
     .auth(auth().personal_access_token("token"))
     .repos()
     .create()

@@ -1,4 +1,4 @@
-use crate::Provider;
+use crate::{AuthCredential, Provider, Transport};
 use crate::{
     CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, Issue, IssueDraft,
     IssueListQuery, IssuePatch, ManagedPipelineProvider, MissingCodeReviewId,
@@ -112,6 +112,23 @@ where
     pub fn pagination(&self) -> crate::PaginationBuilder {
         crate::pagination()
     }
+
+    pub fn transport(&self, transport: impl Transport + 'static) -> Driver::Client
+    where
+        Driver: ManagedClientProvider,
+    {
+        self.driver.client(transport)
+    }
+}
+
+pub trait ProviderClient: Clone + Provider {
+    fn auth(self, credential: AuthCredential) -> Self;
+}
+
+pub trait ManagedClientProvider: ManagedProvider {
+    type Client: ProviderClient;
+
+    fn client(&self, transport: impl Transport + 'static) -> Self::Client;
 }
 
 pub trait ManagedProvider: Clone + Provider {

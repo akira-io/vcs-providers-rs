@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
 use vcs_provider_core::{
-    AuthCredential, CodeReviews, Issues, Pipelines, Provider, ProviderDescriptor, Releases, Repos,
-    RequestHeader, Transport, TransportBackedCodeReviews, TransportBackedPipelines,
-    TransportBackedRepos, TransportNotConfiguredIssues, TransportNotConfiguredReleases,
+    AuthCredential, CodeReviews, Issues, ManagedClientProvider, Pipelines, Provider,
+    ProviderClient, ProviderDescriptor, Releases, Repos, RequestHeader, Transport,
+    TransportBackedCodeReviews, TransportBackedPipelines, TransportBackedRepos,
+    TransportNotConfiguredIssues, TransportNotConfiguredReleases,
 };
 
 use crate::mappers::{
@@ -116,6 +117,12 @@ impl Provider for BitbucketClient {
     }
 }
 
+impl ProviderClient for BitbucketClient {
+    fn auth(self, credential: AuthCredential) -> Self {
+        BitbucketClient::auth(self, credential)
+    }
+}
+
 impl BitbucketProvider {
     pub fn repos(self) -> BitbucketReposTransportBuilder {
         BitbucketReposTransportBuilder
@@ -134,6 +141,14 @@ impl BitbucketProvider {
     }
 
     pub fn transport(self, transport: impl Transport + 'static) -> BitbucketClient {
+        BitbucketClient::make(transport)
+    }
+}
+
+impl ManagedClientProvider for BitbucketProvider {
+    type Client = BitbucketClient;
+
+    fn client(&self, transport: impl Transport + 'static) -> Self::Client {
         BitbucketClient::make(transport)
     }
 }

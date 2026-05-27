@@ -1,5 +1,5 @@
 use vcs_provider_bitbucket::{BitbucketProvider, bitbucket};
-use vcs_provider_core::{RequestMethod, vcs};
+use vcs_provider_core::{RequestMethod, auth, provider_response, repo, run_async_test, vcs};
 
 #[test]
 fn bitbucket_facade_builds_repo_requests() {
@@ -75,6 +75,34 @@ fn bitbucket_facade_builds_mutation_requests() {
         .create();
 
     assert_eq!(create_request.method(), &RequestMethod::Put);
+}
+
+#[test]
+fn bitbucket_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let transport = provider_response()
+            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
+            .record();
+        let repository = vcs(bitbucket())
+            .transport(transport.clone())
+            .auth(auth().oauth("bitbucket-token"))
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+        let requests = transport.requests();
+        let auth_header = requests[0]
+            .headers()
+            .iter()
+            .find(|header| header.name().as_str() == "authorization");
+
+        assert_eq!(repository.repo().owner().as_str(), "akira-io");
+        assert_eq!(
+            auth_header.map(|header| header.value().as_str()),
+            Some("Bearer bitbucket-token")
+        );
+
+        Ok(())
+    })
 }
 
 fn repository() -> vcs_provider_core::ManagedRepo<BitbucketProvider> {
