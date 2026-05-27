@@ -1,4 +1,6 @@
-use vcs_provider_core::{RequestMethod, auth, provider_response, repo, run_async_test, vcs};
+use vcs_provider_core::{
+    RequestMethod, auth, provider_response, provider_responses, repo, run_async_test, vcs,
+};
 use vcs_provider_gitlab::{GitLabProvider, gitlab};
 
 #[test]
@@ -171,6 +173,28 @@ fn gitlab_facade_executes_client_with_configured_base_url() -> vcs_provider_core
             transport.requests()[0].url().value(),
             "https://gitlab.internal.example/api/v4/projects/akira-io%2Fvcs-providers-rs"
         );
+
+        Ok(())
+    })
+}
+
+#[test]
+fn gitlab_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let provider_transport = provider_responses()
+            .status(503)
+            .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
+            .record();
+        let repository = vcs(gitlab())
+            .retry(provider_transport.clone())
+            .attempts(2)
+            .on_status(503)
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+
+        assert_eq!(repository.repo().owner().as_str(), "akira-io");
+        assert_eq!(provider_transport.requests().len(), 2);
 
         Ok(())
     })

@@ -18,6 +18,7 @@ mod release_mutations;
 mod releases;
 mod repo_mutations;
 mod repos;
+mod retry;
 
 #[allow(unused_imports)]
 pub use code_review_mutations::ManagedCodeReviewUpdateBuilder;
@@ -46,6 +47,7 @@ pub use repo_mutations::ManagedRepositoryUpdateBuilder;
 pub use repos::{
     ManagedRepo, ManagedRepoBuilder, ManagedRepoCollection, ManagedRepositoryDraftBuilder,
 };
+pub use retry::ManagedRetryTransportBuilder;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct VcsManager<Driver> {
@@ -118,6 +120,13 @@ where
         Driver: ManagedClientProvider,
     {
         self.driver.client(transport)
+    }
+
+    pub fn retry(
+        &self,
+        transport: impl Transport + 'static,
+    ) -> ManagedRetryTransportBuilder<Driver, impl Transport + 'static> {
+        ManagedRetryTransportBuilder::make(self.clone(), transport)
     }
 }
 

@@ -107,6 +107,34 @@ pub fn provider_response() -> ProviderResponseBuilder {
     ProviderResponseBuilder
 }
 
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct ProviderResponseSequenceBuilder {
+    responses: Vec<Response>,
+}
+
+impl ProviderResponseSequenceBuilder {
+    pub fn status(self, code: u16) -> Self {
+        self.append_response(response().status(code).build())
+    }
+
+    pub fn body(self, body: impl Into<String>) -> Self {
+        self.append_response(response().body(body).build())
+    }
+
+    pub fn record(self) -> ResponseSequenceTransport {
+        ResponseSequenceTransport::make(self.responses)
+    }
+
+    fn append_response(mut self, provider_response: Response) -> Self {
+        self.responses.push(provider_response);
+        self
+    }
+}
+
+pub fn provider_responses() -> ProviderResponseSequenceBuilder {
+    ProviderResponseSequenceBuilder::default()
+}
+
 pub fn run_async_test<T>(future: impl Future<Output = VcsResult<T>>) -> VcsResult<T> {
     futures::executor::block_on(future)
 }
@@ -142,6 +170,56 @@ impl Transport for RecordingTransport {
     fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
         let response = self.response.clone();
         let requests = Arc::clone(&self.requests);
+
+        Box::pin(async move {
+            requests
+                .lock()
+                .map(|mut recorded_requests| recorded_requests.push(request))
+                .ok();
+
+            Ok(response)
+        })
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ResponseSequenceTransport {
+    responses: Vec<Response>,
+    requests: Arc<Mutex<Vec<Request>>>,
+}
+
+impl ResponseSequenceTransport {
+    pub fn make(responses: impl IntoIterator<Item = Response>) -> Self {
+        Self {
+            responses: responses.into_iter().collect(),
+            requests: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
+    pub fn requests(&self) -> Vec<Request> {
+        self.requests
+            .lock()
+            .map(|requests| requests.clone())
+            .unwrap_or_default()
+    }
+
+    fn response_for_request(&self, request_index: usize) -> Response {
+        if let Some(response) = self.responses.get(request_index) {
+            return response.clone();
+        }
+
+        if let Some(response) = self.responses.last() {
+            return response.clone();
+        }
+
+        response().build()
+    }
+}
+
+impl Transport for ResponseSequenceTransport {
+    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+        let requests = Arc::clone(&self.requests);
+        let response = self.response_for_request(self.requests().len());
 
         Box::pin(async move {
             requests

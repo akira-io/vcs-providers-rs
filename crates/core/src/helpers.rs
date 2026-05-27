@@ -5,7 +5,7 @@ use crate::{
     MissingIssueRepo, MissingPipelineId, MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo,
     PaginationBuilder, PipelineBuilder, ProviderRegistry, ProviderRegistryBuilder,
     ProviderRuntimeBuilder, RateLimitBuilder, ReleaseBuilder, RepoBuilder, RequestBuilder,
-    RequestUrlBuilder, ResponseBuilder, TelemetryBuilder, TransportPipeline,
+    RequestUrlBuilder, ResponseBuilder, RetryBuilder, TelemetryBuilder, TransportPipeline,
     TransportPipelineBuilder, VcsManagerBuilder,
 };
 
@@ -97,6 +97,10 @@ pub fn pagination() -> PaginationBuilder {
 
 pub fn rate_limit() -> RateLimitBuilder {
     RateLimitBuilder
+}
+
+pub fn retry() -> RetryBuilder {
+    RetryBuilder
 }
 
 pub fn middleware() -> TransportPipelineBuilder<crate::middleware::MissingTransport> {

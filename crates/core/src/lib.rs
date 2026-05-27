@@ -17,6 +17,7 @@ mod rate_limit;
 mod registry;
 mod releases;
 mod repos;
+mod retry;
 mod runtime;
 mod telemetry;
 mod testing;
@@ -45,7 +46,7 @@ pub use helpers::conformance;
 pub use helpers::{
     CapabilitySetBuilder, auth, branch, capabilities, code_review, commit, error, http, issue,
     middleware, pagination, pipeline, provider, rate_limit, release, repo, request, response,
-    runtime, telemetry, url, vcs,
+    retry, runtime, telemetry, url, vcs,
 };
 pub use http::{HttpBuilder, HttpTransport, HttpTransportBuilder};
 pub use issues::{
@@ -67,8 +68,8 @@ pub use manager::{
     ManagedRepoCodeReviewsPagination, ManagedRepoCollection, ManagedRepoIssues,
     ManagedRepoIssuesPagination, ManagedRepoPipelines, ManagedRepoPipelinesPagination,
     ManagedRepoReleases, ManagedRepoReleasesPagination, ManagedRepositoryDraftBuilder,
-    ManagedRepositoryUpdateBuilder, ProviderClient, VcsManager, VcsManagerBuilder,
-    VcsManagerWithDriverBuilder,
+    ManagedRepositoryUpdateBuilder, ManagedRetryTransportBuilder, ProviderClient, VcsManager,
+    VcsManagerBuilder, VcsManagerWithDriverBuilder,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
@@ -106,6 +107,9 @@ pub use repos::{
     RepositoryName, RepositoryPatch, RepositoryPatchBuilder, RepositoryResponseMapper,
     RepositorySearchQuery, TransportBackedRepos, TransportNotConfiguredRepos, Visibility,
 };
+pub use retry::{
+    ProvidedRetryTransport, RetryBuilder, RetryPolicy, RetryTransport, RetryTransportBuilder,
+};
 pub use runtime::{
     IntoProvider, MissingProviderTransport, ProvidedProviderTransport, ProviderRequestBuilder,
     ProviderRuntime, ProviderRuntimeBuilder, ProviderRuntimeWithProviderBuilder,
@@ -118,8 +122,9 @@ pub use telemetry::{
     TelemetryTransportBuilder,
 };
 pub use testing::{
-    EchoTransport, ProviderResponseBuilder, ProviderResponseTransportBuilder, RecordingTransport,
-    SingleResponseTransport, provider_response, run_async_test,
+    EchoTransport, ProviderResponseBuilder, ProviderResponseSequenceBuilder,
+    ProviderResponseTransportBuilder, RecordingTransport, ResponseSequenceTransport,
+    SingleResponseTransport, provider_response, provider_responses, run_async_test,
 };
 #[cfg(feature = "testing")]
 pub use testing::{ProviderConformance, ProviderConformanceBuilder};

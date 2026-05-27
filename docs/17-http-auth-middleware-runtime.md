@@ -34,6 +34,18 @@ let transport = middleware()
     .build();
 ```
 
+Retries are provider-neutral and can be applied through the facade:
+
+```rust
+let repository = vcs(github())
+    .retry(http().transport().get()?)
+    .attempts(3)
+    .on_statuses([429, 500, 502, 503, 504])
+    .repos()
+    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .await?;
+```
+
 Provider clients can then use that composed transport:
 
 ```rust
@@ -48,5 +60,7 @@ let repository = vcs(gitlab())
 The request path is:
 
 ```text
-Provider client -> provider headers -> auth header -> middleware -> HttpTransport -> typed Response -> mapper
+Provider client -> provider headers -> auth header -> middleware -> retry -> HttpTransport -> typed Response -> mapper
 ```
+
+Retry decisions use response status codes only. Provider-specific rate-limit headers remain observable through `rate_limit().headers()`, and callers decide which statuses are retryable for their workload.
