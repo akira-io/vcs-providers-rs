@@ -158,6 +158,34 @@ fn gitlab_facade_executes_repo_client_with_auth() -> vcs_provider_core::VcsResul
 }
 
 #[test]
+fn gitlab_facade_executes_repo_client_with_middleware() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let transport = provider_response()
+            .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
+            .record();
+        let repository = vcs(gitlab())
+            .middleware(transport.clone())
+            .header("x-request-id", "request-1")
+            .auth(auth().personal_access_token("gitlab-token"))
+            .repos()
+            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .await?;
+        let requests = transport.requests();
+        let request_headers = requests[0].headers();
+
+        assert_eq!(repository.repo().owner().as_str(), "akira-io");
+        assert!(request_headers.iter().any(|header| {
+            header.name().as_str() == "private-token" && header.value().as_str() == "gitlab-token"
+        }));
+        assert!(request_headers.iter().any(|header| {
+            header.name().as_str() == "x-request-id" && header.value().as_str() == "request-1"
+        }));
+
+        Ok(())
+    })
+}
+
+#[test]
 fn gitlab_facade_executes_client_with_configured_base_url() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let transport = provider_response()

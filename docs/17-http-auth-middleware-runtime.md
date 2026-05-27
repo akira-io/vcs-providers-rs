@@ -28,10 +28,13 @@ Bitbucket app passwords require username plus password credentials and are being
 Middleware remains transport-level and provider-neutral:
 
 ```rust
-let transport = middleware()
-    .with(HeaderMiddleware::make("x-request-id", "request-1"))
-    .transport(http().transport().get()?)
-    .build();
+let repository = vcs(github())
+    .middleware(http().transport().get()?)
+    .header("x-request-id", "request-1")
+    .auth(auth().personal_access_token("token"))
+    .repos()
+    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .await?;
 ```
 
 Retries are provider-neutral and can be applied through the facade:
@@ -46,9 +49,14 @@ let repository = vcs(github())
     .await?;
 ```
 
-Provider clients can then use that composed transport:
+Transport pipelines are still available when applications need to compose middleware before selecting a provider:
 
 ```rust
+let transport = middleware()
+    .with(HeaderMiddleware::make("x-request-id", "request-1"))
+    .transport(http().transport().get()?)
+    .build();
+
 let repository = vcs(gitlab())
     .transport(transport)
     .auth(auth().personal_access_token("token"))

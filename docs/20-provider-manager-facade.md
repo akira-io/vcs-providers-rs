@@ -113,6 +113,18 @@ let repository = vcs(github())
     .await?;
 ```
 
+Middleware can be configured from the same provider facade:
+
+```rust
+let repository = vcs(github())
+    .middleware(http().transport().get()?)
+    .header("x-request-id", "request-1")
+    .auth(auth().personal_access_token("token"))
+    .repos()
+    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .await?;
+```
+
 The driver is still selected once at the edge. The provider crate owns the concrete client, auth header style, default headers, URL mapping, and response hydration. Core only knows the `ManagedClientProvider` and `ProviderClient` contracts.
 
 ## Dependency Boundary

@@ -13,6 +13,7 @@ mod code_review_mutations;
 mod code_reviews;
 mod issue_mutations;
 mod issues;
+mod middleware;
 mod pipelines;
 mod rate_limit;
 mod release_mutations;
@@ -33,6 +34,7 @@ pub use issues::{
     ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDraftBuilder,
     ManagedRepoIssues, ManagedRepoIssuesPagination,
 };
+pub use middleware::ManagedMiddlewareTransportBuilder;
 pub use pipelines::{
     ManagedPipeline, ManagedPipelineBuilder, ManagedPipelineCollection, ManagedRepoPipelines,
     ManagedRepoPipelinesPagination,
@@ -122,6 +124,13 @@ where
         Driver: ManagedClientProvider,
     {
         self.driver.client(transport)
+    }
+
+    pub fn middleware(
+        &self,
+        transport: impl Transport + 'static,
+    ) -> ManagedMiddlewareTransportBuilder<Driver, crate::ProvidedTransport> {
+        ManagedMiddlewareTransportBuilder::make(self.clone(), transport)
     }
 
     pub fn retry(
