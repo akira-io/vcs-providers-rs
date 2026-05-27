@@ -1,8 +1,8 @@
 use vcs_provider_core::{
-    PageRequest, Pipeline, PipelineListQuery, Request, RequestUrl, RequestUrlBuilder, request, url,
+    Pipeline, PipelineListQuery, Request, RequestUrl, RequestUrlBuilder, request, url,
 };
 
-use crate::DEFAULT_BASE_URL;
+use crate::{DEFAULT_BASE_URL, request_pagination::apply_page};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct GitLabPipeline {
@@ -87,19 +87,4 @@ impl Default for GitLabPipelineCollection {
 
 fn project_path(repo: &vcs_provider_core::Repo) -> String {
     format!("{}/{}", repo.owner().as_str(), repo.name().as_str())
-}
-
-fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> RequestUrlBuilder {
-    match page {
-        Some(page) => request_url
-            .optional_query_param(
-                "per_page",
-                page.limit().map(|limit| limit.as_u16().to_string()),
-            )
-            .optional_query_param(
-                "page",
-                page.cursor().map(|cursor| cursor.as_str().to_owned()),
-            ),
-        None => request_url,
-    }
 }

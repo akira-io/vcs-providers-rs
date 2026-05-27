@@ -11,11 +11,14 @@ mod client;
 mod code_reviews;
 mod issues;
 mod mappers;
+mod pagination;
 mod pipelines;
 mod provider_collaboration;
 mod provider_pipelines;
 mod releases;
 mod repos;
+mod request_pagination;
+mod response_fixture;
 
 pub use client::GitLabClient;
 pub use code_reviews::{GitLabCodeReview, GitLabCodeReviewCollection};
@@ -23,6 +26,7 @@ pub use issues::{GitLabIssue, GitLabIssueCollection};
 pub use pipelines::{GitLabPipeline, GitLabPipelineCollection};
 pub use releases::{GitLabRelease, GitLabReleaseCollection};
 pub use repos::{GitLabRepo, GitLabRepoCollection};
+pub use response_fixture::GitLabResponseBuilder;
 
 use capabilities::gitlab_capabilities;
 

@@ -36,6 +36,25 @@ fn bitbucket_repo_branch_list_targets_repository_endpoint() {
 }
 
 #[test]
+fn bitbucket_repo_branch_list_accepts_provider_next_url() {
+    let page = bitbucket()
+        .pagination()
+        .request()
+        .cursor("https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches?page=2")
+        .build();
+    let repo = bitbucket()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+
+    assert_eq!(
+        repo.branches(Some(&page)).value(),
+        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches?page=2"
+    );
+}
+
+#[test]
 fn bitbucket_repo_commit_list_targets_repository_endpoint() {
     let repo = bitbucket()
         .repo()

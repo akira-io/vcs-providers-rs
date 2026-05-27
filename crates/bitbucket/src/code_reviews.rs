@@ -1,10 +1,10 @@
 use serde::Serialize;
 use vcs_provider_core::{
-    CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, PageRequest, Request,
-    RequestBody, RequestUrl, RequestUrlBuilder, request, url,
+    CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, Request, RequestBody,
+    RequestUrl, request, url,
 };
 
-use crate::DEFAULT_BASE_URL;
+use crate::{DEFAULT_BASE_URL, request_pagination::apply_page};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BitbucketCodeReview {
@@ -122,21 +122,6 @@ impl BitbucketCodeReviewCollection {
 impl Default for BitbucketCodeReviewCollection {
     fn default() -> Self {
         Self::make(DEFAULT_BASE_URL)
-    }
-}
-
-fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> RequestUrlBuilder {
-    match page {
-        Some(page) => request_url
-            .optional_query_param(
-                "pagelen",
-                page.limit().map(|limit| limit.as_u16().to_string()),
-            )
-            .optional_query_param(
-                "page",
-                page.cursor().map(|cursor| cursor.as_str().to_owned()),
-            ),
-        None => request_url,
     }
 }
 

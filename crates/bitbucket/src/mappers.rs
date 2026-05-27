@@ -28,7 +28,8 @@ impl RepositoryResponseMapper for BitbucketRepositoryMapper {
     }
 
     fn repositories(&self, response: &Response) -> VcsResult<Page<Repository>> {
-        let repositories = bitbucket_repositories(response)?
+        let provider_page = bitbucket_repositories(response)?;
+        let repositories = provider_page
             .values
             .into_iter()
             .filter_map(|repository_response| {
@@ -38,33 +39,35 @@ impl RepositoryResponseMapper for BitbucketRepositoryMapper {
             })
             .collect();
 
-        Ok(Page::make(repositories))
+        Ok(page(repositories, provider_page.next.as_deref()))
     }
 
     fn branches(&self, response: &Response) -> VcsResult<Page<Branch>> {
-        let branches = parse_body::<BitbucketPage<BitbucketBranch>>(
+        let provider_page = parse_body::<BitbucketPage<BitbucketBranch>>(
             response,
             "invalid bitbucket branch response",
-        )?
-        .values
-        .into_iter()
-        .map(|branch| Branch::make(branch.name))
-        .collect();
+        )?;
+        let branches = provider_page
+            .values
+            .into_iter()
+            .map(|branch| Branch::make(branch.name))
+            .collect();
 
-        Ok(Page::make(branches))
+        Ok(page(branches, provider_page.next.as_deref()))
     }
 
     fn commits(&self, response: &Response) -> VcsResult<Page<Commit>> {
-        let commits = parse_body::<BitbucketPage<BitbucketCommit>>(
+        let provider_page = parse_body::<BitbucketPage<BitbucketCommit>>(
             response,
             "invalid bitbucket commit response",
-        )?
-        .values
-        .into_iter()
-        .map(|commit| Commit::make(commit.hash))
-        .collect();
+        )?;
+        let commits = provider_page
+            .values
+            .into_iter()
+            .map(|commit| Commit::make(commit.hash))
+            .collect();
 
-        Ok(Page::make(commits))
+        Ok(page(commits, provider_page.next.as_deref()))
     }
 }
 
@@ -88,21 +91,22 @@ impl CodeReviewResponseMapper for BitbucketCodeReviewMapper {
         requested_repo: &Repo,
         response: &Response,
     ) -> VcsResult<Page<CodeReview>> {
-        let code_reviews = parse_body::<BitbucketPage<BitbucketCodeReview>>(
+        let provider_page = parse_body::<BitbucketPage<BitbucketCodeReview>>(
             response,
             "invalid bitbucket code review list response",
-        )?
-        .values
-        .into_iter()
-        .map(|code_review| {
-            CodeReview::make(
-                requested_repo.clone(),
-                CodeReviewId::make(code_review.id.to_string()),
-            )
-        })
-        .collect();
+        )?;
+        let code_reviews = provider_page
+            .values
+            .into_iter()
+            .map(|code_review| {
+                CodeReview::make(
+                    requested_repo.clone(),
+                    CodeReviewId::make(code_review.id.to_string()),
+                )
+            })
+            .collect();
 
-        Ok(Page::make(code_reviews))
+        Ok(page(code_reviews, provider_page.next.as_deref()))
     }
 }
 
@@ -118,27 +122,29 @@ impl PipelineResponseMapper for BitbucketPipelineMapper {
     }
 
     fn pipelines(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Pipeline>> {
-        let pipelines = parse_body::<BitbucketPage<BitbucketPipeline>>(
+        let provider_page = parse_body::<BitbucketPage<BitbucketPipeline>>(
             response,
             "invalid bitbucket pipeline list response",
-        )?
-        .values
-        .into_iter()
-        .map(|pipeline_response| {
-            pipeline()
-                .repo(requested_repo.clone())
-                .id(pipeline_response.uuid)
-                .get()
-        })
-        .collect();
+        )?;
+        let pipelines = provider_page
+            .values
+            .into_iter()
+            .map(|pipeline_response| {
+                pipeline()
+                    .repo(requested_repo.clone())
+                    .id(pipeline_response.uuid)
+                    .get()
+            })
+            .collect();
 
-        Ok(Page::make(pipelines))
+        Ok(page(pipelines, provider_page.next.as_deref()))
     }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct BitbucketPage<T> {
     values: Vec<T>,
+    next: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -218,4 +224,11 @@ where
 
 fn invalid_response(message: &str) -> VcsError {
     error().invalid_input(message)
+}
+
+fn page<T>(items: Vec<T>, next_url: Option<&str>) -> Page<T> {
+    vcs_provider_core::pagination()
+        .page(items)
+        .optional_next(crate::pagination::next_cursor(next_url))
+        .build()
 }

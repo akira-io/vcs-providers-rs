@@ -12,10 +12,13 @@ mod client;
 mod code_reviews;
 mod issues;
 mod mappers;
+mod pagination;
 mod pipelines;
 mod provider_pipelines;
 mod releases;
 mod repos;
+mod request_pagination;
+mod response_fixture;
 
 pub use client::GitHubClient;
 pub use code_reviews::{GitHubCodeReview, GitHubCodeReviewCollection};
@@ -23,6 +26,7 @@ pub use issues::{GitHubIssue, GitHubIssueCollection};
 pub use pipelines::{GitHubPipeline, GitHubPipelineCollection};
 pub use releases::{GitHubRelease, GitHubReleaseCollection};
 pub use repos::{GitHubRepo, GitHubRepoCollection};
+pub use response_fixture::GitHubResponseBuilder;
 
 use capabilities::github_capabilities;
 

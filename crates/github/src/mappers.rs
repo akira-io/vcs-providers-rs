@@ -44,7 +44,7 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
             })
             .collect();
 
-        Ok(Page::make(repositories))
+        Ok(page(repositories, response))
     }
 
     fn branches(&self, response: &Response) -> VcsResult<Page<Branch>> {
@@ -53,7 +53,7 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
             .map(|branch| Branch::make(branch.name))
             .collect();
 
-        Ok(Page::make(branches))
+        Ok(page(branches, response))
     }
 
     fn commits(&self, response: &Response) -> VcsResult<Page<Commit>> {
@@ -62,7 +62,7 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
             .map(|commit| Commit::make(commit.sha))
             .collect();
 
-        Ok(Page::make(commits))
+        Ok(page(commits, response))
     }
 }
 
@@ -88,7 +88,7 @@ impl IssueResponseMapper for GitHubIssueMapper {
                 })
                 .collect();
 
-        Ok(Page::make(issues))
+        Ok(page(issues, response))
     }
 }
 
@@ -125,7 +125,7 @@ impl CodeReviewResponseMapper for GitHubCodeReviewMapper {
         })
         .collect();
 
-        Ok(Page::make(code_reviews))
+        Ok(page(code_reviews, response))
     }
 }
 
@@ -151,7 +151,7 @@ impl ReleaseResponseMapper for GitHubReleaseMapper {
                 })
                 .collect();
 
-        Ok(Page::make(releases))
+        Ok(page(releases, response))
     }
 }
 
@@ -178,7 +178,7 @@ impl PipelineResponseMapper for GitHubPipelineMapper {
                 })
                 .collect();
 
-        Ok(Page::make(pipelines))
+        Ok(page(pipelines, response))
     }
 }
 
@@ -289,4 +289,11 @@ where
 
 fn invalid_response(message: &str) -> VcsError {
     error().invalid_input(message)
+}
+
+fn page<T>(items: Vec<T>, response: &Response) -> Page<T> {
+    vcs_provider_core::pagination()
+        .page(items)
+        .optional_next(crate::pagination::next_cursor(response))
+        .build()
 }
