@@ -1,10 +1,15 @@
 [package]
 name = "git-cognition-core"
+description = "Provider-neutral contracts and local Git read surface for git-cognition."
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
+readme = "README.md"
+keywords = ["git", "vcs", "cognition", "provider", "local-git"]
+categories = ["development-tools", "api-bindings"]
+publish = true
 
 [dependencies]
 futures.workspace = true

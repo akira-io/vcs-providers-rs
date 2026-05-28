@@ -1,10 +1,15 @@
 [package]
 name = "git-cognition-bitbucket"
+description = "Bitbucket Cloud provider driver for git-cognition. Implements Provider contracts over Bitbucket REST."
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
+readme = "README.md"
+keywords = ["git", "bitbucket", "vcs", "cognition", "provider"]
+categories = ["api-bindings", "web-programming::http-client"]
+publish = true
 
 [dependencies]
 futures.workspace = true

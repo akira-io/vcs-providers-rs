@@ -1,10 +1,15 @@
 [package]
 name = "git-cognition-github"
+description = "GitHub provider driver for git-cognition. Implements Provider contracts over GitHub REST."
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
+readme = "README.md"
+keywords = ["git", "github", "vcs", "cognition", "provider"]
+categories = ["api-bindings", "web-programming::http-client"]
+publish = true
 
 [dependencies]
 futures.workspace = true

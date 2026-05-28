@@ -4,6 +4,7 @@ members = [
     "crates/github",
     "crates/gitlab",
     "crates/bitbucket",
+    "crates/git-cognition",
 ]
 resolver = "3"
 
@@ -20,6 +21,9 @@ reqwest = { version = "0.12.24", default-features = false, features = ["rustls-t
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
 git-cognition-core = { path = "crates/core", version = "0.1.0" }
+git-cognition-github = { path = "crates/github", version = "0.1.0" }
+git-cognition-gitlab = { path = "crates/gitlab", version = "0.1.0" }
+git-cognition-bitbucket = { path = "crates/bitbucket", version = "0.1.0" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

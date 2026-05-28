@@ -1,0 +1,29 @@
+[package]
+name = "git-cognition"
+description = "Universal VCS provider contracts and a local Git read surface for Rust, in one umbrella crate."
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+readme = "README.md"
+keywords = ["git", "vcs", "cognition", "github", "gitlab"]
+categories = ["development-tools", "api-bindings"]
+publish = true
+
+[dependencies]
+git-cognition-core = { workspace = true }
+git-cognition-github = { workspace = true, optional = true }
+git-cognition-gitlab = { workspace = true, optional = true }
+git-cognition-bitbucket = { workspace = true, optional = true }
+
+[features]
+default = ["github"]
+github = ["dep:git-cognition-github"]
+gitlab = ["dep:git-cognition-gitlab"]
+bitbucket = ["dep:git-cognition-bitbucket"]
+all = ["github", "gitlab", "bitbucket"]
+testing = ["git-cognition-core/testing"]
+
+[lints]
+workspace = true

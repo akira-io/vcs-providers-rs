@@ -196,6 +196,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "git-cognition"
+version = "0.1.0"
+dependencies = [
+ "git-cognition-bitbucket",
+ "git-cognition-core",
+ "git-cognition-github",
+ "git-cognition-gitlab",
+]
+
+[[package]]
 name = "git-cognition-bitbucket"
 version = "0.1.0"
 dependencies = [
