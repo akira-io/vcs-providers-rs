@@ -55,6 +55,46 @@ fn bitbucket_repo_branch_list_accepts_provider_next_url() {
 }
 
 #[test]
+fn bitbucket_repo_branch_create_builds_post_request() -> vcs_provider_core::VcsResult<()> {
+    let repo = bitbucket()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+    let request = repo.branch().name("feature").sha("abc123").create()?;
+
+    assert_eq!(request.method(), &RequestMethod::Post);
+    assert_eq!(
+        request.url().value(),
+        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches"
+    );
+    assert_eq!(
+        request_body(&request),
+        Some(r#"{"name":"feature","target":{"hash":"abc123"}}"#)
+    );
+
+    Ok(())
+}
+
+#[test]
+fn bitbucket_repo_branch_delete_builds_delete_request() -> vcs_provider_core::VcsResult<()> {
+    let repo = bitbucket()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+    let request = repo.branch().name("feature").delete()?;
+
+    assert_eq!(request.method(), &RequestMethod::Delete);
+    assert_eq!(
+        request.url().value(),
+        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches/feature"
+    );
+
+    Ok(())
+}
+
+#[test]
 fn bitbucket_repo_commit_list_targets_repository_endpoint() {
     let repo = bitbucket()
         .repo()

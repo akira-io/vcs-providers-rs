@@ -13,10 +13,10 @@ pub use names::{
     MissingOwnerName, MissingRepositoryName, OwnerName, ProvidedOwnerName, ProvidedRepositoryName,
     Repo, RepoBuilder, RepositoryName,
 };
-pub use operations::{RepoCreateOperation, RepoUpdateOperation, ReposFluent};
+pub use operations::{RepoBranchOperation, RepoCreateOperation, RepoUpdateOperation, ReposFluent};
 pub use queries::{RepoQueryBuilder, RepositoryListQuery, RepositorySearchQuery};
 pub use resources::{
-    Branch, Commit, LifecycleState, MissingLifecycleState, MissingVisibility,
+    Branch, BranchDraft, Commit, LifecycleState, MissingLifecycleState, MissingVisibility,
     ProvidedLifecycleState, ProvidedProviderId, ProvidedVisibility, Repository, RepositoryBuilder,
     RepositoryDraft, RepositoryDraftBuilder, RepositoryPatch, RepositoryPatchBuilder, Visibility,
 };

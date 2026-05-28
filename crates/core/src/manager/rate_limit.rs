@@ -1,7 +1,7 @@
 use crate::{
-    AuthCredential, CodeReviews, Issues, ManagedClientProvider, Pipelines, Provider,
-    ProviderClient, RateLimitHeaderProfileBuilder, RateLimitRecorder, RateLimitTransport, Releases,
-    Repos, Transport, VcsManager,
+    AuthCredential, Authentication, CodeReviews, Issues, ManagedClientProvider, Organizations,
+    Pipelines, Provider, ProviderClient, RateLimitHeaderProfileBuilder, RateLimitRecorder,
+    RateLimitTransport, Releases, Repos, Transport, VcsManager,
 };
 
 #[derive(Clone)]
@@ -67,6 +67,14 @@ where
 
     pub fn repos(self) -> Box<dyn Repos> {
         self.build().repos()
+    }
+
+    pub fn authentication(self) -> Box<dyn Authentication> {
+        self.build().authentication()
+    }
+
+    pub fn organizations(self) -> Box<dyn Organizations> {
+        self.build().organizations()
     }
 
     pub fn issues(self) -> Box<dyn Issues> {

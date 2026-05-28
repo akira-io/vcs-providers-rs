@@ -1,8 +1,10 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, CodeReviews, Issues, ManagedProvider, MissingCodeReviewId,
-    MissingCodeReviewRepo, MissingOwnerName, MissingReleaseId, MissingReleaseRepo,
-    MissingRepositoryName, Pipelines, Provider, ProviderDescriptor, ProviderId, Releases, Repos,
-    TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
+    AuthHeaderStyle, AuthKind, CodeReviews, Issues, ManagedAuthProvider,
+    ManagedOrganizationProvider, ManagedProvider, MissingCodeReviewId, MissingCodeReviewRepo,
+    MissingOwnerName, MissingReleaseId, MissingReleaseRepo, MissingRepositoryName, Organizations,
+    Pipelines, Provider, ProviderDescriptor, ProviderId, Releases, Repos,
+    TransportNotConfiguredAuthentication, TransportNotConfiguredCodeReviews,
+    TransportNotConfiguredIssues, TransportNotConfiguredOrganizations,
     TransportNotConfiguredPipelines, TransportNotConfiguredReleases, TransportNotConfiguredRepos,
 };
 
@@ -135,6 +137,44 @@ impl ManagedProvider for GitLabProvider {
     fn repo_delete_request(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::Request {
         GitLabRepo::make(self.api_base_url(), repo.clone()).delete()
     }
+
+    fn repo_branch_create_request(
+        &self,
+        draft: &vcs_provider_core::BranchDraft,
+    ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
+        Ok(GitLabRepo::make(self.api_base_url(), draft.repo().clone()).create_branch(draft))
+    }
+
+    fn repo_branch_delete_request(
+        &self,
+        repo: &vcs_provider_core::Repo,
+        branch_name: &str,
+    ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
+        Ok(GitLabRepo::make(self.api_base_url(), repo.clone()).delete_branch(branch_name))
+    }
+}
+
+impl ManagedAuthProvider for GitLabProvider {
+    fn auth_validate_url(&self) -> vcs_provider_core::RequestUrl {
+        vcs_provider_core::url(self.api_base_url())
+            .path_segments(["api", "v4", "user"])
+            .build()
+    }
+}
+
+impl ManagedOrganizationProvider for GitLabProvider {
+    fn organization_list_url(
+        &self,
+        query: Option<&vcs_provider_core::OrganizationListQuery>,
+    ) -> vcs_provider_core::RequestUrl {
+        let url =
+            vcs_provider_core::url(self.api_base_url()).path_segments(["api", "v4", "groups"]);
+
+        match query.and_then(vcs_provider_core::OrganizationListQuery::page) {
+            Some(page) => crate::request_pagination::apply_page(url, Some(page)).build(),
+            None => url.build(),
+        }
+    }
 }
 
 impl Provider for GitLabProvider {
@@ -148,6 +188,14 @@ impl Provider for GitLabProvider {
 
     fn repos(&self) -> Box<dyn Repos> {
         Box::<TransportNotConfiguredRepos>::default()
+    }
+
+    fn authentication(&self) -> Box<dyn vcs_provider_core::Authentication> {
+        Box::<TransportNotConfiguredAuthentication>::default()
+    }
+
+    fn organizations(&self) -> Box<dyn Organizations> {
+        Box::<TransportNotConfiguredOrganizations>::default()
     }
 
     fn issues(&self) -> Box<dyn Issues> {

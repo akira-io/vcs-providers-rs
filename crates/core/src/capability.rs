@@ -4,11 +4,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub enum Capability {
+    Authentication,
+    AuthenticationValidate,
     Repos,
     RepoGet,
     RepoList,
     RepoSearch,
     RepoBranches,
+    RepoBranchCreate,
+    RepoBranchDelete,
     RepoCommits,
     RepoCreate,
     RepoUpdate,
@@ -40,6 +44,7 @@ pub enum Capability {
     ReleaseUpdate,
     ReleaseDelete,
     Organizations,
+    OrganizationList,
     Discussions,
     Webhooks,
     SelfHosted,
@@ -48,11 +53,15 @@ pub enum Capability {
 impl Capability {
     pub fn all() -> &'static [Capability] {
         &[
+            Capability::Authentication,
+            Capability::AuthenticationValidate,
             Capability::Repos,
             Capability::RepoGet,
             Capability::RepoList,
             Capability::RepoSearch,
             Capability::RepoBranches,
+            Capability::RepoBranchCreate,
+            Capability::RepoBranchDelete,
             Capability::RepoCommits,
             Capability::RepoCreate,
             Capability::RepoUpdate,
@@ -84,6 +93,7 @@ impl Capability {
             Capability::ReleaseUpdate,
             Capability::ReleaseDelete,
             Capability::Organizations,
+            Capability::OrganizationList,
             Capability::Discussions,
             Capability::Webhooks,
             Capability::SelfHosted,

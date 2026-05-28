@@ -1,14 +1,17 @@
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, CodeReviews, Issues, ManagedCodeReviewProvider, ManagedProvider,
-    MissingCodeReviewId, MissingCodeReviewRepo, MissingOwnerName, MissingRepositoryName, Pipelines,
-    Provider, ProviderDescriptor, ProviderId, Releases, Repos, TransportNotConfiguredCodeReviews,
-    TransportNotConfiguredPipelines, TransportNotConfiguredRepos, UnsupportedIssues,
-    UnsupportedReleases,
+    AuthHeaderStyle, AuthKind, CodeReviews, Issues, ManagedAuthProvider, ManagedCodeReviewProvider,
+    ManagedIssueProvider, ManagedOrganizationProvider, ManagedProvider, MissingCodeReviewId,
+    MissingCodeReviewRepo, MissingIssueId, MissingIssueRepo, MissingOwnerName,
+    MissingRepositoryName, Organizations, Pipelines, Provider, ProviderDescriptor, ProviderId,
+    Releases, Repos, TransportNotConfiguredAuthentication, TransportNotConfiguredCodeReviews,
+    TransportNotConfiguredIssues, TransportNotConfiguredOrganizations,
+    TransportNotConfiguredPipelines, TransportNotConfiguredRepos, UnsupportedReleases,
 };
 
 mod capabilities;
 mod client;
 mod code_reviews;
+mod issues;
 mod mappers;
 mod pagination;
 mod pipelines;
@@ -19,6 +22,7 @@ mod response_fixture;
 
 pub use client::BitbucketClient;
 pub use code_reviews::{BitbucketCodeReview, BitbucketCodeReviewCollection};
+pub use issues::{BitbucketIssue, BitbucketIssueCollection};
 pub use pipelines::{BitbucketPipeline, BitbucketPipelineCollection};
 pub use repos::{BitbucketRepo, BitbucketRepoCollection};
 pub use response_fixture::BitbucketResponseBuilder;
@@ -55,6 +59,12 @@ impl BitbucketProvider {
     ) -> vcs_provider_core::ManagedCodeReviewBuilder<Self, MissingCodeReviewRepo, MissingCodeReviewId>
     {
         vcs_provider_core::vcs(self.clone()).code_review()
+    }
+
+    pub fn issue(
+        &self,
+    ) -> vcs_provider_core::ManagedIssueBuilder<Self, MissingIssueRepo, MissingIssueId> {
+        vcs_provider_core::vcs(self.clone()).issue()
     }
 
     pub fn pagination(&self) -> vcs_provider_core::PaginationBuilder {
@@ -113,6 +123,77 @@ impl ManagedProvider for BitbucketProvider {
 
     fn repo_delete_request(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::Request {
         BitbucketRepo::make(self.api_base_url(), repo.clone()).delete()
+    }
+
+    fn repo_branch_create_request(
+        &self,
+        draft: &vcs_provider_core::BranchDraft,
+    ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
+        Ok(BitbucketRepo::make(self.api_base_url(), draft.repo().clone()).create_branch(draft))
+    }
+
+    fn repo_branch_delete_request(
+        &self,
+        repo: &vcs_provider_core::Repo,
+        branch_name: &str,
+    ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
+        Ok(BitbucketRepo::make(self.api_base_url(), repo.clone()).delete_branch(branch_name))
+    }
+}
+
+impl ManagedAuthProvider for BitbucketProvider {
+    fn auth_validate_url(&self) -> vcs_provider_core::RequestUrl {
+        vcs_provider_core::url(self.api_base_url())
+            .path_segments(["user"])
+            .build()
+    }
+}
+
+impl ManagedOrganizationProvider for BitbucketProvider {
+    fn organization_list_url(
+        &self,
+        query: Option<&vcs_provider_core::OrganizationListQuery>,
+    ) -> vcs_provider_core::RequestUrl {
+        let url = vcs_provider_core::url(self.api_base_url()).path_segments(["user", "workspaces"]);
+
+        match query.and_then(vcs_provider_core::OrganizationListQuery::page) {
+            Some(page) => crate::request_pagination::apply_page(url, Some(page)).build(),
+            None => url.build(),
+        }
+    }
+}
+
+impl ManagedIssueProvider for BitbucketProvider {
+    fn issue_url(&self, issue: &vcs_provider_core::Issue) -> vcs_provider_core::RequestUrl {
+        BitbucketIssue::make(self.api_base_url(), issue.clone()).url()
+    }
+
+    fn issue_list_url(
+        &self,
+        query: &vcs_provider_core::IssueListQuery,
+    ) -> vcs_provider_core::RequestUrl {
+        BitbucketIssueCollection::make(self.api_base_url()).list(query)
+    }
+
+    fn issue_create_request(
+        &self,
+        draft: &vcs_provider_core::IssueDraft,
+    ) -> vcs_provider_core::Request {
+        BitbucketIssueCollection::make(self.api_base_url()).create(draft)
+    }
+
+    fn issue_update_request(
+        &self,
+        patch: &vcs_provider_core::IssuePatch,
+    ) -> vcs_provider_core::Request {
+        BitbucketIssue::make(self.api_base_url(), patch.issue().clone()).update(patch)
+    }
+
+    fn issue_delete_request(
+        &self,
+        issue: &vcs_provider_core::Issue,
+    ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
+        Ok(BitbucketIssue::make(self.api_base_url(), issue.clone()).delete())
     }
 }
 
@@ -173,8 +254,16 @@ impl Provider for BitbucketProvider {
         Box::<TransportNotConfiguredRepos>::default()
     }
 
+    fn authentication(&self) -> Box<dyn vcs_provider_core::Authentication> {
+        Box::<TransportNotConfiguredAuthentication>::default()
+    }
+
+    fn organizations(&self) -> Box<dyn Organizations> {
+        Box::<TransportNotConfiguredOrganizations>::default()
+    }
+
     fn issues(&self) -> Box<dyn Issues> {
-        Box::<UnsupportedIssues>::default()
+        Box::<TransportNotConfiguredIssues>::default()
     }
 
     fn code_reviews(&self) -> Box<dyn CodeReviews> {

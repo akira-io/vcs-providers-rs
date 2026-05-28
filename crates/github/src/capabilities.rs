@@ -2,11 +2,15 @@ use vcs_provider_core::{Capability, CapabilitySet, capabilities};
 
 pub fn github_capabilities() -> CapabilitySet {
     capabilities().make([
+        Capability::Authentication,
+        Capability::AuthenticationValidate,
         Capability::Repos,
         Capability::RepoGet,
         Capability::RepoList,
         Capability::RepoSearch,
         Capability::RepoBranches,
+        Capability::RepoBranchCreate,
+        Capability::RepoBranchDelete,
         Capability::RepoCommits,
         Capability::RepoCreate,
         Capability::RepoUpdate,
@@ -35,5 +39,7 @@ pub fn github_capabilities() -> CapabilitySet {
         Capability::ReleaseCreate,
         Capability::ReleaseUpdate,
         Capability::ReleaseDelete,
+        Capability::Organizations,
+        Capability::OrganizationList,
     ])
 }

@@ -122,6 +122,39 @@ fn gitlab_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult
     })
 }
 
+#[test]
+fn gitlab_client_hydrates_branch_create() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        let branch = gitlab()
+            .body(r#"{"name":"feature"}"#)
+            .repos()
+            .branch()
+            .location(repository_location())
+            .name("feature")
+            .sha("abc123")
+            .create()
+            .await?;
+
+        assert_eq!(branch.name(), "feature");
+
+        Ok(())
+    })
+}
+
+#[test]
+fn gitlab_client_deletes_branch() -> vcs_provider_core::VcsResult<()> {
+    run_async_test(async {
+        gitlab()
+            .status(204)
+            .repos()
+            .branch()
+            .location(repository_location())
+            .name("feature")
+            .delete()
+            .await
+    })
+}
+
 fn repository_location() -> Repo {
     repo().owner("akira-io").name("vcs-providers-rs").get()
 }

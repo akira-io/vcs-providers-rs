@@ -1,9 +1,9 @@
 use crate::{
-    AuthCredential, CodeReviews, HeaderMiddleware, Issues, ManagedClientProvider, Middleware,
-    Pipelines, Provider, ProviderClient, RateLimitHeaderProfileBuilder, RateLimitRecorder,
-    RateLimitTransport, Releases, Repos, Request, Response, RetryPolicy, RetryTransport,
-    TelemetryRecorder, TelemetryTransport, Transport, TransportPipelineBuilder, VcsManager,
-    VcsResult, middleware,
+    AuthCredential, Authentication, CodeReviews, HeaderMiddleware, Issues, ManagedClientProvider,
+    Middleware, Organizations, Pipelines, Provider, ProviderClient, RateLimitHeaderProfileBuilder,
+    RateLimitRecorder, RateLimitTransport, Releases, Repos, Request, Response, RetryPolicy,
+    RetryTransport, TelemetryRecorder, TelemetryTransport, Transport, TransportPipelineBuilder,
+    VcsManager, VcsResult, middleware,
 };
 use std::sync::Arc;
 
@@ -118,6 +118,14 @@ where
 
     pub fn repos(self) -> Box<dyn Repos> {
         self.build().repos()
+    }
+
+    pub fn authentication(self) -> Box<dyn Authentication> {
+        self.build().authentication()
+    }
+
+    pub fn organizations(self) -> Box<dyn Organizations> {
+        self.build().organizations()
     }
 
     pub fn issues(self) -> Box<dyn Issues> {

@@ -1,16 +1,39 @@
 use vcs_provider_core::{
-    CodeReviews, CodeReviewsFluent, Issues, IssuesFluent, Pipelines, Releases, ReleasesFluent,
-    Repos, TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
-    TransportNotConfiguredPipelines, TransportNotConfiguredReleases, TransportNotConfiguredRepos,
-    UnsupportedIssues, UnsupportedReleases, VcsError, VcsResult, Visibility, code_review, issue,
-    issue_id, pipeline, release, release_id, repo, run_async_test,
+    Authentication, CodeReviews, CodeReviewsFluent, Issues, IssuesFluent, Organizations, Pipelines,
+    Releases, ReleasesFluent, Repos, TransportNotConfiguredAuthentication,
+    TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
+    TransportNotConfiguredOrganizations, TransportNotConfiguredPipelines,
+    TransportNotConfiguredReleases, TransportNotConfiguredRepos, UnsupportedIssues,
+    UnsupportedReleases, VcsError, VcsResult, Visibility, code_review, issue, issue_id, pipeline,
+    release, release_id, repo, run_async_test,
 };
+
+#[test]
+fn authentication_contract_reports_unconfigured_transport() -> VcsResult<()> {
+    assert_eq!(
+        run_async_test(TransportNotConfiguredAuthentication.validate()),
+        Err(VcsError::TransportNotConfigured)
+    );
+
+    Ok(())
+}
+
+#[test]
+fn organization_contract_reports_unconfigured_transport() -> VcsResult<()> {
+    assert_eq!(
+        run_async_test(TransportNotConfiguredOrganizations.list()),
+        Err(VcsError::TransportNotConfigured)
+    );
+
+    Ok(())
+}
 
 #[test]
 fn repo_contract_reports_unconfigured_transport() -> VcsResult<()> {
     let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
     let draft = repo.clone().draft().visibility(Visibility::Private).get();
     let patch = repo.clone().patch().visibility(Visibility::Public).get();
+    let branch_draft = vcs_provider_core::BranchDraft::make(repo.clone(), "feature", "abc123");
 
     assert_eq!(
         run_async_test(TransportNotConfiguredRepos.create(draft)),
@@ -21,7 +44,15 @@ fn repo_contract_reports_unconfigured_transport() -> VcsResult<()> {
         Err(VcsError::TransportNotConfigured)
     );
     assert_eq!(
-        run_async_test(TransportNotConfiguredRepos.delete(repo)),
+        run_async_test(TransportNotConfiguredRepos.delete(repo.clone())),
+        Err(VcsError::TransportNotConfigured)
+    );
+    assert_eq!(
+        run_async_test(TransportNotConfiguredRepos.create_branch(branch_draft)),
+        Err(VcsError::TransportNotConfigured)
+    );
+    assert_eq!(
+        run_async_test(TransportNotConfiguredRepos.delete_branch(repo, "feature".into())),
         Err(VcsError::TransportNotConfigured)
     );
 

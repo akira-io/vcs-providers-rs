@@ -1,12 +1,12 @@
 use crate::{AuthCredential, Provider, Transport};
 use crate::{
-    CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, Issue, IssueDraft,
-    IssueListQuery, IssuePatch, ManagedPipelineProvider, MissingCodeReviewId,
+    BranchDraft, CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, Issue,
+    IssueDraft, IssueListQuery, IssuePatch, ManagedPipelineProvider, MissingCodeReviewId,
     MissingCodeReviewRepo, MissingIssueId, MissingIssueRepo, MissingOwnerName, MissingPipelineId,
-    MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo, MissingRepositoryName, PageRequest,
-    Release, ReleaseDraft, ReleaseListQuery, ReleasePatch, Repo, RepositoryDraft,
-    RepositoryListQuery, RepositoryPatch, RepositorySearchQuery, RequestUrl, code_review, issue,
-    pipeline, release, repo,
+    MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo, MissingRepositoryName,
+    OrganizationListQuery, PageRequest, Release, ReleaseDraft, ReleaseListQuery, ReleasePatch,
+    Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch, RepositorySearchQuery, RequestUrl,
+    code_review, issue, pipeline, release, repo,
 };
 
 mod code_review_mutations;
@@ -49,7 +49,8 @@ pub use releases::{
 #[allow(unused_imports)]
 pub use repo_mutations::ManagedRepositoryUpdateBuilder;
 pub use repos::{
-    ManagedRepo, ManagedRepoBuilder, ManagedRepoCollection, ManagedRepositoryDraftBuilder,
+    ManagedRepo, ManagedRepoBranchBuilder, ManagedRepoBuilder, ManagedRepoCollection,
+    ManagedRepositoryDraftBuilder,
 };
 pub use retry::ManagedRetryTransportBuilder;
 
@@ -158,6 +159,14 @@ pub trait ManagedClientProvider: ManagedProvider {
     fn client(&self, transport: impl Transport + 'static) -> Self::Client;
 }
 
+pub trait ManagedAuthProvider: ManagedProvider {
+    fn auth_validate_url(&self) -> RequestUrl;
+}
+
+pub trait ManagedOrganizationProvider: ManagedProvider {
+    fn organization_list_url(&self, query: Option<&OrganizationListQuery>) -> RequestUrl;
+}
+
 pub trait ManagedProvider: Clone + Provider {
     fn repo_url(&self, repo: &Repo) -> RequestUrl;
 
@@ -174,6 +183,14 @@ pub trait ManagedProvider: Clone + Provider {
     fn repo_update_request(&self, patch: &RepositoryPatch) -> crate::Request;
 
     fn repo_delete_request(&self, repo: &Repo) -> crate::Request;
+
+    fn repo_branch_create_request(&self, draft: &BranchDraft) -> crate::VcsResult<crate::Request>;
+
+    fn repo_branch_delete_request(
+        &self,
+        repo: &Repo,
+        branch_name: &str,
+    ) -> crate::VcsResult<crate::Request>;
 }
 
 pub trait ManagedIssueProvider: ManagedProvider {

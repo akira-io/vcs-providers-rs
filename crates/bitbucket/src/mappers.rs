@@ -1,7 +1,9 @@
 use serde::Deserialize;
 use vcs_provider_core::{
-    Branch, CodeReview, CodeReviewResponseMapper, Commit, LifecycleState, Page, Repo, Repository,
-    RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, pipeline, repo,
+    Branch, CodeReview, CodeReviewResponseMapper, Commit, Issue, IssueResponseMapper,
+    LifecycleState, Organization, OrganizationKind, OrganizationResponseMapper, Page, Repo,
+    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, issue,
+    pipeline, repo,
 };
 use vcs_provider_core::{Pipeline, PipelineResponseMapper};
 
@@ -15,6 +17,12 @@ pub struct BitbucketCodeReviewMapper;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct BitbucketPipelineMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct BitbucketIssueMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct BitbucketOrganizationMapper;
 
 impl RepositoryResponseMapper for BitbucketRepositoryMapper {
     fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository> {
@@ -53,6 +61,12 @@ impl RepositoryResponseMapper for BitbucketRepositoryMapper {
             .collect();
 
         Ok(page(branches, provider_page.next.as_deref()))
+    }
+
+    fn branch(&self, response: &Response) -> VcsResult<Branch> {
+        let branch = parse_body::<BitbucketBranch>(response, "invalid bitbucket branch response")?;
+
+        Ok(Branch::make(branch.name))
     }
 
     fn commits(&self, response: &Response) -> VcsResult<Page<Commit>> {
@@ -106,6 +120,58 @@ impl CodeReviewResponseMapper for BitbucketCodeReviewMapper {
             .collect();
 
         Ok(page(code_reviews, provider_page.next.as_deref()))
+    }
+}
+
+impl IssueResponseMapper for BitbucketIssueMapper {
+    fn issue(&self, requested_issue: &Issue, response: &Response) -> VcsResult<Issue> {
+        let issue_response =
+            parse_body::<BitbucketIssue>(response, "invalid bitbucket issue response")?;
+
+        Ok(issue()
+            .repo(requested_issue.repo().clone())
+            .id(issue_response.id.to_string())
+            .get())
+    }
+
+    fn issues(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Issue>> {
+        let provider_page =
+            parse_body::<BitbucketPage<BitbucketIssue>>(response, "invalid bitbucket issue list")?;
+        let issues = provider_page
+            .values
+            .into_iter()
+            .map(|issue_response| {
+                issue()
+                    .repo(requested_repo.clone())
+                    .id(issue_response.id.to_string())
+                    .get()
+            })
+            .collect();
+
+        Ok(page(issues, provider_page.next.as_deref()))
+    }
+}
+
+impl OrganizationResponseMapper for BitbucketOrganizationMapper {
+    fn organizations(&self, response: &Response) -> VcsResult<Page<Organization>> {
+        let provider_page = parse_body::<BitbucketPage<BitbucketWorkspace>>(
+            response,
+            "invalid bitbucket workspace response",
+        )?;
+        let organizations = provider_page
+            .values
+            .into_iter()
+            .map(|workspace| {
+                Organization::make(
+                    PROVIDER_ID,
+                    workspace.uuid,
+                    workspace.slug,
+                    OrganizationKind::Organization,
+                )
+            })
+            .collect();
+
+        Ok(page(organizations, provider_page.next.as_deref()))
     }
 }
 
@@ -174,8 +240,19 @@ struct BitbucketCodeReview {
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct BitbucketIssue {
+    id: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct BitbucketPipeline {
     uuid: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct BitbucketWorkspace {
+    uuid: String,
+    slug: String,
 }
 
 fn bitbucket_repository(response: &Response) -> VcsResult<BitbucketRepository> {

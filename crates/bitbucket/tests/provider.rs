@@ -1,7 +1,7 @@
 use vcs_provider_bitbucket::{DISPLAY_NAME, PROVIDER_ID, bitbucket};
 use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, IssuesFluent, Provider, ReleasesFluent, VcsError,
-    VcsResult, Visibility, auth, provider, provider_id, repo, run_async_test, vcs,
+    AuthHeaderStyle, AuthKind, Capability, Provider, ReleasesFluent, VcsError, VcsResult,
+    Visibility, auth, provider, provider_id, repo, run_async_test, vcs,
 };
 
 #[test]
@@ -21,9 +21,9 @@ fn bitbucket_provider_exposes_provider_descriptor() {
             .capabilities()
             .supports(&Capability::PipelineRerun)
     );
-    assert!(!descriptor.capabilities().supports(&Capability::Issues));
+    assert!(descriptor.capabilities().supports(&Capability::Issues));
     assert!(
-        !descriptor
+        descriptor
             .capabilities()
             .supports(&Capability::Organizations)
     );
@@ -37,7 +37,9 @@ fn bitbucket_provider_exposes_universal_contracts() {
 
     assert!(provider.capabilities().supports(&Capability::Repos));
     drop(Provider::repos(&provider));
-    drop(provider.issues());
+    drop(Provider::authentication(&provider));
+    drop(Provider::organizations(&provider));
+    drop(Provider::issues(&provider));
     drop(Provider::code_reviews(&provider));
     drop(Provider::pipelines(&provider));
     drop(provider.releases());
@@ -110,26 +112,6 @@ fn bitbucket_client_routes_auth_and_middleware_through_transport() -> VcsResult<
 
         Ok(())
     })
-}
-
-#[test]
-fn bitbucket_issues_report_unsupported_operation() {
-    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
-    let result = run_async_test(async {
-        bitbucket()
-            .issues()
-            .update()
-            .location(repo)
-            .id("42")
-            .title("Unsupported")
-            .update()
-            .await
-    });
-
-    assert!(matches!(
-        result,
-        Err(VcsError::UnsupportedOperation(operation)) if operation == "issue update"
-    ));
 }
 
 #[test]

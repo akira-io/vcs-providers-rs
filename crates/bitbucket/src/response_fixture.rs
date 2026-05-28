@@ -1,6 +1,6 @@
 use vcs_provider_core::{
-    CodeReviews, Pipelines, RecordingTransport, Repos, ResponseBuilder, SingleResponseTransport,
-    response, test_transport,
+    Authentication, CodeReviews, Issues, Organizations, Pipelines, RecordingTransport, Repos,
+    ResponseBuilder, SingleResponseTransport, response, test_transport,
 };
 
 use crate::{BitbucketClient, BitbucketProvider};
@@ -36,6 +36,18 @@ impl BitbucketResponseBuilder {
 
     pub fn repos(self) -> Box<dyn Repos> {
         self.client().repos()
+    }
+
+    pub fn authentication(self) -> Box<dyn Authentication> {
+        self.client().authentication()
+    }
+
+    pub fn organizations(self) -> Box<dyn Organizations> {
+        self.client().organizations()
+    }
+
+    pub fn issues(self) -> Box<dyn Issues> {
+        self.client().issues()
     }
 
     pub fn code_reviews(self) -> Box<dyn CodeReviews> {

@@ -207,6 +207,14 @@ pub struct ManagedRepo<Driver> {
     pub(super) repo: Repo,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ManagedRepoBranchBuilder<Driver> {
+    manager: VcsManager<Driver>,
+    repo: Repo,
+    name: Option<String>,
+    sha: Option<String>,
+}
+
 impl<Driver> ManagedRepo<Driver>
 where
     Driver: ManagedProvider,
@@ -225,6 +233,54 @@ where
 
     pub fn delete(&self) -> crate::Request {
         self.manager.driver.repo_delete_request(&self.repo)
+    }
+
+    pub fn branch(&self) -> ManagedRepoBranchBuilder<Driver> {
+        ManagedRepoBranchBuilder {
+            manager: self.manager.clone(),
+            repo: self.repo.clone(),
+            name: None,
+            sha: None,
+        }
+    }
+}
+
+impl<Driver> ManagedRepoBranchBuilder<Driver>
+where
+    Driver: ManagedProvider,
+{
+    pub fn name(mut self, branch_name: impl Into<String>) -> Self {
+        self.name = Some(branch_name.into());
+        self
+    }
+
+    pub fn sha(mut self, sha: impl Into<String>) -> Self {
+        self.sha = Some(sha.into());
+        self
+    }
+
+    pub fn create(self) -> crate::VcsResult<crate::Request> {
+        let Some(name) = self.name else {
+            return Err(crate::error().invalid_input("branch name is required"));
+        };
+
+        let Some(sha) = self.sha else {
+            return Err(crate::error().invalid_input("branch sha is required"));
+        };
+
+        let draft = crate::BranchDraft::make(self.repo, name, sha);
+
+        self.manager.driver.repo_branch_create_request(&draft)
+    }
+
+    pub fn delete(self) -> crate::VcsResult<crate::Request> {
+        let Some(name) = self.name else {
+            return Err(crate::error().invalid_input("branch name is required"));
+        };
+
+        self.manager
+            .driver
+            .repo_branch_delete_request(&self.repo, &name)
     }
 }
 

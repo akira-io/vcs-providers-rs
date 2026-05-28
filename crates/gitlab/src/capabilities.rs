@@ -2,11 +2,17 @@ use vcs_provider_core::{Capability, CapabilitySet, capabilities};
 
 pub fn gitlab_capabilities() -> CapabilitySet {
     capabilities().make([
+        Capability::Authentication,
+        Capability::AuthenticationValidate,
+        Capability::Organizations,
+        Capability::OrganizationList,
         Capability::Repos,
         Capability::RepoGet,
         Capability::RepoList,
         Capability::RepoSearch,
         Capability::RepoBranches,
+        Capability::RepoBranchCreate,
+        Capability::RepoBranchDelete,
         Capability::RepoCommits,
         Capability::RepoCreate,
         Capability::RepoUpdate,

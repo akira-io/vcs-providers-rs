@@ -8,11 +8,15 @@ fn github_provider_passes_common_conformance_suite() -> VcsResult<()> {
         .id(PROVIDER_ID)
         .display_name(DISPLAY_NAME)
         .supports([
+            Capability::Authentication,
+            Capability::AuthenticationValidate,
             Capability::Repos,
             Capability::RepoGet,
             Capability::RepoList,
             Capability::RepoSearch,
             Capability::RepoBranches,
+            Capability::RepoBranchCreate,
+            Capability::RepoBranchDelete,
             Capability::RepoCommits,
             Capability::RepoCreate,
             Capability::RepoUpdate,
@@ -41,11 +45,12 @@ fn github_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::ReleaseCreate,
             Capability::ReleaseUpdate,
             Capability::ReleaseDelete,
+            Capability::Organizations,
+            Capability::OrganizationList,
         ])
         .does_not_support([
             Capability::IssueDelete,
             Capability::CodeReviewDelete,
-            Capability::Organizations,
             Capability::Discussions,
             Capability::Webhooks,
             Capability::SelfHosted,

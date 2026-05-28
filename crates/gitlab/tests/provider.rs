@@ -12,7 +12,7 @@ fn gitlab_provider_exposes_provider_descriptor() {
     assert_eq!(descriptor.display_name(), DISPLAY_NAME);
     assert!(descriptor.capabilities().supports(&Capability::SelfHosted));
     assert!(
-        !descriptor
+        descriptor
             .capabilities()
             .supports(&Capability::Organizations)
     );
@@ -25,6 +25,8 @@ fn gitlab_provider_exposes_universal_contracts() {
     let provider = gitlab();
 
     assert!(provider.capabilities().supports(&Capability::Repos));
+    drop(Provider::authentication(&provider));
+    drop(Provider::organizations(&provider));
     drop(Provider::repos(&provider));
     drop(Provider::issues(&provider));
     drop(Provider::code_reviews(&provider));

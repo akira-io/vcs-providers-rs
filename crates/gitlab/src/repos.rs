@@ -1,6 +1,6 @@
 use serde::Serialize;
 use vcs_provider_core::{
-    PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
+    BranchDraft, PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
     RepositorySearchQuery, Request, RequestBody, RequestUrl, Visibility, request, request_body,
     url,
 };
@@ -31,6 +31,22 @@ impl GitLabRepo {
 
     pub fn commits(&self, page: Option<&PageRequest>) -> RequestUrl {
         self.request_url(["repository", "commits"], page)
+    }
+
+    pub fn create_branch(&self, draft: &BranchDraft) -> Request {
+        request()
+            .post(self.branches(None).value())
+            .body(branch_draft_body(draft))
+            .build()
+    }
+
+    pub fn delete_branch(&self, branch_name: &str) -> Request {
+        request()
+            .delete(
+                self.request_url(["repository", "branches", branch_name], None)
+                    .value(),
+            )
+            .build()
     }
 
     pub fn update(&self, patch: &RepositoryPatch) -> Request {
@@ -127,6 +143,13 @@ fn repository_patch_body(patch: &RepositoryPatch) -> RequestBody {
     })
 }
 
+fn branch_draft_body(draft: &BranchDraft) -> RequestBody {
+    json_body(&GitLabBranchDraftBody {
+        branch: draft.name(),
+        reference: draft.sha(),
+    })
+}
+
 fn gitlab_visibility(visibility: &Visibility) -> &'static str {
     match visibility {
         Visibility::Public => "public",
@@ -151,6 +174,13 @@ struct GitLabRepositoryPatchBody<'a> {
     visibility: Option<&'static str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct GitLabBranchDraftBody<'a> {
+    branch: &'a str,
+    #[serde(rename = "ref")]
+    reference: &'a str,
 }
 
 fn json_body(payload: &impl Serialize) -> RequestBody {

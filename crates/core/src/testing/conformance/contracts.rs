@@ -12,11 +12,28 @@ use support::{
 };
 
 pub fn check_provider_contracts(provider: &impl Provider) -> VcsResult<()> {
+    check_authentication(provider)?;
+    check_organizations(provider)?;
     check_repos(provider)?;
     check_issues(provider)?;
     check_code_reviews(provider)?;
     check_pipelines(provider)?;
     check_releases(provider)
+}
+
+fn check_authentication(provider: &impl Provider) -> VcsResult<()> {
+    let authentication = provider.authentication();
+
+    assert_transport_not_configured(
+        "authentication validate",
+        run_async_test(authentication.validate()),
+    )
+}
+
+fn check_organizations(provider: &impl Provider) -> VcsResult<()> {
+    let organizations = provider.organizations();
+
+    assert_transport_not_configured("organization list", run_async_test(organizations.list()))
 }
 
 fn check_repos(provider: &impl Provider) -> VcsResult<()> {
@@ -71,6 +88,18 @@ fn check_repos(provider: &impl Provider) -> VcsResult<()> {
     assert_transport_not_configured(
         "repo branches",
         run_async_test(repos.branches(repo_location.clone())),
+    )?;
+    assert_transport_not_configured(
+        "repo branch create",
+        run_async_test(repos.create_branch(crate::BranchDraft::make(
+            repo_location.clone(),
+            "feature",
+            "abc123",
+        ))),
+    )?;
+    assert_transport_not_configured(
+        "repo branch delete",
+        run_async_test(repos.delete_branch(repo_location.clone(), "feature".into())),
     )?;
     assert_transport_not_configured("repo commits", run_async_test(repos.commits(repo_location)))
 }

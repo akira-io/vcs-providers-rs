@@ -1,8 +1,9 @@
 use serde::Deserialize;
 use vcs_provider_core::{
     Branch, CodeReview, CodeReviewResponseMapper, Commit, Issue, IssueResponseMapper,
-    LifecycleState, Page, Release, ReleaseResponseMapper, Repo, Repository,
-    RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, pipeline, repo,
+    LifecycleState, Organization, OrganizationKind, OrganizationResponseMapper, Page, Release,
+    ReleaseResponseMapper, Repo, Repository, RepositoryResponseMapper, Response, VcsError,
+    VcsResult, Visibility, error, pipeline, repo,
 };
 use vcs_provider_core::{Pipeline, PipelineResponseMapper};
 
@@ -10,6 +11,9 @@ use crate::PROVIDER_ID;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct GitHubRepositoryMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitHubOrganizationMapper;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct GitHubIssueMapper;
@@ -55,6 +59,12 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
         Ok(page(branches, response))
     }
 
+    fn branch(&self, response: &Response) -> VcsResult<Branch> {
+        let branch = parse_body::<GitHubReference>(response, "invalid github branch response")?;
+
+        Ok(Branch::make(branch.name()))
+    }
+
     fn commits(&self, response: &Response) -> VcsResult<Page<Commit>> {
         let commits = parse_body::<Vec<GitHubCommit>>(response, "invalid github commit response")?
             .into_iter()
@@ -62,6 +72,27 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
             .collect();
 
         Ok(page(commits, response))
+    }
+}
+
+impl OrganizationResponseMapper for GitHubOrganizationMapper {
+    fn organizations(&self, response: &Response) -> VcsResult<Page<Organization>> {
+        let organizations = parse_body::<Vec<GitHubOrganization>>(
+            response,
+            "invalid github organization response",
+        )?
+        .into_iter()
+        .map(|organization| {
+            Organization::make(
+                PROVIDER_ID,
+                organization.id.to_string(),
+                organization.login,
+                OrganizationKind::Organization,
+            )
+        })
+        .collect();
+
+        Ok(page(organizations, response))
     }
 }
 
@@ -198,6 +229,26 @@ impl GitHubRepository {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitHubBranch {
     name: String,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitHubReference {
+    #[serde(rename = "ref")]
+    reference: String,
+}
+
+impl GitHubReference {
+    fn name(&self) -> &str {
+        self.reference
+            .strip_prefix("refs/heads/")
+            .unwrap_or(self.reference.as_str())
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitHubOrganization {
+    id: u64,
+    login: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]

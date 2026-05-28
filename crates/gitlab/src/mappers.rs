@@ -1,8 +1,9 @@
 use serde::Deserialize;
 use vcs_provider_core::{
     Branch, CodeReview, CodeReviewResponseMapper, Commit, Issue, IssueResponseMapper,
-    LifecycleState, Page, Release, ReleaseResponseMapper, Repo, Repository,
-    RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, pipeline, repo,
+    LifecycleState, Organization, OrganizationKind, OrganizationResponseMapper, Page, Release,
+    ReleaseResponseMapper, Repo, Repository, RepositoryResponseMapper, Response, VcsError,
+    VcsResult, Visibility, error, pipeline, repo,
 };
 use vcs_provider_core::{Pipeline, PipelineResponseMapper};
 
@@ -22,6 +23,9 @@ pub struct GitLabReleaseMapper;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct GitLabPipelineMapper;
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct GitLabOrganizationMapper;
 
 impl RepositoryResponseMapper for GitLabRepositoryMapper {
     fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository> {
@@ -53,6 +57,12 @@ impl RepositoryResponseMapper for GitLabRepositoryMapper {
             .collect();
 
         Ok(page(branches, response))
+    }
+
+    fn branch(&self, response: &Response) -> VcsResult<Branch> {
+        let branch = parse_body::<GitLabBranch>(response, "invalid gitlab branch response")?;
+
+        Ok(Branch::make(branch.name))
     }
 
     fn commits(&self, response: &Response) -> VcsResult<Page<Commit>> {
@@ -180,6 +190,25 @@ impl PipelineResponseMapper for GitLabPipelineMapper {
     }
 }
 
+impl OrganizationResponseMapper for GitLabOrganizationMapper {
+    fn organizations(&self, response: &Response) -> VcsResult<Page<Organization>> {
+        let organizations =
+            parse_body::<Vec<GitLabGroup>>(response, "invalid gitlab group response")?
+                .into_iter()
+                .map(|group| {
+                    Organization::make(
+                        PROVIDER_ID,
+                        group.id.to_string(),
+                        group.full_path,
+                        OrganizationKind::Organization,
+                    )
+                })
+                .collect();
+
+        Ok(page(organizations, response))
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitLabRepository {
     path_with_namespace: Option<String>,
@@ -221,6 +250,12 @@ struct GitLabRelease {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 struct GitLabPipeline {
     id: u64,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
+struct GitLabGroup {
+    id: u64,
+    full_path: String,
 }
 
 fn gitlab_repository(response: &Response) -> VcsResult<GitLabRepository> {

@@ -1,6 +1,6 @@
 use crate::repos::{
-    BoxFuture, Branch, Commit, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
-    RepositorySearchQuery,
+    BoxFuture, Branch, BranchDraft, Commit, Repo, RepositoryDraft, RepositoryListQuery,
+    RepositoryPatch, RepositorySearchQuery,
 };
 use crate::{Page, Repository, VcsResult, transport_not_configured};
 
@@ -18,6 +18,10 @@ pub trait Repos: Send + Sync {
     fn delete(&self, repo: Repo) -> BoxFuture<'_, VcsResult<()>>;
 
     fn branches(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Page<Branch>>>;
+
+    fn create_branch(&self, draft: BranchDraft) -> BoxFuture<'_, VcsResult<Branch>>;
+
+    fn delete_branch(&self, repo: Repo, branch_name: String) -> BoxFuture<'_, VcsResult<()>>;
 
     fn commits(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Page<Commit>>>;
 }
@@ -51,6 +55,14 @@ impl Repos for TransportNotConfiguredRepos {
     }
 
     fn branches(&self, _repo: Repo) -> BoxFuture<'_, VcsResult<Page<Branch>>> {
+        transport_not_configured()
+    }
+
+    fn create_branch(&self, _draft: BranchDraft) -> BoxFuture<'_, VcsResult<Branch>> {
+        transport_not_configured()
+    }
+
+    fn delete_branch(&self, _repo: Repo, _branch_name: String) -> BoxFuture<'_, VcsResult<()>> {
         transport_not_configured()
     }
 

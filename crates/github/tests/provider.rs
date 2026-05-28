@@ -10,11 +10,26 @@ fn github_provider_exposes_provider_descriptor() {
 
     assert_eq!(descriptor.id().as_str(), PROVIDER_ID);
     assert_eq!(descriptor.display_name(), DISPLAY_NAME);
+    assert!(
+        descriptor
+            .capabilities()
+            .supports(&Capability::Authentication)
+    );
+    assert!(
+        descriptor
+            .capabilities()
+            .supports(&Capability::AuthenticationValidate)
+    );
     assert!(descriptor.capabilities().supports(&Capability::Repos));
     assert!(
-        !descriptor
+        descriptor
             .capabilities()
             .supports(&Capability::Organizations)
+    );
+    assert!(
+        descriptor
+            .capabilities()
+            .supports(&Capability::OrganizationList)
     );
     assert!(!descriptor.capabilities().supports(&Capability::Discussions));
     assert!(!descriptor.capabilities().supports(&Capability::Webhooks));
@@ -24,6 +39,8 @@ fn github_provider_exposes_provider_descriptor() {
 fn github_provider_exposes_universal_contracts() {
     let provider = github();
 
+    drop(provider.authentication());
+    drop(provider.organizations());
     assert!(provider.capabilities().supports(&Capability::Repos));
     drop(Provider::repos(&provider));
     drop(Provider::issues(&provider));

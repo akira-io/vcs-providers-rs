@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use crate::repos::{
-    BoxFuture, Branch, Commit, Repo, Repos, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
-    RepositorySearchQuery,
+    BoxFuture, Branch, BranchDraft, Commit, Repo, Repos, RepositoryDraft, RepositoryListQuery,
+    RepositoryPatch, RepositorySearchQuery,
 };
 use crate::{
     ManagedProvider, Page, Repository, Request, RequestHeader, Response, Transport, VcsResult,
@@ -15,6 +15,8 @@ pub trait RepositoryResponseMapper: Send + Sync {
     fn repositories(&self, response: &Response) -> VcsResult<Page<Repository>>;
 
     fn branches(&self, response: &Response) -> VcsResult<Page<Branch>>;
+
+    fn branch(&self, response: &Response) -> VcsResult<Branch>;
 
     fn commits(&self, response: &Response) -> VcsResult<Page<Commit>>;
 }
@@ -137,6 +139,26 @@ where
             let response = self.send_request(request).await?;
 
             self.mapper.branches(&response)
+        })
+    }
+
+    fn create_branch(&self, draft: BranchDraft) -> BoxFuture<'_, VcsResult<Branch>> {
+        Box::pin(async move {
+            let request = self.driver.repo_branch_create_request(&draft)?;
+            let response = self.send_request(request).await?;
+
+            self.mapper.branch(&response)
+        })
+    }
+
+    fn delete_branch(&self, repo: Repo, branch_name: String) -> BoxFuture<'_, VcsResult<()>> {
+        Box::pin(async move {
+            let request = self
+                .driver
+                .repo_branch_delete_request(&repo, &branch_name)?;
+            self.send_request(request).await?;
+
+            Ok(())
         })
     }
 

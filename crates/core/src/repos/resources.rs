@@ -253,6 +253,35 @@ impl Branch {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct BranchDraft {
+    repo: Repo,
+    name: String,
+    sha: String,
+}
+
+impl BranchDraft {
+    pub fn make(repo: Repo, name: impl Into<String>, sha: impl Into<String>) -> Self {
+        Self {
+            repo,
+            name: name.into(),
+            sha: sha.into(),
+        }
+    }
+
+    pub fn repo(&self) -> &Repo {
+        &self.repo
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn sha(&self) -> &str {
+        &self.sha
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Commit {
     id: String,
 }

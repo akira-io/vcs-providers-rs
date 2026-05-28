@@ -36,6 +36,46 @@ fn gitlab_repo_branch_list_targets_repository_endpoint() {
 }
 
 #[test]
+fn gitlab_repo_branch_create_builds_post_request() -> vcs_provider_core::VcsResult<()> {
+    let repo = gitlab()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+    let request = repo.branch().name("feature").sha("abc123").create()?;
+
+    assert_eq!(request.method(), &RequestMethod::Post);
+    assert_eq!(
+        request.url().value(),
+        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/repository/branches"
+    );
+    assert_eq!(
+        request_body(&request),
+        Some(r#"{"branch":"feature","ref":"abc123"}"#)
+    );
+
+    Ok(())
+}
+
+#[test]
+fn gitlab_repo_branch_delete_builds_delete_request() -> vcs_provider_core::VcsResult<()> {
+    let repo = gitlab()
+        .repo()
+        .owner("akira-io")
+        .name("vcs-providers-rs")
+        .get();
+    let request = repo.branch().name("feature").delete()?;
+
+    assert_eq!(request.method(), &RequestMethod::Delete);
+    assert_eq!(
+        request.url().value(),
+        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/repository/branches/feature"
+    );
+
+    Ok(())
+}
+
+#[test]
 fn gitlab_repo_commit_list_targets_repository_endpoint() {
     let repo = gitlab()
         .repo()

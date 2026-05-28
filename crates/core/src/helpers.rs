@@ -1,12 +1,13 @@
 use crate::repos::{MissingOwnerName, MissingRepositoryName};
 use crate::{
     AuthBuilder, Branch, Capability, CapabilitySet, CodeReviewBuilder, Commit, ErrorBuilder,
-    HttpBuilder, IssueBuilder, IssueId, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId,
-    MissingIssueRepo, MissingPipelineId, MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo,
-    PaginationBuilder, PipelineBuilder, ProviderId, ProviderRegistry, ProviderRegistryBuilder,
-    ProviderRuntimeBuilder, RateLimitBuilder, ReleaseBuilder, ReleaseId, RepoBuilder, RequestBody,
-    RequestBuilder, RequestUrlBuilder, ResponseBuilder, RetryBuilder, TelemetryBuilder,
-    TransportPipeline, TransportPipelineBuilder, VcsManagerBuilder,
+    HttpBuilder, IssueBuilder, IssueId, LocalGitBuilder, MissingCodeReviewId,
+    MissingCodeReviewRepo, MissingIssueId, MissingIssueRepo, MissingPipelineId,
+    MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo, PaginationBuilder, PipelineBuilder,
+    ProviderId, ProviderRegistry, ProviderRegistryBuilder, ProviderRuntimeBuilder,
+    RateLimitBuilder, ReleaseBuilder, ReleaseId, RepoBuilder, RequestBody, RequestBuilder,
+    RequestUrlBuilder, ResponseBuilder, RetryBuilder, TelemetryBuilder, TransportPipeline,
+    TransportPipelineBuilder, VcsManagerBuilder,
 };
 
 #[cfg(feature = "testing")]
@@ -22,6 +23,10 @@ pub fn capabilities() -> CapabilitySetBuilder {
 
 pub fn error() -> ErrorBuilder {
     ErrorBuilder
+}
+
+pub fn git() -> LocalGitBuilder {
+    LocalGitBuilder
 }
 
 pub fn repo() -> RepoBuilder<MissingOwnerName, MissingRepositoryName> {
