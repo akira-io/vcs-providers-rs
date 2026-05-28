@@ -1,9 +1,9 @@
-use serde::Serialize;
-use vcs_provider_core::{
-    PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
+use git_cognition_core::{
+    BranchDraft, PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
     RepositorySearchQuery, Request, RequestBody, RequestUrl, Visibility, request, request_body,
     url,
 };
+use serde::Serialize;
 
 use crate::{DEFAULT_BASE_URL, request_pagination::apply_page};
 
@@ -31,6 +31,22 @@ impl BitbucketRepo {
 
     pub fn commits(&self, page: Option<&PageRequest>) -> RequestUrl {
         self.request_url(["commits"], page)
+    }
+
+    pub fn create_branch(&self, draft: &BranchDraft) -> Request {
+        request()
+            .post(self.branches(None).value())
+            .body(branch_draft_body(draft))
+            .build()
+    }
+
+    pub fn delete_branch(&self, branch_name: &str) -> Request {
+        request()
+            .delete(
+                self.request_url(["refs", "branches", branch_name], None)
+                    .value(),
+            )
+            .build()
     }
 
     pub fn create(&self, draft: &RepositoryDraft) -> Request {
@@ -119,6 +135,13 @@ fn repository_patch_body(patch: &RepositoryPatch) -> RequestBody {
     })
 }
 
+fn branch_draft_body(draft: &BranchDraft) -> RequestBody {
+    json_body(&BitbucketBranchDraftBody {
+        name: draft.name(),
+        target: BitbucketBranchTargetBody { hash: draft.sha() },
+    })
+}
+
 fn bitbucket_private(visibility: &Visibility) -> bool {
     matches!(visibility, Visibility::Private | Visibility::Internal)
 }
@@ -137,6 +160,17 @@ struct BitbucketRepositoryPatchBody<'a> {
     is_private: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct BitbucketBranchDraftBody<'a> {
+    name: &'a str,
+    target: BitbucketBranchTargetBody<'a>,
+}
+
+#[derive(Serialize)]
+struct BitbucketBranchTargetBody<'a> {
+    hash: &'a str,
 }
 
 fn json_body(payload: &impl Serialize) -> RequestBody {

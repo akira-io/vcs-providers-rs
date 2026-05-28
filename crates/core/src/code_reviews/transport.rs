@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use crate::{
     BoxFuture, CodeReview, CodeReviewDraft, CodeReviewId, CodeReviewListQuery, CodeReviewPatch,
-    CodeReviews, ManagedCodeReviewProvider, Page, Repo, Request, RequestHeader, Response,
-    Transport, VcsResult, error,
+    CodeReviews, CognitionResult, ManagedCodeReviewProvider, Page, Repo, Request, RequestHeader,
+    Response, Transport, error,
 };
 
 pub trait CodeReviewResponseMapper: Send + Sync {
@@ -11,13 +11,13 @@ pub trait CodeReviewResponseMapper: Send + Sync {
         &self,
         requested_code_review: &CodeReview,
         response: &Response,
-    ) -> VcsResult<CodeReview>;
+    ) -> CognitionResult<CodeReview>;
 
     fn code_reviews(
         &self,
         requested_repo: &Repo,
         response: &Response,
-    ) -> VcsResult<Page<CodeReview>>;
+    ) -> CognitionResult<Page<CodeReview>>;
 }
 
 #[derive(Clone)]
@@ -47,7 +47,7 @@ where
         self
     }
 
-    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, VcsResult<Response>> {
+    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, CognitionResult<Response>> {
         Box::pin(async move {
             let response = self.transport.send(self.apply_headers(request)).await?;
 
@@ -72,7 +72,7 @@ where
     Driver: ManagedCodeReviewProvider + Send + Sync,
     Mapper: CodeReviewResponseMapper,
 {
-    fn get(&self, repo: Repo, id: CodeReviewId) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn get(&self, repo: Repo, id: CodeReviewId) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         Box::pin(async move {
             let requested_code_review = crate::code_review().repo(repo).id(id.as_str()).get();
             let request = crate::request()
@@ -84,7 +84,7 @@ where
         })
     }
 
-    fn list(&self, query: CodeReviewListQuery) -> BoxFuture<'_, VcsResult<Page<CodeReview>>> {
+    fn list(&self, query: CodeReviewListQuery) -> BoxFuture<'_, CognitionResult<Page<CodeReview>>> {
         Box::pin(async move {
             let request = crate::request()
                 .get(self.driver.code_review_list_url(&query).value())
@@ -95,7 +95,7 @@ where
         })
     }
 
-    fn create(&self, draft: CodeReviewDraft) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn create(&self, draft: CodeReviewDraft) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         Box::pin(async move {
             let requested_code_review =
                 crate::code_review().repo(draft.repo().clone()).id("").get();
@@ -107,7 +107,7 @@ where
         })
     }
 
-    fn update(&self, patch: CodeReviewPatch) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn update(&self, patch: CodeReviewPatch) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         Box::pin(async move {
             let response = self
                 .send_request(self.driver.code_review_update_request(&patch))
@@ -117,7 +117,7 @@ where
         })
     }
 
-    fn merge(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn merge(&self, code_review: CodeReview) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         Box::pin(async move {
             let response = self
                 .send_request(self.driver.code_review_merge_request(&code_review))
@@ -127,7 +127,7 @@ where
         })
     }
 
-    fn close(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn close(&self, code_review: CodeReview) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         Box::pin(async move {
             let response = self
                 .send_request(self.driver.code_review_close_request(&code_review))
@@ -137,7 +137,7 @@ where
         })
     }
 
-    fn delete(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete(&self, code_review: CodeReview) -> BoxFuture<'_, CognitionResult<()>> {
         Box::pin(async move {
             let request = self.driver.code_review_delete_request(&code_review)?;
             self.send_request(request).await?;

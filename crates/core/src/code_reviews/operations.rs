@@ -1,7 +1,7 @@
 use super::delete::CodeReviewDeleteOperation;
 use crate::{
     BoxFuture, CodeReview, CodeReviewDraft, CodeReviewListOperation, CodeReviewPatchBuilder,
-    CodeReviews, Repo, ScopedCodeReviewOperation, VcsResult, error,
+    CodeReviews, CognitionResult, Repo, ScopedCodeReviewOperation, error,
 };
 
 pub trait CodeReviewsFluent {
@@ -107,7 +107,7 @@ impl CodeReviewCreateOperation {
         self
     }
 
-    pub fn create(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn create(self) -> BoxFuture<'static, CognitionResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -177,7 +177,7 @@ impl CodeReviewUpdateOperation {
         self
     }
 
-    pub fn update(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn update(self) -> BoxFuture<'static, CognitionResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -225,7 +225,7 @@ impl CodeReviewMergeOperation {
         self
     }
 
-    pub fn merge(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn merge(self) -> BoxFuture<'static, CognitionResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -258,7 +258,7 @@ impl CodeReviewCloseOperation {
         self
     }
 
-    pub fn close(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn close(self) -> BoxFuture<'static, CognitionResult<CodeReview>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };

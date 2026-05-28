@@ -1,14 +1,20 @@
 use std::sync::Arc;
 
 use crate::{
-    BoxFuture, ManagedReleaseProvider, Page, Release, ReleaseDraft, ReleaseId, ReleaseListQuery,
-    ReleasePatch, Releases, Repo, Request, RequestHeader, Response, Transport, VcsResult, error,
+    BoxFuture, CognitionResult, ManagedReleaseProvider, Page, Release, ReleaseDraft, ReleaseId,
+    ReleaseListQuery, ReleasePatch, Releases, Repo, Request, RequestHeader, Response, Transport,
+    error,
 };
 
 pub trait ReleaseResponseMapper: Send + Sync {
-    fn release(&self, requested_release: &Release, response: &Response) -> VcsResult<Release>;
+    fn release(&self, requested_release: &Release, response: &Response)
+    -> CognitionResult<Release>;
 
-    fn releases(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Release>>;
+    fn releases(
+        &self,
+        requested_repo: &Repo,
+        response: &Response,
+    ) -> CognitionResult<Page<Release>>;
 }
 
 #[derive(Clone)]
@@ -38,7 +44,7 @@ where
         self
     }
 
-    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, VcsResult<Response>> {
+    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, CognitionResult<Response>> {
         Box::pin(async move {
             let response = self.transport.send(self.apply_headers(request)).await?;
 
@@ -63,7 +69,7 @@ where
     Driver: ManagedReleaseProvider + Send + Sync,
     Mapper: ReleaseResponseMapper,
 {
-    fn get(&self, repo: Repo, id: ReleaseId) -> BoxFuture<'_, VcsResult<Release>> {
+    fn get(&self, repo: Repo, id: ReleaseId) -> BoxFuture<'_, CognitionResult<Release>> {
         Box::pin(async move {
             let requested_release = crate::release().repo(repo).id(id.as_str()).get();
             let request = crate::request()
@@ -75,7 +81,7 @@ where
         })
     }
 
-    fn list(&self, query: ReleaseListQuery) -> BoxFuture<'_, VcsResult<Page<Release>>> {
+    fn list(&self, query: ReleaseListQuery) -> BoxFuture<'_, CognitionResult<Page<Release>>> {
         Box::pin(async move {
             let request = crate::request()
                 .get(self.driver.release_list_url(&query).value())
@@ -86,7 +92,7 @@ where
         })
     }
 
-    fn create(&self, draft: ReleaseDraft) -> BoxFuture<'_, VcsResult<Release>> {
+    fn create(&self, draft: ReleaseDraft) -> BoxFuture<'_, CognitionResult<Release>> {
         Box::pin(async move {
             let requested_release = crate::release()
                 .repo(draft.repo().clone())
@@ -100,7 +106,7 @@ where
         })
     }
 
-    fn update(&self, patch: ReleasePatch) -> BoxFuture<'_, VcsResult<Release>> {
+    fn update(&self, patch: ReleasePatch) -> BoxFuture<'_, CognitionResult<Release>> {
         Box::pin(async move {
             let response = self
                 .send_request(self.driver.release_update_request(&patch))
@@ -110,7 +116,7 @@ where
         })
     }
 
-    fn delete(&self, release: Release) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete(&self, release: Release) -> BoxFuture<'_, CognitionResult<()>> {
         Box::pin(async move {
             self.send_request(self.driver.release_delete_request(&release))
                 .await?;

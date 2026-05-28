@@ -1,18 +1,18 @@
-use vcs_provider_core::RequestMethod;
-use vcs_provider_gitlab::gitlab;
+use git_cognition_core::RequestMethod;
+use git_cognition_gitlab::gitlab;
 
 #[test]
 fn gitlab_release_get_targets_repository_endpoint() {
     let release = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .release("v1.0.0")
         .get();
 
     assert_eq!(
         release.url().value(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/releases/v1.0.0"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/releases/v1.0.0"
     );
 }
 
@@ -21,7 +21,7 @@ fn gitlab_release_list_targets_repository_endpoint() {
     let releases = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .releases()
         .pagination()
         .limit(50)
@@ -30,7 +30,7 @@ fn gitlab_release_list_targets_repository_endpoint() {
 
     assert_eq!(
         releases.url().value(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/releases?per_page=50&page=2"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/releases?per_page=50&page=2"
     );
 }
 
@@ -39,13 +39,13 @@ fn gitlab_release_builder_accepts_existing_repo() {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let release = gitlab().release().repo(repo).id("v1.0.0").get();
 
     assert_eq!(
         release.url().value(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/releases/v1.0.0"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/releases/v1.0.0"
     );
 }
 
@@ -54,7 +54,7 @@ fn gitlab_release_create_builds_post_request() {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let create_request = gitlab()
         .release()
@@ -77,7 +77,7 @@ fn gitlab_release_update_builds_put_request() {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let update_request = gitlab()
         .release()
@@ -98,7 +98,7 @@ fn gitlab_release_delete_builds_delete_request() {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let release_resource = gitlab().release().repo(repo).id("v1.0.0").get();
 

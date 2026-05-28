@@ -1,4 +1,4 @@
-use vcs_provider_core::{
+use git_cognition_core::{
     Pipeline, PipelineListQuery, Request, RequestUrl, RequestUrlBuilder, request, url,
 };
 
@@ -85,6 +85,6 @@ impl Default for GitLabPipelineCollection {
     }
 }
 
-fn project_path(repo: &vcs_provider_core::Repo) -> String {
+fn project_path(repo: &git_cognition_core::Repo) -> String {
     format!("{}/{}", repo.owner().as_str(), repo.name().as_str())
 }

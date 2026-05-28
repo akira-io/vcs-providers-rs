@@ -9,8 +9,10 @@ mod errors;
 mod helpers;
 mod http;
 mod issues;
+mod local_git;
 mod manager;
 mod middleware;
+mod organizations;
 mod pagination;
 mod pipelines;
 mod rate_limit;
@@ -26,7 +28,8 @@ mod url;
 
 pub use auth::{
     AuthBuilder, AuthCredential, AuthHeader, AuthHeaderName, AuthHeaderStyle, AuthHeaderValue,
-    AuthKind, AuthToken,
+    AuthKind, AuthToken, Authentication, TransportBackedAuthentication,
+    TransportNotConfiguredAuthentication,
 };
 pub use capability::{Capability, CapabilitySet};
 pub use code_reviews::{
@@ -40,13 +43,13 @@ pub use code_reviews::{
     TransportBackedCodeReviews, TransportNotConfiguredCodeReviews,
 };
 pub(crate) use errors::transport_not_configured;
-pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
+pub use errors::{CognitionError, CognitionResult, ErrorBuilder, ErrorKind};
 #[cfg(feature = "testing")]
 pub use helpers::conformance;
 pub use helpers::{
-    CapabilitySetBuilder, auth, branch, capabilities, code_review, commit, error, http, issue,
-    issue_id, middleware, pagination, pipeline, provider, provider_id, rate_limit, release,
-    release_id, repo, request, request_body, response, retry, runtime, telemetry, url, vcs,
+    CapabilitySetBuilder, auth, branch, capabilities, code_review, cognition, commit, error, git,
+    http, issue, issue_id, middleware, pagination, pipeline, provider, provider_id, rate_limit,
+    release, release_id, repo, request, request_body, response, retry, runtime, telemetry, url,
 };
 pub use http::{HttpBuilder, HttpTransport, HttpTransportBuilder};
 pub use issues::{
@@ -57,24 +60,40 @@ pub use issues::{
     ProvidedIssueTitle, ScopedIssueOperation, TransportBackedIssues, TransportNotConfiguredIssues,
     UnsupportedIssues,
 };
+pub use local_git::{
+    Blame, BlameSpan, ChangeKind, CommitGraph, ConflictKind, ConflictRegion, DiffFile, DiffLine,
+    DiffModel, FileState, GraphRow, Hunk, LineOrigin, LocalGitBlame, LocalGitBranch,
+    LocalGitBuilder, LocalGitCapability, LocalGitCapabilitySet, LocalGitCloneBuilder, LocalGitDiff,
+    LocalGitFetchHead, LocalGitLog, LocalGitLogRange, LocalGitMergeBase, LocalGitMergeBuilder,
+    LocalGitReference, LocalGitRemote, LocalGitRemoteBranch, LocalGitRemoteCommit,
+    LocalGitRemoteReference, LocalGitRepository, LocalGitShow, LocalGitUrl, LocalGitWorktreeAdd,
+    LocalGitWorktrees, MergeOutcome, MergePlan, MergePreview, MissingBase, MissingCloneDestination,
+    MissingOurs, MissingTheirs, ProvidedBase, ProvidedCloneDestination, ProvidedOurs,
+    ProvidedTheirs, StatusEntry, Worktree,
+};
 pub use manager::{
-    ManagedClientProvider, ManagedCodeReview, ManagedCodeReviewBuilder,
+    CognitionManager, CognitionManagerBuilder, CognitionManagerWithDriverBuilder,
+    ManagedAuthProvider, ManagedClientProvider, ManagedCodeReview, ManagedCodeReviewBuilder,
     ManagedCodeReviewCollection, ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider,
     ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDraftBuilder,
     ManagedIssueProvider, ManagedIssueUpdateBuilder, ManagedMiddlewareTransportBuilder,
-    ManagedPipeline, ManagedPipelineBuilder, ManagedPipelineCollection, ManagedProvider,
-    ManagedRateLimitTransportBuilder, ManagedRelease, ManagedReleaseBuilder,
-    ManagedReleaseCollection, ManagedReleaseDraftBuilder, ManagedReleaseProvider,
-    ManagedReleaseUpdateBuilder, ManagedRepo, ManagedRepoBuilder, ManagedRepoCodeReviews,
-    ManagedRepoCodeReviewsPagination, ManagedRepoCollection, ManagedRepoIssues,
-    ManagedRepoIssuesPagination, ManagedRepoPipelines, ManagedRepoPipelinesPagination,
-    ManagedRepoReleases, ManagedRepoReleasesPagination, ManagedRepositoryDraftBuilder,
-    ManagedRepositoryUpdateBuilder, ManagedRetryTransportBuilder, ProviderClient, VcsManager,
-    VcsManagerBuilder, VcsManagerWithDriverBuilder,
+    ManagedOrganizationProvider, ManagedPipeline, ManagedPipelineBuilder,
+    ManagedPipelineCollection, ManagedProvider, ManagedRateLimitTransportBuilder, ManagedRelease,
+    ManagedReleaseBuilder, ManagedReleaseCollection, ManagedReleaseDraftBuilder,
+    ManagedReleaseProvider, ManagedReleaseUpdateBuilder, ManagedRepo, ManagedRepoBranchBuilder,
+    ManagedRepoBuilder, ManagedRepoCodeReviews, ManagedRepoCodeReviewsPagination,
+    ManagedRepoCollection, ManagedRepoIssues, ManagedRepoIssuesPagination, ManagedRepoPipelines,
+    ManagedRepoPipelinesPagination, ManagedRepoReleases, ManagedRepoReleasesPagination,
+    ManagedRepositoryDraftBuilder, ManagedRepositoryUpdateBuilder, ManagedRetryTransportBuilder,
+    ProviderClient,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,
     TransportPipelineBuilder,
+};
+pub use organizations::{
+    Organization, OrganizationKind, OrganizationListQuery, OrganizationResponseMapper,
+    Organizations, TransportBackedOrganizations, TransportNotConfiguredOrganizations,
 };
 pub use pagination::{
     Page, PageBuilder, PageCursor, PageLimit, PageRequest, PageRequestBuilder, PaginationBuilder,
@@ -100,13 +119,14 @@ pub use releases::{
     TransportBackedReleases, TransportNotConfiguredReleases, UnsupportedReleases,
 };
 pub use repos::{
-    BoxFuture, Branch, Commit, LifecycleState, MissingLifecycleState, MissingOwnerName,
-    MissingRepositoryName, MissingVisibility, OwnerName, ProvidedLifecycleState, ProvidedOwnerName,
-    ProvidedProviderId, ProvidedRepositoryName, ProvidedVisibility, Repo, RepoBuilder,
-    RepoCreateOperation, RepoQueryBuilder, RepoUpdateOperation, Repos, ReposFluent, Repository,
-    RepositoryBuilder, RepositoryDraft, RepositoryDraftBuilder, RepositoryListQuery,
-    RepositoryName, RepositoryPatch, RepositoryPatchBuilder, RepositoryResponseMapper,
-    RepositorySearchQuery, TransportBackedRepos, TransportNotConfiguredRepos, Visibility,
+    BoxFuture, Branch, BranchDraft, BranchDraftBuilder, Commit, LifecycleState,
+    MissingLifecycleState, MissingOwnerName, MissingRepositoryName, MissingVisibility, OwnerName,
+    ProvidedLifecycleState, ProvidedOwnerName, ProvidedProviderId, ProvidedRepositoryName,
+    ProvidedVisibility, Repo, RepoBranchOperation, RepoBuilder, RepoCreateOperation,
+    RepoQueryBuilder, RepoUpdateOperation, Repos, ReposFluent, Repository, RepositoryBuilder,
+    RepositoryDraft, RepositoryDraftBuilder, RepositoryListQuery, RepositoryName, RepositoryPatch,
+    RepositoryPatchBuilder, RepositoryResponseMapper, RepositorySearchQuery, TransportBackedRepos,
+    TransportNotConfiguredRepos, Visibility,
 };
 pub use retry::{
     ProvidedRetryTransport, RetryBuilder, RetryPolicy, RetryTransport, RetryTransportBuilder,
@@ -224,6 +244,14 @@ impl ProviderDescriptorBuilder {
 
 pub trait Provider: Send + Sync {
     fn descriptor(&self) -> ProviderDescriptor;
+
+    fn authentication(&self) -> Box<dyn Authentication> {
+        Box::<TransportNotConfiguredAuthentication>::default()
+    }
+
+    fn organizations(&self) -> Box<dyn Organizations> {
+        Box::<TransportNotConfiguredOrganizations>::default()
+    }
 
     fn repos(&self) -> Box<dyn Repos>;
 

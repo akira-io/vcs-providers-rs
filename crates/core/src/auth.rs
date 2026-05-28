@@ -1,6 +1,12 @@
 use std::fmt;
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
+
+use crate::{
+    BoxFuture, CognitionResult, ManagedAuthProvider, Request, RequestHeader, Transport, error,
+    request, transport_not_configured,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum AuthKind {
@@ -173,5 +179,70 @@ impl AuthHeaderValue {
 impl fmt::Debug for AuthHeaderValue {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("AuthHeaderValue(**redacted**)")
+    }
+}
+
+pub trait Authentication: Send + Sync {
+    fn validate(&self) -> BoxFuture<'_, CognitionResult<()>>;
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TransportNotConfiguredAuthentication;
+
+impl Authentication for TransportNotConfiguredAuthentication {
+    fn validate(&self) -> BoxFuture<'_, CognitionResult<()>> {
+        transport_not_configured()
+    }
+}
+
+#[derive(Clone)]
+pub struct TransportBackedAuthentication<Driver> {
+    driver: Driver,
+    transport: Arc<dyn Transport>,
+    headers: Vec<RequestHeader>,
+}
+
+impl<Driver> TransportBackedAuthentication<Driver>
+where
+    Driver: ManagedAuthProvider,
+{
+    pub fn make(driver: Driver, transport: Arc<dyn Transport>) -> Self {
+        Self {
+            driver,
+            transport,
+            headers: Vec::new(),
+        }
+    }
+
+    pub fn with_headers(mut self, headers: impl IntoIterator<Item = RequestHeader>) -> Self {
+        self.headers.extend(headers);
+        self
+    }
+
+    fn apply_headers(&self, request: Request) -> Request {
+        self.headers
+            .iter()
+            .cloned()
+            .fold(request, Request::with_header)
+    }
+}
+
+impl<Driver> Authentication for TransportBackedAuthentication<Driver>
+where
+    Driver: ManagedAuthProvider + Send + Sync,
+{
+    fn validate(&self) -> BoxFuture<'_, CognitionResult<()>> {
+        Box::pin(async move {
+            let request = request()
+                .get(self.driver.auth_validate_url().value())
+                .build();
+            let response = self.transport.send(self.apply_headers(request)).await?;
+
+            if let Some(error) = error().from_response(&response) {
+                return Err(error);
+            }
+
+            Ok(())
+        })
     }
 }

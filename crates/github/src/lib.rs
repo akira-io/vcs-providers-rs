@@ -1,10 +1,10 @@
-use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, CodeReviews, Issues, ManagedCodeReviewProvider,
-    ManagedIssueProvider, ManagedProvider, MissingCodeReviewId, MissingCodeReviewRepo,
-    MissingOwnerName, MissingReleaseId, MissingReleaseRepo, MissingRepositoryName, Pipelines,
-    Provider, ProviderDescriptor, ProviderId, Releases, Repos, TransportNotConfiguredCodeReviews,
-    TransportNotConfiguredIssues, TransportNotConfiguredPipelines, TransportNotConfiguredReleases,
-    TransportNotConfiguredRepos,
+use git_cognition_core::{
+    AuthHeaderStyle, AuthKind, BranchDraft, CodeReviews, Issues, ManagedAuthProvider,
+    ManagedCodeReviewProvider, ManagedIssueProvider, ManagedProvider, Pipelines, Provider,
+    ProviderDescriptor, ProviderId, Releases, Repos, TransportNotConfiguredAuthentication,
+    TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
+    TransportNotConfiguredOrganizations, TransportNotConfiguredPipelines,
+    TransportNotConfiguredReleases, TransportNotConfiguredRepos,
 };
 
 mod capabilities;
@@ -14,6 +14,7 @@ mod issues;
 mod mappers;
 mod pagination;
 mod pipelines;
+mod provider_fluent;
 mod provider_pipelines;
 mod releases;
 mod repos;
@@ -39,127 +40,120 @@ pub struct GitHubProvider {
     base_url: String,
 }
 
-impl GitHubProvider {
-    pub fn base_url(mut self, base_url: impl Into<String>) -> Self {
-        self.base_url = base_url.into();
-        self
-    }
-
-    pub fn api_base_url(&self) -> &str {
-        &self.base_url
-    }
-
-    pub fn repo(
-        &self,
-    ) -> vcs_provider_core::ManagedRepoBuilder<Self, MissingOwnerName, MissingRepositoryName> {
-        vcs_provider_core::vcs(self.clone()).repo()
-    }
-
-    pub fn issue(
-        &self,
-    ) -> vcs_provider_core::ManagedIssueBuilder<
-        Self,
-        vcs_provider_core::MissingIssueRepo,
-        vcs_provider_core::MissingIssueId,
-    > {
-        vcs_provider_core::vcs(self.clone()).issue()
-    }
-
-    pub fn code_review(
-        &self,
-    ) -> vcs_provider_core::ManagedCodeReviewBuilder<Self, MissingCodeReviewRepo, MissingCodeReviewId>
-    {
-        vcs_provider_core::vcs(self.clone()).code_review()
-    }
-
-    pub fn release(
-        &self,
-    ) -> vcs_provider_core::ManagedReleaseBuilder<Self, MissingReleaseRepo, MissingReleaseId> {
-        vcs_provider_core::vcs(self.clone()).release()
-    }
-
-    pub fn pagination(&self) -> vcs_provider_core::PaginationBuilder {
-        vcs_provider_core::pagination()
-    }
-}
-
 impl ManagedProvider for GitHubProvider {
-    fn repo_url(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::RequestUrl {
+    fn repo_url(&self, repo: &git_cognition_core::Repo) -> git_cognition_core::RequestUrl {
         GitHubRepo::make(self.api_base_url(), repo.clone()).url()
     }
 
     fn repo_branches_url(
         &self,
-        repo: &vcs_provider_core::Repo,
-        page: Option<&vcs_provider_core::PageRequest>,
-    ) -> vcs_provider_core::RequestUrl {
+        repo: &git_cognition_core::Repo,
+        page: Option<&git_cognition_core::PageRequest>,
+    ) -> git_cognition_core::RequestUrl {
         GitHubRepo::make(self.api_base_url(), repo.clone()).branches(page)
     }
 
     fn repo_commits_url(
         &self,
-        repo: &vcs_provider_core::Repo,
-        page: Option<&vcs_provider_core::PageRequest>,
-    ) -> vcs_provider_core::RequestUrl {
+        repo: &git_cognition_core::Repo,
+        page: Option<&git_cognition_core::PageRequest>,
+    ) -> git_cognition_core::RequestUrl {
         GitHubRepo::make(self.api_base_url(), repo.clone()).commits(page)
     }
 
     fn repo_list_url(
         &self,
-        query: &vcs_provider_core::RepositoryListQuery,
-    ) -> vcs_provider_core::RequestUrl {
+        query: &git_cognition_core::RepositoryListQuery,
+    ) -> git_cognition_core::RequestUrl {
         GitHubRepoCollection::make(self.api_base_url()).list(query)
     }
 
     fn repo_search_url(
         &self,
-        query: &vcs_provider_core::RepositorySearchQuery,
-    ) -> vcs_provider_core::RequestUrl {
+        query: &git_cognition_core::RepositorySearchQuery,
+    ) -> git_cognition_core::RequestUrl {
         GitHubRepoCollection::make(self.api_base_url()).search(query)
     }
 
     fn repo_create_request(
         &self,
-        draft: &vcs_provider_core::RepositoryDraft,
-    ) -> vcs_provider_core::Request {
+        draft: &git_cognition_core::RepositoryDraft,
+    ) -> git_cognition_core::Request {
         GitHubRepoCollection::make(self.api_base_url()).create(draft)
     }
 
     fn repo_update_request(
         &self,
-        patch: &vcs_provider_core::RepositoryPatch,
-    ) -> vcs_provider_core::Request {
+        patch: &git_cognition_core::RepositoryPatch,
+    ) -> git_cognition_core::Request {
         GitHubRepo::make(self.api_base_url(), patch.repo().clone()).update(patch)
     }
 
-    fn repo_delete_request(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::Request {
+    fn repo_delete_request(&self, repo: &git_cognition_core::Repo) -> git_cognition_core::Request {
         GitHubRepo::make(self.api_base_url(), repo.clone()).delete()
+    }
+
+    fn repo_branch_create_request(
+        &self,
+        draft: &BranchDraft,
+    ) -> git_cognition_core::CognitionResult<git_cognition_core::Request> {
+        Ok(GitHubRepo::make(self.api_base_url(), draft.repo().clone()).create_branch(draft))
+    }
+
+    fn repo_branch_delete_request(
+        &self,
+        repo: &git_cognition_core::Repo,
+        branch_name: &str,
+    ) -> git_cognition_core::CognitionResult<git_cognition_core::Request> {
+        Ok(GitHubRepo::make(self.api_base_url(), repo.clone()).delete_branch(branch_name))
+    }
+}
+
+impl ManagedAuthProvider for GitHubProvider {
+    fn auth_validate_url(&self) -> git_cognition_core::RequestUrl {
+        git_cognition_core::url(self.api_base_url())
+            .path_segments(["user"])
+            .build()
+    }
+}
+
+impl git_cognition_core::ManagedOrganizationProvider for GitHubProvider {
+    fn organization_list_url(
+        &self,
+        query: Option<&git_cognition_core::OrganizationListQuery>,
+    ) -> git_cognition_core::RequestUrl {
+        let url = git_cognition_core::url(self.api_base_url()).path_segments(["user", "orgs"]);
+
+        match query.and_then(git_cognition_core::OrganizationListQuery::page) {
+            Some(page) => crate::request_pagination::apply_page(url, Some(page)).build(),
+            None => url.build(),
+        }
     }
 }
 
 impl ManagedIssueProvider for GitHubProvider {
-    fn issue_url(&self, issue: &vcs_provider_core::Issue) -> vcs_provider_core::RequestUrl {
+    fn issue_url(&self, issue: &git_cognition_core::Issue) -> git_cognition_core::RequestUrl {
         GitHubIssue::make(self.api_base_url(), issue.clone()).url()
     }
 
     fn issue_list_url(
         &self,
-        query: &vcs_provider_core::IssueListQuery,
-    ) -> vcs_provider_core::RequestUrl {
+        query: &git_cognition_core::IssueListQuery,
+    ) -> git_cognition_core::RequestUrl {
         GitHubIssueCollection::make(self.api_base_url()).list(query)
     }
 
     fn issue_create_request(
         &self,
-        draft: &vcs_provider_core::IssueDraft,
-    ) -> vcs_provider_core::Request {
+        draft: &git_cognition_core::IssueDraft,
+    ) -> git_cognition_core::Request {
         GitHubIssueCollection::make(self.api_base_url()).create(draft)
     }
 
     fn issue_update_request(
         &self,
-        patch: &vcs_provider_core::IssuePatch,
-    ) -> vcs_provider_core::Request {
+        patch: &git_cognition_core::IssuePatch,
+    ) -> git_cognition_core::Request {
         GitHubIssue::make(self.api_base_url(), patch.issue().clone()).update(patch)
     }
 }
@@ -167,77 +161,77 @@ impl ManagedIssueProvider for GitHubProvider {
 impl ManagedCodeReviewProvider for GitHubProvider {
     fn code_review_url(
         &self,
-        code_review: &vcs_provider_core::CodeReview,
-    ) -> vcs_provider_core::RequestUrl {
+        code_review: &git_cognition_core::CodeReview,
+    ) -> git_cognition_core::RequestUrl {
         GitHubCodeReview::make(self.api_base_url(), code_review.clone()).url()
     }
 
     fn code_review_list_url(
         &self,
-        query: &vcs_provider_core::CodeReviewListQuery,
-    ) -> vcs_provider_core::RequestUrl {
+        query: &git_cognition_core::CodeReviewListQuery,
+    ) -> git_cognition_core::RequestUrl {
         GitHubCodeReviewCollection::make(self.api_base_url()).list(query)
     }
 
     fn code_review_create_request(
         &self,
-        draft: &vcs_provider_core::CodeReviewDraft,
-    ) -> vcs_provider_core::Request {
+        draft: &git_cognition_core::CodeReviewDraft,
+    ) -> git_cognition_core::Request {
         GitHubCodeReviewCollection::make(self.api_base_url()).create(draft)
     }
 
     fn code_review_update_request(
         &self,
-        patch: &vcs_provider_core::CodeReviewPatch,
-    ) -> vcs_provider_core::Request {
+        patch: &git_cognition_core::CodeReviewPatch,
+    ) -> git_cognition_core::Request {
         GitHubCodeReview::make(self.api_base_url(), patch.code_review().clone()).update(patch)
     }
 
     fn code_review_merge_request(
         &self,
-        code_review: &vcs_provider_core::CodeReview,
-    ) -> vcs_provider_core::Request {
+        code_review: &git_cognition_core::CodeReview,
+    ) -> git_cognition_core::Request {
         GitHubCodeReview::make(self.api_base_url(), code_review.clone()).merge()
     }
 
     fn code_review_close_request(
         &self,
-        code_review: &vcs_provider_core::CodeReview,
-    ) -> vcs_provider_core::Request {
+        code_review: &git_cognition_core::CodeReview,
+    ) -> git_cognition_core::Request {
         GitHubCodeReview::make(self.api_base_url(), code_review.clone()).close()
     }
 }
 
-impl vcs_provider_core::ManagedReleaseProvider for GitHubProvider {
-    fn release_url(&self, release: &vcs_provider_core::Release) -> vcs_provider_core::RequestUrl {
+impl git_cognition_core::ManagedReleaseProvider for GitHubProvider {
+    fn release_url(&self, release: &git_cognition_core::Release) -> git_cognition_core::RequestUrl {
         GitHubRelease::make(self.api_base_url(), release.clone()).url()
     }
 
     fn release_list_url(
         &self,
-        query: &vcs_provider_core::ReleaseListQuery,
-    ) -> vcs_provider_core::RequestUrl {
+        query: &git_cognition_core::ReleaseListQuery,
+    ) -> git_cognition_core::RequestUrl {
         GitHubReleaseCollection::make(self.api_base_url()).list(query)
     }
 
     fn release_create_request(
         &self,
-        draft: &vcs_provider_core::ReleaseDraft,
-    ) -> vcs_provider_core::Request {
+        draft: &git_cognition_core::ReleaseDraft,
+    ) -> git_cognition_core::Request {
         GitHubReleaseCollection::make(self.api_base_url()).create(draft)
     }
 
     fn release_update_request(
         &self,
-        patch: &vcs_provider_core::ReleasePatch,
-    ) -> vcs_provider_core::Request {
+        patch: &git_cognition_core::ReleasePatch,
+    ) -> git_cognition_core::Request {
         GitHubRelease::make(self.api_base_url(), patch.release().clone()).update(patch)
     }
 
     fn release_delete_request(
         &self,
-        release: &vcs_provider_core::Release,
-    ) -> vcs_provider_core::Request {
+        release: &git_cognition_core::Release,
+    ) -> git_cognition_core::Request {
         GitHubRelease::make(self.api_base_url(), release.clone()).delete()
     }
 }
@@ -249,6 +243,14 @@ impl Provider for GitHubProvider {
             DISPLAY_NAME,
             github_capabilities(),
         )
+    }
+
+    fn authentication(&self) -> Box<dyn git_cognition_core::Authentication> {
+        Box::<TransportNotConfiguredAuthentication>::default()
+    }
+
+    fn organizations(&self) -> Box<dyn git_cognition_core::Organizations> {
+        Box::<TransportNotConfiguredOrganizations>::default()
     }
 
     fn repos(&self) -> Box<dyn Repos> {
@@ -288,12 +290,4 @@ impl Provider for GitHubProvider {
 
 pub fn github() -> GitHubProvider {
     GitHubProvider::default()
-}
-
-impl Default for GitHubProvider {
-    fn default() -> Self {
-        Self {
-            base_url: DEFAULT_BASE_URL.into(),
-        }
-    }
 }

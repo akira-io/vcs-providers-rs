@@ -8,7 +8,7 @@ They live inside provider crates because endpoint shapes are provider knowledge:
 let repo = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let url = repo.branches(None);
@@ -20,19 +20,19 @@ Collections use the provider repository namespace without a specific repository:
 let repo = github().repo();
 let query = repo
     .query()
-    .search("vcs provider")
+    .search("cognition provider")
     .optional_pagination(None)
     .search();
 let url = repo.collection().search(&query);
 ```
 
-Use `vcs(driver)` when the driver is selected dynamically or passed as a dependency:
+Use `cognition().provider(driver)` when the driver is selected dynamically or passed as a dependency:
 
 ```rust
-let repo = vcs(gitlab())
+let repo = cognition().provider(gitlab())
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 ```
 
@@ -46,7 +46,7 @@ Create and update requests should stay fluent at the call site:
 let repo = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let create_request = github()
@@ -80,14 +80,14 @@ Provider repository URL methods return `RequestUrl`, not `String`. Use `value()`
 let url = bitbucket()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get()
     .url();
 
-assert_eq!(url.value(), "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs");
+assert_eq!(url.value(), "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs");
 assert_eq!(url.scheme(), Some("https"));
 assert_eq!(url.domain(), Some("api.bitbucket.org"));
-assert_eq!(url.path(), "/2.0/repositories/akira-io/vcs-providers-rs");
+assert_eq!(url.path(), "/2.0/repositories/akira-io/git-cognition-rs");
 ```
 
 ## Provider Shapes

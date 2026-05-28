@@ -1,4 +1,4 @@
-use vcs_provider_core::{branch, pagination, repo};
+use git_cognition_core::{branch, pagination, repo};
 
 #[test]
 fn pagination_request_carries_limit_and_cursor() {
@@ -37,7 +37,7 @@ fn repository_queries_accept_pagination_request() {
     let list_query = repo().query().pagination(page_request.clone()).list();
     let search_query = repo()
         .query()
-        .search("vcs")
+        .search("cognition")
         .pagination(page_request)
         .search();
 

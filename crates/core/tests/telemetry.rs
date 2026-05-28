@@ -1,11 +1,13 @@
 mod support;
 
-use vcs_provider_core::{TelemetryEvent, Transport, VcsResult, request, run_async_test, telemetry};
+use git_cognition_core::{
+    CognitionResult, TelemetryEvent, Transport, request, run_async_test, telemetry,
+};
 
 use support::EchoTransport;
 
 #[test]
-fn telemetry_transport_records_request_lifecycle() -> VcsResult<()> {
+fn telemetry_transport_records_request_lifecycle() -> CognitionResult<()> {
     let recorder = telemetry().recorder();
     let transport = telemetry()
         .transport(EchoTransport)

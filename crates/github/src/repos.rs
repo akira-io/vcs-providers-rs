@@ -1,9 +1,9 @@
-use serde::Serialize;
-use vcs_provider_core::{
-    PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
+use git_cognition_core::{
+    BranchDraft, PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
     RepositorySearchQuery, Request, RequestBody, RequestUrl, Visibility, request, request_body,
     url,
 };
+use serde::Serialize;
 
 use crate::{DEFAULT_BASE_URL, request_pagination::apply_page};
 
@@ -42,6 +42,37 @@ impl GitHubRepo {
 
     pub fn delete(&self) -> Request {
         request().delete(self.url().value()).build()
+    }
+
+    pub fn create_branch(&self, draft: &BranchDraft) -> Request {
+        request()
+            .post(self.git_refs_url().value())
+            .body(branch_draft_body(draft))
+            .build()
+    }
+
+    pub fn delete_branch(&self, branch_name: &str) -> Request {
+        request()
+            .delete(self.git_ref_url(branch_name).value())
+            .build()
+    }
+
+    fn git_refs_url(&self) -> RequestUrl {
+        self.request_url(["git", "refs"], None)
+    }
+
+    fn git_ref_url(&self, branch_name: &str) -> RequestUrl {
+        url(&self.base_url)
+            .path_segments([
+                "repos",
+                self.repo.owner().as_str(),
+                self.repo.name().as_str(),
+                "git",
+                "refs",
+                "heads",
+                branch_name,
+            ])
+            .build()
     }
 
     fn request_url<const SIZE: usize>(
@@ -124,6 +155,13 @@ fn repository_patch_body(patch: &RepositoryPatch) -> RequestBody {
     })
 }
 
+fn branch_draft_body(draft: &BranchDraft) -> RequestBody {
+    json_body(&GitHubBranchDraftBody {
+        reference: format!("refs/heads/{}", draft.name()),
+        sha: draft.sha(),
+    })
+}
+
 fn github_private(visibility: &Visibility) -> bool {
     matches!(visibility, Visibility::Private | Visibility::Internal)
 }
@@ -142,6 +180,13 @@ struct GitHubRepositoryPatchBody<'a> {
     private: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<&'a str>,
+}
+
+#[derive(Serialize)]
+struct GitHubBranchDraftBody<'a> {
+    #[serde(rename = "ref")]
+    reference: String,
+    sha: &'a str,
 }
 
 fn json_body(payload: &impl Serialize) -> RequestBody {

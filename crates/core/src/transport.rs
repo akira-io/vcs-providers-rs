@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{AuthHeader, BoxFuture, RequestUrl, VcsResult};
+use crate::{AuthHeader, BoxFuture, CognitionResult, RequestUrl};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum RequestMethod {
@@ -293,5 +293,5 @@ impl ResponseBody {
 }
 
 pub trait Transport: Send + Sync {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>>;
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>>;
 }

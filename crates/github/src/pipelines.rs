@@ -1,4 +1,4 @@
-use vcs_provider_core::{
+use git_cognition_core::{
     Pipeline, PipelineListQuery, Request, RequestUrl, RequestUrlBuilder, request, url,
 };
 

@@ -1,15 +1,14 @@
 use std::sync::Arc;
 
 use crate::{
-    BoxFuture, Issue, IssueDraft, IssueId, IssueListQuery, IssuePatch, Issues,
-    ManagedIssueProvider, Page, Repo, Request, RequestHeader, Response, Transport, VcsResult,
-    error,
+    BoxFuture, CognitionResult, Issue, IssueDraft, IssueId, IssueListQuery, IssuePatch, Issues,
+    ManagedIssueProvider, Page, Repo, Request, RequestHeader, Response, Transport, error,
 };
 
 pub trait IssueResponseMapper: Send + Sync {
-    fn issue(&self, requested_issue: &Issue, response: &Response) -> VcsResult<Issue>;
+    fn issue(&self, requested_issue: &Issue, response: &Response) -> CognitionResult<Issue>;
 
-    fn issues(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Issue>>;
+    fn issues(&self, requested_repo: &Repo, response: &Response) -> CognitionResult<Page<Issue>>;
 }
 
 #[derive(Clone)]
@@ -39,7 +38,7 @@ where
         self
     }
 
-    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, VcsResult<Response>> {
+    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, CognitionResult<Response>> {
         Box::pin(async move {
             let response = self.transport.send(self.apply_headers(request)).await?;
 
@@ -64,7 +63,7 @@ where
     Driver: ManagedIssueProvider + Send + Sync,
     Mapper: IssueResponseMapper,
 {
-    fn get(&self, repo: Repo, id: IssueId) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn get(&self, repo: Repo, id: IssueId) -> BoxFuture<'_, CognitionResult<Issue>> {
         Box::pin(async move {
             let requested_issue = crate::issue().repo(repo).id(id.as_str()).get();
             let request = crate::request()
@@ -76,7 +75,7 @@ where
         })
     }
 
-    fn list(&self, query: IssueListQuery) -> BoxFuture<'_, VcsResult<Page<Issue>>> {
+    fn list(&self, query: IssueListQuery) -> BoxFuture<'_, CognitionResult<Page<Issue>>> {
         Box::pin(async move {
             let request = crate::request()
                 .get(self.driver.issue_list_url(&query).value())
@@ -87,7 +86,7 @@ where
         })
     }
 
-    fn create(&self, draft: IssueDraft) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn create(&self, draft: IssueDraft) -> BoxFuture<'_, CognitionResult<Issue>> {
         Box::pin(async move {
             let requested_issue = crate::issue().repo(draft.repo().clone()).id("").get();
             let response = self
@@ -98,7 +97,7 @@ where
         })
     }
 
-    fn update(&self, patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn update(&self, patch: IssuePatch) -> BoxFuture<'_, CognitionResult<Issue>> {
         Box::pin(async move {
             let response = self
                 .send_request(self.driver.issue_update_request(&patch))
@@ -108,7 +107,7 @@ where
         })
     }
 
-    fn close(&self, patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn close(&self, patch: IssuePatch) -> BoxFuture<'_, CognitionResult<Issue>> {
         Box::pin(async move {
             let response = self
                 .send_request(self.driver.issue_close_request(&patch))
@@ -118,7 +117,7 @@ where
         })
     }
 
-    fn delete(&self, issue: Issue) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete(&self, issue: Issue) -> BoxFuture<'_, CognitionResult<()>> {
         Box::pin(async move {
             let request = self.driver.issue_delete_request(&issue)?;
             self.send_request(request).await?;

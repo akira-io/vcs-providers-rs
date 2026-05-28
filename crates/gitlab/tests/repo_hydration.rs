@@ -1,12 +1,12 @@
-use vcs_provider_core::{LifecycleState, Repo, ReposFluent, Visibility, repo, run_async_test};
-use vcs_provider_gitlab::gitlab;
+use git_cognition_core::{LifecycleState, Repo, ReposFluent, Visibility, repo, run_async_test};
+use git_cognition_gitlab::gitlab;
 
 #[test]
-fn gitlab_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_repository() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repository = gitlab()
             .body(
-                r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"internal","archived":false}"#,
+                r#"{"path_with_namespace":"akira-io/git-cognition-rs","visibility":"internal","archived":false}"#,
             )
             .repos()
             .get(repository_location())
@@ -14,7 +14,7 @@ fn gitlab_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
 
         assert_eq!(repository.provider().as_str(), "gitlab");
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
-        assert_eq!(repository.repo().name().as_str(), "vcs-providers-rs");
+        assert_eq!(repository.repo().name().as_str(), "git-cognition-rs");
         assert_eq!(repository.visibility(), &Visibility::Internal);
         assert_eq!(repository.lifecycle_state(), &LifecycleState::Active);
 
@@ -23,11 +23,11 @@ fn gitlab_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
 }
 
 #[test]
-fn gitlab_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_repository_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repositories = gitlab()
             .body(
-                r#"[{"path_with_namespace":"platform/akira-io/vcs-providers-rs","visibility":"private","archived":true}]"#,
+                r#"[{"path_with_namespace":"platform/akira-io/git-cognition-rs","visibility":"private","archived":true}]"#,
             )
             .repos()
             .list(gitlab().repo().query().optional_pagination(None).list())
@@ -49,11 +49,11 @@ fn gitlab_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> 
 }
 
 #[test]
-fn gitlab_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_repository_create() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repository = gitlab()
             .body(
-                r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"private","archived":false}"#,
+                r#"{"path_with_namespace":"akira-io/git-cognition-rs","visibility":"private","archived":false}"#,
             )
             .repos()
             .create()
@@ -70,11 +70,11 @@ fn gitlab_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()
 }
 
 #[test]
-fn gitlab_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_repository_update() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repository = gitlab()
             .body(
-                r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public","archived":false}"#,
+                r#"{"path_with_namespace":"akira-io/git-cognition-rs","visibility":"public","archived":false}"#,
             )
             .repos()
             .update()
@@ -91,7 +91,7 @@ fn gitlab_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()
 }
 
 #[test]
-fn gitlab_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_deletes_repository() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         gitlab()
             .status(202)
@@ -102,7 +102,7 @@ fn gitlab_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
 }
 
 #[test]
-fn gitlab_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_branches_and_commits() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let branch_page = gitlab()
             .body(r#"[{"name":"main"}]"#)
@@ -122,6 +122,39 @@ fn gitlab_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult
     })
 }
 
+#[test]
+fn gitlab_client_hydrates_branch_create() -> git_cognition_core::CognitionResult<()> {
+    run_async_test(async {
+        let branch = gitlab()
+            .body(r#"{"name":"feature"}"#)
+            .repos()
+            .branch()
+            .location(repository_location())
+            .name("feature")
+            .sha("abc123")
+            .create()
+            .await?;
+
+        assert_eq!(branch.name(), "feature");
+
+        Ok(())
+    })
+}
+
+#[test]
+fn gitlab_client_deletes_branch() -> git_cognition_core::CognitionResult<()> {
+    run_async_test(async {
+        gitlab()
+            .status(204)
+            .repos()
+            .branch()
+            .location(repository_location())
+            .name("feature")
+            .delete()
+            .await
+    })
+}
+
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }

@@ -1,4 +1,4 @@
-use crate::{BoxFuture, Page, Release, ReleaseId, Releases, Repo, VcsResult, error, release};
+use crate::{BoxFuture, CognitionResult, Page, Release, ReleaseId, Releases, Repo, error, release};
 
 pub struct ScopedReleaseOperation {
     releases: Box<dyn Releases>,
@@ -41,7 +41,7 @@ impl ScopedReleaseOperation {
         self
     }
 
-    pub fn get(self) -> BoxFuture<'static, VcsResult<Release>> {
+    pub fn get(self) -> BoxFuture<'static, CognitionResult<Release>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("release id is required")) });
         };
@@ -52,14 +52,14 @@ impl ScopedReleaseOperation {
         Box::pin(async move { Releases::get(&*releases, repo, ReleaseId::make(id)).await })
     }
 
-    pub fn list(self) -> BoxFuture<'static, VcsResult<Page<Release>>> {
+    pub fn list(self) -> BoxFuture<'static, CognitionResult<Page<Release>>> {
         let releases = self.releases;
         let query = release().query().location(self.repo).list();
 
         Box::pin(async move { Releases::list(&*releases, query).await })
     }
 
-    pub fn create(self) -> BoxFuture<'static, VcsResult<Release>> {
+    pub fn create(self) -> BoxFuture<'static, CognitionResult<Release>> {
         let Some(tag) = self.tag else {
             return Box::pin(async { Err(error().invalid_input("release tag is required")) });
         };
@@ -80,7 +80,7 @@ impl ScopedReleaseOperation {
         Box::pin(async move { Releases::create(&*releases, draft).await })
     }
 
-    pub fn update(self) -> BoxFuture<'static, VcsResult<Release>> {
+    pub fn update(self) -> BoxFuture<'static, CognitionResult<Release>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("release id is required")) });
         };
@@ -102,7 +102,7 @@ impl ScopedReleaseOperation {
         Box::pin(async move { Releases::update(&*releases, patch).await })
     }
 
-    pub fn delete(self) -> BoxFuture<'static, VcsResult<()>> {
+    pub fn delete(self) -> BoxFuture<'static, CognitionResult<()>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("release id is required")) });
         };

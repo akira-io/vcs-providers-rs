@@ -1,36 +1,67 @@
-use vcs_provider_core::{
-    CodeReviews, CodeReviewsFluent, Issues, IssuesFluent, Pipelines, Releases, ReleasesFluent,
-    Repos, TransportNotConfiguredCodeReviews, TransportNotConfiguredIssues,
+use git_cognition_core::{
+    Authentication, CodeReviews, CodeReviewsFluent, CognitionError, CognitionResult, Issues,
+    IssuesFluent, Organizations, Pipelines, Releases, ReleasesFluent, Repos,
+    TransportNotConfiguredAuthentication, TransportNotConfiguredCodeReviews,
+    TransportNotConfiguredIssues, TransportNotConfiguredOrganizations,
     TransportNotConfiguredPipelines, TransportNotConfiguredReleases, TransportNotConfiguredRepos,
-    UnsupportedIssues, UnsupportedReleases, VcsError, VcsResult, Visibility, code_review, issue,
-    issue_id, pipeline, release, release_id, repo, run_async_test,
+    UnsupportedIssues, UnsupportedReleases, Visibility, code_review, issue, issue_id, pipeline,
+    release, release_id, repo, run_async_test,
 };
 
 #[test]
-fn repo_contract_reports_unconfigured_transport() -> VcsResult<()> {
-    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
-    let draft = repo.clone().draft().visibility(Visibility::Private).get();
-    let patch = repo.clone().patch().visibility(Visibility::Public).get();
-
+fn authentication_contract_reports_unconfigured_transport() -> CognitionResult<()> {
     assert_eq!(
-        run_async_test(TransportNotConfiguredRepos.create(draft)),
-        Err(VcsError::TransportNotConfigured)
-    );
-    assert_eq!(
-        run_async_test(TransportNotConfiguredRepos.update(patch)),
-        Err(VcsError::TransportNotConfigured)
-    );
-    assert_eq!(
-        run_async_test(TransportNotConfiguredRepos.delete(repo)),
-        Err(VcsError::TransportNotConfigured)
+        run_async_test(TransportNotConfiguredAuthentication.validate()),
+        Err(CognitionError::TransportNotConfigured)
     );
 
     Ok(())
 }
 
 #[test]
-fn issue_contract_reports_unconfigured_transport() -> VcsResult<()> {
-    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+fn organization_contract_reports_unconfigured_transport() -> CognitionResult<()> {
+    assert_eq!(
+        run_async_test(TransportNotConfiguredOrganizations.list()),
+        Err(CognitionError::TransportNotConfigured)
+    );
+
+    Ok(())
+}
+
+#[test]
+fn repo_contract_reports_unconfigured_transport() -> CognitionResult<()> {
+    let repo = repo().owner("akira-io").name("git-cognition-rs").get();
+    let draft = repo.clone().draft().visibility(Visibility::Private).get();
+    let patch = repo.clone().patch().visibility(Visibility::Public).get();
+    let branch_draft = repo.clone().branch().name("feature").sha("abc123").get()?;
+
+    assert_eq!(
+        run_async_test(TransportNotConfiguredRepos.create(draft)),
+        Err(CognitionError::TransportNotConfigured)
+    );
+    assert_eq!(
+        run_async_test(TransportNotConfiguredRepos.update(patch)),
+        Err(CognitionError::TransportNotConfigured)
+    );
+    assert_eq!(
+        run_async_test(TransportNotConfiguredRepos.delete(repo.clone())),
+        Err(CognitionError::TransportNotConfigured)
+    );
+    assert_eq!(
+        run_async_test(TransportNotConfiguredRepos.create_branch(branch_draft)),
+        Err(CognitionError::TransportNotConfigured)
+    );
+    assert_eq!(
+        run_async_test(TransportNotConfiguredRepos.delete_branch(repo, "feature".into())),
+        Err(CognitionError::TransportNotConfigured)
+    );
+
+    Ok(())
+}
+
+#[test]
+fn issue_contract_reports_unconfigured_transport() -> CognitionResult<()> {
+    let repo = repo().owner("akira-io").name("git-cognition-rs").get();
     let issue_resource = issue().repo(repo.clone()).id("1").get();
     let result = run_async_test(TransportNotConfiguredIssues.get(repo.clone(), issue_id("1")));
     let list_result = run_async_test(
@@ -42,16 +73,16 @@ fn issue_contract_reports_unconfigured_transport() -> VcsResult<()> {
     let delete_result = run_async_test(TransportNotConfiguredIssues.delete(issue_resource.clone()));
 
     assert_eq!(issue_resource.id().as_str(), "1");
-    assert_eq!(result, Err(VcsError::TransportNotConfigured));
-    assert_eq!(list_result, Err(VcsError::TransportNotConfigured));
-    assert_eq!(delete_result, Err(VcsError::TransportNotConfigured));
+    assert_eq!(result, Err(CognitionError::TransportNotConfigured));
+    assert_eq!(list_result, Err(CognitionError::TransportNotConfigured));
+    assert_eq!(delete_result, Err(CognitionError::TransportNotConfigured));
 
     Ok(())
 }
 
 #[test]
-fn unsupported_issue_contract_reports_unsupported_operation() -> VcsResult<()> {
-    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+fn unsupported_issue_contract_reports_unsupported_operation() -> CognitionResult<()> {
+    let repo = repo().owner("akira-io").name("git-cognition-rs").get();
     let issue_resource = issue().repo(repo.clone()).id("1").get();
     let get_result = run_async_test(UnsupportedIssues.get(repo.clone(), issue_id("1")));
     let list_result = run_async_test(
@@ -64,23 +95,23 @@ fn unsupported_issue_contract_reports_unsupported_operation() -> VcsResult<()> {
 
     assert!(matches!(
         get_result,
-        Err(VcsError::UnsupportedOperation(operation)) if operation == "issue get"
+        Err(CognitionError::UnsupportedOperation(operation)) if operation == "issue get"
     ));
     assert!(matches!(
         list_result,
-        Err(VcsError::UnsupportedOperation(operation)) if operation == "issue list"
+        Err(CognitionError::UnsupportedOperation(operation)) if operation == "issue list"
     ));
     assert!(matches!(
         delete_result,
-        Err(VcsError::UnsupportedOperation(operation)) if operation == "issue delete"
+        Err(CognitionError::UnsupportedOperation(operation)) if operation == "issue delete"
     ));
 
     Ok(())
 }
 
 #[test]
-fn code_review_contract_reports_unconfigured_transport() -> VcsResult<()> {
-    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+fn code_review_contract_reports_unconfigured_transport() -> CognitionResult<()> {
+    let repo = repo().owner("akira-io").name("git-cognition-rs").get();
     let draft = code_review()
         .draft()
         .repo(repo.clone())
@@ -90,15 +121,15 @@ fn code_review_contract_reports_unconfigured_transport() -> VcsResult<()> {
 
     assert_eq!(
         run_async_test(TransportNotConfiguredCodeReviews.create(draft)),
-        Err(VcsError::TransportNotConfigured)
+        Err(CognitionError::TransportNotConfigured)
     );
     assert_eq!(
         run_async_test(TransportNotConfiguredCodeReviews.merge(code_review.clone())),
-        Err(VcsError::TransportNotConfigured)
+        Err(CognitionError::TransportNotConfigured)
     );
     assert_eq!(
         run_async_test(TransportNotConfiguredCodeReviews.delete(code_review.clone())),
-        Err(VcsError::TransportNotConfigured)
+        Err(CognitionError::TransportNotConfigured)
     );
     assert_eq!(
         run_async_test(
@@ -107,29 +138,29 @@ fn code_review_contract_reports_unconfigured_transport() -> VcsResult<()> {
                 .location(repo)
                 .list()
         ),
-        Err(VcsError::TransportNotConfigured)
+        Err(CognitionError::TransportNotConfigured)
     );
 
     Ok(())
 }
 
 #[test]
-fn pipeline_contract_reports_unconfigured_transport() -> VcsResult<()> {
-    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+fn pipeline_contract_reports_unconfigured_transport() -> CognitionResult<()> {
+    let repo = repo().owner("akira-io").name("git-cognition-rs").get();
     let list_query = pipeline().query().location(repo.clone()).list();
     let pipeline = pipeline().repo(repo).id("1").get();
     let result = run_async_test(TransportNotConfiguredPipelines.cancel(pipeline));
     let list_result = run_async_test(TransportNotConfiguredPipelines.list(list_query));
 
-    assert_eq!(result, Err(VcsError::TransportNotConfigured));
-    assert_eq!(list_result, Err(VcsError::TransportNotConfigured));
+    assert_eq!(result, Err(CognitionError::TransportNotConfigured));
+    assert_eq!(list_result, Err(CognitionError::TransportNotConfigured));
 
     Ok(())
 }
 
 #[test]
-fn release_contract_reports_unconfigured_transport() -> VcsResult<()> {
-    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+fn release_contract_reports_unconfigured_transport() -> CognitionResult<()> {
+    let repo = repo().owner("akira-io").name("git-cognition-rs").get();
     let release_resource = release().repo(repo.clone()).id("1").get();
     let result = run_async_test(TransportNotConfiguredReleases.get(repo.clone(), release_id("1")));
     let list_result = run_async_test(
@@ -140,15 +171,15 @@ fn release_contract_reports_unconfigured_transport() -> VcsResult<()> {
     );
 
     assert_eq!(release_resource.id().as_str(), "1");
-    assert_eq!(result, Err(VcsError::TransportNotConfigured));
-    assert_eq!(list_result, Err(VcsError::TransportNotConfigured));
+    assert_eq!(result, Err(CognitionError::TransportNotConfigured));
+    assert_eq!(list_result, Err(CognitionError::TransportNotConfigured));
 
     Ok(())
 }
 
 #[test]
-fn unsupported_release_contract_reports_unsupported_operation() -> VcsResult<()> {
-    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+fn unsupported_release_contract_reports_unsupported_operation() -> CognitionResult<()> {
+    let repo = repo().owner("akira-io").name("git-cognition-rs").get();
     let release_resource = release().repo(repo.clone()).id("1").get();
     let get_result = run_async_test(UnsupportedReleases.get(repo.clone(), release_id("1")));
     let list_result = run_async_test(
@@ -161,15 +192,15 @@ fn unsupported_release_contract_reports_unsupported_operation() -> VcsResult<()>
 
     assert!(matches!(
         get_result,
-        Err(VcsError::UnsupportedOperation(operation)) if operation == "release get"
+        Err(CognitionError::UnsupportedOperation(operation)) if operation == "release get"
     ));
     assert!(matches!(
         list_result,
-        Err(VcsError::UnsupportedOperation(operation)) if operation == "release list"
+        Err(CognitionError::UnsupportedOperation(operation)) if operation == "release list"
     ));
     assert!(matches!(
         delete_result,
-        Err(VcsError::UnsupportedOperation(operation)) if operation == "release delete"
+        Err(CognitionError::UnsupportedOperation(operation)) if operation == "release delete"
     ));
 
     Ok(())

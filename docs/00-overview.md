@@ -1,6 +1,6 @@
 # Overview
 
-`vcs-providers-rs` is a universal abstraction layer for Version Control System providers in Rust.
+`git-cognition-rs` is a universal abstraction layer for Version Control System providers in Rust.
 
 It is not a GitHub SDK. GitHub, GitLab, Bitbucket, and future providers are provider implementations behind provider-neutral Rust contracts.
 

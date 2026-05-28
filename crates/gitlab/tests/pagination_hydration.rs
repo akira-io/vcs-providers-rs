@@ -1,15 +1,15 @@
-use vcs_provider_core::{
+use git_cognition_core::{
     CodeReviewsFluent, IssuesFluent, Page, PipelinesFluent, ReleasesFluent, Repo, repo,
     run_async_test,
 };
-use vcs_provider_gitlab::gitlab;
+use git_cognition_gitlab::gitlab;
 
 #[test]
-fn gitlab_repo_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_repo_lists_preserve_next_cursor() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repositories = gitlab()
             .header("x-next-page", "3")
-            .body(r#"[{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}]"#)
+            .body(r#"[{"path_with_namespace":"akira-io/git-cognition-rs","visibility":"public"}]"#)
             .repos()
             .list(gitlab().repo().query().optional_pagination(None).list())
             .await?;
@@ -28,7 +28,7 @@ fn gitlab_repo_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<()> 
 }
 
 #[test]
-fn gitlab_collaboration_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_collaboration_lists_preserve_next_cursor() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let issues = gitlab()
             .header("x-next-page", "3")
@@ -61,7 +61,7 @@ fn gitlab_collaboration_lists_preserve_next_cursor() -> vcs_provider_core::VcsRe
 }
 
 #[test]
-fn gitlab_pipeline_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_pipeline_lists_preserve_next_cursor() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let pipelines = gitlab()
             .header("x-next-page", "3")
@@ -78,7 +78,7 @@ fn gitlab_pipeline_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<
 }
 
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }
 
 fn assert_next<T>(page: Page<T>, expected_next: &str) {

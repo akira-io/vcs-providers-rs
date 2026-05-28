@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{BoxFuture, Response, ResponseStatus};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum VcsError {
+pub enum CognitionError {
     Unauthorized,
     Forbidden,
     NotFound,
@@ -17,7 +17,7 @@ pub enum VcsError {
     InvalidInput(String),
 }
 
-impl VcsError {
+impl CognitionError {
     pub fn kind(&self) -> ErrorKind {
         match self {
             Self::Unauthorized => ErrorKind::Unauthorized,
@@ -35,10 +35,10 @@ impl VcsError {
     }
 }
 
-pub type VcsResult<T> = Result<T, VcsError>;
+pub type CognitionResult<T> = Result<T, CognitionError>;
 
-pub(crate) fn transport_not_configured<'a, T>() -> BoxFuture<'a, VcsResult<T>> {
-    Box::pin(async { Err(VcsError::TransportNotConfigured) })
+pub(crate) fn transport_not_configured<'a, T>() -> BoxFuture<'a, CognitionResult<T>> {
+    Box::pin(async { Err(CognitionError::TransportNotConfigured) })
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -60,36 +60,36 @@ pub enum ErrorKind {
 pub struct ErrorBuilder;
 
 impl ErrorBuilder {
-    pub fn from_response(self, response: &Response) -> Option<VcsError> {
+    pub fn from_response(self, response: &Response) -> Option<CognitionError> {
         self.from_status(response.status())
     }
 
-    pub fn from_status(self, status: &ResponseStatus) -> Option<VcsError> {
+    pub fn from_status(self, status: &ResponseStatus) -> Option<CognitionError> {
         match status.code() {
-            400 => Some(VcsError::InvalidInput("bad request".into())),
-            401 => Some(VcsError::Unauthorized),
-            403 => Some(VcsError::Forbidden),
-            404 => Some(VcsError::NotFound),
-            409 => Some(VcsError::Conflict),
-            429 => Some(VcsError::RateLimited),
-            500..=599 => Some(VcsError::ProviderUnavailable),
+            400 => Some(CognitionError::InvalidInput("bad request".into())),
+            401 => Some(CognitionError::Unauthorized),
+            403 => Some(CognitionError::Forbidden),
+            404 => Some(CognitionError::NotFound),
+            409 => Some(CognitionError::Conflict),
+            429 => Some(CognitionError::RateLimited),
+            500..=599 => Some(CognitionError::ProviderUnavailable),
             _ => None,
         }
     }
 
-    pub fn invalid_input(self, message: impl Into<String>) -> VcsError {
-        VcsError::InvalidInput(message.into())
+    pub fn invalid_input(self, message: impl Into<String>) -> CognitionError {
+        CognitionError::InvalidInput(message.into())
     }
 
-    pub fn unsupported_operation(self, operation: impl Into<String>) -> VcsError {
-        VcsError::UnsupportedOperation(operation.into())
+    pub fn unsupported_operation(self, operation: impl Into<String>) -> CognitionError {
+        CognitionError::UnsupportedOperation(operation.into())
     }
 
-    pub fn provider_already_registered(self, provider: impl Into<String>) -> VcsError {
-        VcsError::ProviderAlreadyRegistered(provider.into())
+    pub fn provider_already_registered(self, provider: impl Into<String>) -> CognitionError {
+        CognitionError::ProviderAlreadyRegistered(provider.into())
     }
 
-    pub fn provider_not_registered(self, provider: impl Into<String>) -> VcsError {
-        VcsError::ProviderNotRegistered(provider.into())
+    pub fn provider_not_registered(self, provider: impl Into<String>) -> CognitionError {
+        CognitionError::ProviderNotRegistered(provider.into())
     }
 }

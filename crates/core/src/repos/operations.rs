@@ -1,10 +1,12 @@
 use crate::repos::{BoxFuture, Repo, Repos, Visibility};
-use crate::{Repository, VcsResult};
+use crate::{Branch, CognitionResult, Repository};
 
 pub trait ReposFluent {
     fn create(self) -> RepoCreateOperation;
 
     fn update(self) -> RepoUpdateOperation;
+
+    fn branch(self) -> RepoBranchOperation;
 }
 
 impl ReposFluent for Box<dyn Repos> {
@@ -25,6 +27,15 @@ impl ReposFluent for Box<dyn Repos> {
             description: None,
         }
     }
+
+    fn branch(self) -> RepoBranchOperation {
+        RepoBranchOperation {
+            repos: self,
+            repo: None,
+            name: None,
+            sha: None,
+        }
+    }
 }
 
 pub struct RepoCreateOperation {
@@ -32,6 +43,71 @@ pub struct RepoCreateOperation {
     repo: Option<Repo>,
     visibility: Visibility,
     description: Option<String>,
+}
+
+pub struct RepoBranchOperation {
+    repos: Box<dyn Repos>,
+    repo: Option<Repo>,
+    name: Option<String>,
+    sha: Option<String>,
+}
+
+impl RepoBranchOperation {
+    pub fn location(mut self, repo: Repo) -> Self {
+        self.repo = Some(repo);
+        self
+    }
+
+    pub fn repo(self, repo: Repo) -> Self {
+        self.location(repo)
+    }
+
+    pub fn name(mut self, branch_name: impl Into<String>) -> Self {
+        self.name = Some(branch_name.into());
+        self
+    }
+
+    pub fn sha(mut self, sha: impl Into<String>) -> Self {
+        self.sha = Some(sha.into());
+        self
+    }
+
+    pub fn create(self) -> BoxFuture<'static, CognitionResult<Branch>> {
+        let Some(repo) = self.repo else {
+            return Box::pin(async { Err(crate::error().invalid_input("repository is required")) });
+        };
+
+        let Some(name) = self.name else {
+            return Box::pin(async {
+                Err(crate::error().invalid_input("branch name is required"))
+            });
+        };
+
+        let Some(sha) = self.sha else {
+            return Box::pin(async { Err(crate::error().invalid_input("branch sha is required")) });
+        };
+
+        let repos = self.repos;
+        let draft = crate::BranchDraft::make(repo, name, sha);
+
+        Box::pin(async move { Repos::create_branch(&*repos, draft).await })
+    }
+
+    pub fn delete(self) -> BoxFuture<'static, CognitionResult<()>> {
+        let Some(repo) = self.repo else {
+            return Box::pin(async { Err(crate::error().invalid_input("repository is required")) });
+        };
+
+        let Some(name) = self.name else {
+            return Box::pin(async {
+                Err(crate::error().invalid_input("branch name is required"))
+            });
+        };
+
+        let repos = self.repos;
+
+        Box::pin(async move { Repos::delete_branch(&*repos, repo, name).await })
+    }
 }
 
 impl RepoCreateOperation {
@@ -54,7 +130,7 @@ impl RepoCreateOperation {
         self
     }
 
-    pub fn create(self) -> BoxFuture<'static, VcsResult<Repository>> {
+    pub fn create(self) -> BoxFuture<'static, CognitionResult<Repository>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(crate::error().invalid_input("repository is required")) });
         };
@@ -99,7 +175,7 @@ impl RepoUpdateOperation {
         self
     }
 
-    pub fn update(self) -> BoxFuture<'static, VcsResult<Repository>> {
+    pub fn update(self) -> BoxFuture<'static, CognitionResult<Repository>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(crate::error().invalid_input("repository is required")) });
         };

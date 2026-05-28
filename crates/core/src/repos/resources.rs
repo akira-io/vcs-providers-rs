@@ -253,6 +253,73 @@ impl Branch {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct BranchDraft {
+    repo: Repo,
+    name: String,
+    sha: String,
+}
+
+impl BranchDraft {
+    pub fn make(repo: Repo, name: impl Into<String>, sha: impl Into<String>) -> Self {
+        Self {
+            repo,
+            name: name.into(),
+            sha: sha.into(),
+        }
+    }
+
+    pub fn repo(&self) -> &Repo {
+        &self.repo
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn sha(&self) -> &str {
+        &self.sha
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BranchDraftBuilder {
+    repo: Repo,
+    name: Option<String>,
+    sha: Option<String>,
+}
+
+impl BranchDraftBuilder {
+    pub fn make(repo: Repo) -> Self {
+        Self {
+            repo,
+            name: None,
+            sha: None,
+        }
+    }
+
+    pub fn name(mut self, name: impl Into<String>) -> Self {
+        self.name = Some(name.into());
+        self
+    }
+
+    pub fn sha(mut self, sha: impl Into<String>) -> Self {
+        self.sha = Some(sha.into());
+        self
+    }
+
+    pub fn get(self) -> crate::CognitionResult<BranchDraft> {
+        let name = self
+            .name
+            .ok_or_else(|| crate::error().invalid_input("branch name is required"))?;
+        let sha = self
+            .sha
+            .ok_or_else(|| crate::error().invalid_input("branch sha is required"))?;
+
+        Ok(BranchDraft::make(self.repo, name, sha))
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Commit {
     id: String,
 }

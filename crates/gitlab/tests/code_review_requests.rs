@@ -1,11 +1,11 @@
-use vcs_provider_core::RequestMethod;
-use vcs_provider_gitlab::gitlab;
+use git_cognition_core::RequestMethod;
+use git_cognition_gitlab::gitlab;
 
 #[test]
 fn gitlab_code_review_get_targets_repository_endpoint() {
     assert_eq!(
         code_review_resource().url().value(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/merge_requests/42"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/merge_requests/42"
     );
 }
 
@@ -14,7 +14,7 @@ fn gitlab_code_review_list_targets_repository_endpoint() {
     let code_reviews = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .code_reviews()
         .pagination()
         .limit(50)
@@ -23,7 +23,7 @@ fn gitlab_code_review_list_targets_repository_endpoint() {
 
     assert_eq!(
         code_reviews.url().value(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/merge_requests?per_page=50&page=2"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/merge_requests?per_page=50&page=2"
     );
 }
 
@@ -37,7 +37,7 @@ fn gitlab_code_review_builder_accepts_existing_repo() {
             .get()
             .url()
             .value(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/merge_requests/42"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/merge_requests/42"
     );
 }
 
@@ -86,7 +86,7 @@ fn gitlab_code_review_merge_builds_put_request() {
     assert_eq!(merge_request.method(), &RequestMethod::Put);
     assert_eq!(
         merge_request.url().as_str(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/merge_requests/42/merge"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/merge_requests/42/merge"
     );
 }
 
@@ -102,7 +102,7 @@ fn gitlab_code_review_close_builds_put_request() {
 }
 
 #[test]
-fn gitlab_code_review_delete_builds_delete_request() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_code_review_delete_builds_delete_request() -> git_cognition_core::CognitionResult<()> {
     let delete_request = code_review_resource().delete()?;
 
     assert_eq!(delete_request.method(), &RequestMethod::Delete);
@@ -110,19 +110,19 @@ fn gitlab_code_review_delete_builds_delete_request() -> vcs_provider_core::VcsRe
     Ok(())
 }
 
-fn repository() -> vcs_provider_core::ManagedRepo<vcs_provider_gitlab::GitLabProvider> {
+fn repository() -> git_cognition_core::ManagedRepo<git_cognition_gitlab::GitLabProvider> {
     gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get()
 }
 
 fn code_review_resource()
--> vcs_provider_core::ManagedCodeReview<vcs_provider_gitlab::GitLabProvider> {
+-> git_cognition_core::ManagedCodeReview<git_cognition_gitlab::GitLabProvider> {
     gitlab().code_review().repo(repository()).id("42").get()
 }
 
-fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
-    request.body().map(vcs_provider_core::RequestBody::as_str)
+fn request_body(request: &git_cognition_core::Request) -> Option<&str> {
+    request.body().map(git_cognition_core::RequestBody::as_str)
 }

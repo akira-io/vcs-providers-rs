@@ -8,7 +8,7 @@ Use the provider facade when the provider is known:
 let code_review = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .code_review("42")
     .get();
 
@@ -21,7 +21,7 @@ Use the repository collection builder for list URLs:
 let code_reviews = gitlab()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .code_reviews()
     .pagination()
     .limit(50)
@@ -36,7 +36,7 @@ If the provider uses cursor pagination, keep the cursor in the same chain:
 let code_reviews = bitbucket()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .code_reviews()
     .pagination()
     .limit(50)
@@ -52,7 +52,7 @@ If the repo already exists as a variable, pass it into the code review builder:
 let repo = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let code_review = github()
@@ -62,15 +62,15 @@ let code_review = github()
     .get();
 ```
 
-Use `vcs(driver)` when the provider is injected:
+Use `cognition().provider(driver)` when the provider is injected:
 
 ```rust
-let provider = vcs(gitlab());
+let provider = cognition().provider(gitlab());
 
 let code_review = provider
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .code_review("42")
     .get();
 ```
@@ -108,7 +108,7 @@ Create, update, close, merge, and delete requests should stay fluent at the call
 let repo = gitlab()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let create_request = gitlab()
@@ -146,7 +146,7 @@ gitlab()
     .await?;
 ```
 
-GitHub pull requests and Bitbucket pull requests do not expose a universal delete operation. Use `close` for those providers. Calling async `delete` returns `VcsError::UnsupportedOperation` unless the provider maps it to a real delete endpoint.
+GitHub pull requests and Bitbucket pull requests do not expose a universal delete operation. Use `close` for those providers. Calling async `delete` returns `CognitionError::UnsupportedOperation` unless the provider maps it to a real delete endpoint.
 
 Provider support:
 

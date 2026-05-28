@@ -1,14 +1,16 @@
 use std::sync::Arc;
 
-use vcs_provider_core::{
-    AuthCredential, CodeReviews, Issues, ManagedClientProvider, Pipelines, Provider,
-    ProviderClient, ProviderDescriptor, Releases, Repos, RequestHeader, Transport,
-    TransportBackedCodeReviews, TransportBackedPipelines, TransportBackedRepos, UnsupportedIssues,
+use git_cognition_core::{
+    AuthCredential, Authentication, CodeReviews, Issues, ManagedClientProvider, Organizations,
+    Pipelines, Provider, ProviderClient, ProviderDescriptor, Releases, Repos, RequestHeader,
+    Transport, TransportBackedAuthentication, TransportBackedCodeReviews, TransportBackedIssues,
+    TransportBackedOrganizations, TransportBackedPipelines, TransportBackedRepos,
     UnsupportedReleases,
 };
 
 use crate::mappers::{
-    BitbucketCodeReviewMapper, BitbucketPipelineMapper, BitbucketRepositoryMapper,
+    BitbucketCodeReviewMapper, BitbucketIssueMapper, BitbucketOrganizationMapper,
+    BitbucketPipelineMapper, BitbucketRepositoryMapper,
 };
 use crate::{BitbucketProvider, bitbucket};
 
@@ -26,6 +28,11 @@ pub struct BitbucketPipelinesTransportBuilder {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BitbucketReposTransportBuilder {
+    provider: BitbucketProvider,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BitbucketIssuesTransportBuilder {
     provider: BitbucketProvider,
 }
 
@@ -69,12 +76,41 @@ impl BitbucketClient {
         )
     }
 
+    pub fn authentication(&self) -> Box<dyn Authentication> {
+        Box::new(
+            TransportBackedAuthentication::make(self.provider.clone(), Arc::clone(&self.transport))
+                .with_headers(self.headers.clone()),
+        )
+    }
+
+    pub fn organizations(&self) -> Box<dyn Organizations> {
+        Box::new(
+            TransportBackedOrganizations::make(
+                self.provider.clone(),
+                Arc::clone(&self.transport),
+                BitbucketOrganizationMapper,
+            )
+            .with_headers(self.headers.clone()),
+        )
+    }
+
     pub fn pipelines(&self) -> Box<dyn Pipelines> {
         Box::new(
             TransportBackedPipelines::make(
                 self.provider.clone(),
                 Arc::clone(&self.transport),
                 BitbucketPipelineMapper,
+            )
+            .with_headers(self.headers.clone()),
+        )
+    }
+
+    pub fn issues(&self) -> Box<dyn Issues> {
+        Box::new(
+            TransportBackedIssues::make(
+                self.provider.clone(),
+                Arc::clone(&self.transport),
+                BitbucketIssueMapper,
             )
             .with_headers(self.headers.clone()),
         )
@@ -101,8 +137,16 @@ impl Provider for BitbucketClient {
         BitbucketClient::repos(self)
     }
 
+    fn authentication(&self) -> Box<dyn Authentication> {
+        BitbucketClient::authentication(self)
+    }
+
+    fn organizations(&self) -> Box<dyn Organizations> {
+        BitbucketClient::organizations(self)
+    }
+
     fn issues(&self) -> Box<dyn Issues> {
-        Box::<UnsupportedIssues>::default()
+        BitbucketClient::issues(self)
     }
 
     fn code_reviews(&self) -> Box<dyn CodeReviews> {
@@ -123,8 +167,8 @@ impl Provider for BitbucketClient {
 
     fn auth_header_style(
         &self,
-        auth_kind: vcs_provider_core::AuthKind,
-    ) -> vcs_provider_core::AuthHeaderStyle {
+        auth_kind: git_cognition_core::AuthKind,
+    ) -> git_cognition_core::AuthHeaderStyle {
         self.provider.auth_header_style(auth_kind)
     }
 }
@@ -138,6 +182,10 @@ impl ProviderClient for BitbucketClient {
 impl BitbucketProvider {
     pub fn repos(self) -> BitbucketReposTransportBuilder {
         BitbucketReposTransportBuilder { provider: self }
+    }
+
+    pub fn issues(self) -> BitbucketIssuesTransportBuilder {
+        BitbucketIssuesTransportBuilder { provider: self }
     }
 
     pub fn code_reviews(self) -> BitbucketCodeReviewsTransportBuilder {
@@ -168,6 +216,12 @@ impl ManagedClientProvider for BitbucketProvider {
 impl BitbucketReposTransportBuilder {
     pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Repos> {
         BitbucketClient::with_provider(self.provider, transport).repos()
+    }
+}
+
+impl BitbucketIssuesTransportBuilder {
+    pub fn transport(self, transport: impl Transport + 'static) -> Box<dyn Issues> {
+        BitbucketClient::with_provider(self.provider, transport).issues()
     }
 }
 

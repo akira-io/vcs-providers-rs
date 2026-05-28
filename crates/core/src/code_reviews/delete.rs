@@ -1,4 +1,4 @@
-use crate::{BoxFuture, CodeReviews, Repo, VcsResult, error};
+use crate::{BoxFuture, CodeReviews, CognitionResult, Repo, error};
 
 pub struct CodeReviewDeleteOperation {
     code_reviews: Box<dyn CodeReviews>,
@@ -25,7 +25,7 @@ impl CodeReviewDeleteOperation {
         self
     }
 
-    pub fn delete(self) -> BoxFuture<'static, VcsResult<()>> {
+    pub fn delete(self) -> BoxFuture<'static, CognitionResult<()>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };

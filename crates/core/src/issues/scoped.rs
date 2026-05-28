@@ -1,5 +1,5 @@
 use crate::{
-    BoxFuture, Issue, IssueId, IssuePatchBuilder, Issues, Page, Repo, VcsResult, error, issue,
+    BoxFuture, CognitionResult, Issue, IssueId, IssuePatchBuilder, Issues, Page, Repo, error, issue,
 };
 
 pub struct ScopedIssueOperation {
@@ -48,7 +48,7 @@ impl ScopedIssueOperation {
         self
     }
 
-    pub fn get(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn get(self) -> BoxFuture<'static, CognitionResult<Issue>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("issue id is required")) });
         };
@@ -59,14 +59,14 @@ impl ScopedIssueOperation {
         Box::pin(async move { Issues::get(&*issues, repo, IssueId::make(id)).await })
     }
 
-    pub fn list(self) -> BoxFuture<'static, VcsResult<Page<Issue>>> {
+    pub fn list(self) -> BoxFuture<'static, CognitionResult<Page<Issue>>> {
         let issues = self.issues;
         let query = issue().query().location(self.repo).list();
 
         Box::pin(async move { Issues::list(&*issues, query).await })
     }
 
-    pub fn create(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn create(self) -> BoxFuture<'static, CognitionResult<Issue>> {
         let Some(title) = self.title else {
             return Box::pin(async { Err(error().invalid_input("issue title is required")) });
         };
@@ -83,7 +83,7 @@ impl ScopedIssueOperation {
         Box::pin(async move { Issues::create(&*issues, draft).await })
     }
 
-    pub fn update(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn update(self) -> BoxFuture<'static, CognitionResult<Issue>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("issue id is required")) });
         };
@@ -109,7 +109,7 @@ impl ScopedIssueOperation {
         Box::pin(async move { Issues::update(&*issues, patch).await })
     }
 
-    pub fn close(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn close(self) -> BoxFuture<'static, CognitionResult<Issue>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("issue id is required")) });
         };
@@ -121,7 +121,7 @@ impl ScopedIssueOperation {
         Box::pin(async move { Issues::close(&*issues, patch).await })
     }
 
-    pub fn delete(self) -> BoxFuture<'static, VcsResult<()>> {
+    pub fn delete(self) -> BoxFuture<'static, CognitionResult<()>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("issue id is required")) });
         };

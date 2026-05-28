@@ -1,15 +1,15 @@
 use crate::{
-    AuthCredential, CodeReviews, HeaderMiddleware, Issues, ManagedClientProvider, Middleware,
-    Pipelines, Provider, ProviderClient, RateLimitHeaderProfileBuilder, RateLimitRecorder,
-    RateLimitTransport, Releases, Repos, Request, Response, RetryPolicy, RetryTransport,
-    TelemetryRecorder, TelemetryTransport, Transport, TransportPipelineBuilder, VcsManager,
-    VcsResult, middleware,
+    AuthCredential, Authentication, CodeReviews, CognitionManager, CognitionResult,
+    HeaderMiddleware, Issues, ManagedClientProvider, Middleware, Organizations, Pipelines,
+    Provider, ProviderClient, RateLimitHeaderProfileBuilder, RateLimitRecorder, RateLimitTransport,
+    Releases, Repos, Request, Response, RetryPolicy, RetryTransport, TelemetryRecorder,
+    TelemetryTransport, Transport, TransportPipelineBuilder, middleware,
 };
 use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct ManagedMiddlewareTransportBuilder<Driver, TransportState> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     pipeline: TransportPipelineBuilder<TransportState>,
     retry_enabled: bool,
     retry_attempts: u16,
@@ -21,7 +21,7 @@ pub struct ManagedMiddlewareTransportBuilder<Driver, TransportState> {
 }
 
 impl<Driver> ManagedMiddlewareTransportBuilder<Driver, crate::ProvidedTransport> {
-    pub fn make(manager: VcsManager<Driver>, transport: impl Transport + 'static) -> Self {
+    pub fn make(manager: CognitionManager<Driver>, transport: impl Transport + 'static) -> Self {
         Self {
             manager,
             pipeline: middleware().transport(transport),
@@ -120,6 +120,14 @@ where
         self.build().repos()
     }
 
+    pub fn authentication(self) -> Box<dyn Authentication> {
+        self.build().authentication()
+    }
+
+    pub fn organizations(self) -> Box<dyn Organizations> {
+        self.build().organizations()
+    }
+
     pub fn issues(self) -> Box<dyn Issues> {
         self.build().issues()
     }
@@ -183,7 +191,7 @@ impl SharedTransport {
 }
 
 impl Transport for SharedTransport {
-    fn send(&self, request: Request) -> crate::BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> crate::BoxFuture<'_, CognitionResult<Response>> {
         self.transport.send(request)
     }
 }

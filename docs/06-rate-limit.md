@@ -36,7 +36,7 @@ Rate limit observation can run inside the provider transport flow. The core rece
 ```rust
 let recorder = rate_limit().recorder();
 
-let repository = vcs(github())
+let repository = cognition().provider(github())
     .rate_limit(http().transport().get()?)
     .remaining(["x-ratelimit-remaining"])
     .reset_at(["x-ratelimit-reset"])
@@ -44,7 +44,7 @@ let repository = vcs(github())
     .cost(["x-ratelimit-used"])
     .recorder(recorder.clone())
     .repos()
-    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .get(repo().owner("akira-io").name("git-cognition-rs").get())
     .await?;
 
 let observations = recorder.observations();

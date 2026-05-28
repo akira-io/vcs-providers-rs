@@ -19,13 +19,13 @@ Bitbucket pull requests are modeled as universal code reviews. Bitbucket issues 
 GitHub and GitLab issue clients hydrate provider responses into provider-neutral `Issue` resources.
 
 ```rust
-use vcs_provider_core::IssuesFluent;
-use vcs_provider_github::github;
+use git_cognition_core::IssuesFluent;
+use git_cognition_github::github;
 
 let repo = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let created_issue = github()
@@ -53,20 +53,20 @@ let closed_issue = github()
     .await?;
 ```
 
-The fluent operation names are the action names: `create`, `update`, `close` and `delete`. GitLab issue deletion maps to the GitLab issue delete endpoint. GitHub issue deletion is intentionally reported as `VcsError::UnsupportedOperation`; GitHub callers should use `close`.
+The fluent operation names are the action names: `create`, `update`, `close` and `delete`. GitLab issue deletion maps to the GitLab issue delete endpoint. GitHub issue deletion is intentionally reported as `CognitionError::UnsupportedOperation`; GitHub callers should use `close`.
 
 ## Code Reviews
 
 Code reviews normalize GitHub pull requests, GitLab merge requests and Bitbucket pull requests behind the `CodeReview` resource.
 
 ```rust
-use vcs_provider_core::CodeReviewsFluent;
-use vcs_provider_gitlab::gitlab;
+use git_cognition_core::CodeReviewsFluent;
+use git_cognition_gitlab::gitlab;
 
 let repo = gitlab()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let created_code_review = gitlab()
@@ -105,20 +105,20 @@ gitlab()
     .await?;
 ```
 
-GitLab merge request deletion is available through `delete`. GitHub and Bitbucket code reviews use `close` for lifecycle changes and report `VcsError::UnsupportedOperation` for async `delete`.
+GitLab merge request deletion is available through `delete`. GitHub and Bitbucket code reviews use `close` for lifecycle changes and report `CognitionError::UnsupportedOperation` for async `delete`.
 
 ## Releases
 
 GitHub and GitLab releases hydrate into the universal `Release` resource.
 
 ```rust
-use vcs_provider_core::ReleasesFluent;
-use vcs_provider_github::github;
+use git_cognition_core::ReleasesFluent;
+use git_cognition_github::github;
 
 let repo = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let created_release = github()

@@ -1,5 +1,5 @@
 [package]
-name = "vcs-provider-github"
+name = "git-cognition-github"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -10,10 +10,10 @@ version.workspace = true
 futures.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-vcs-provider-core.workspace = true
+git-cognition-core.workspace = true
 
 [dev-dependencies]
-vcs-provider-core = { workspace = true, features = ["testing"] }
+git-cognition-core = { workspace = true, features = ["testing"] }
 
 [lints]
 workspace = true

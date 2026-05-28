@@ -1,5 +1,5 @@
 use crate::{
-    BoxFuture, CodeReview, CodeReviewDraft, CodeReviewId, CodeReviews, Page, Repo, VcsResult,
+    BoxFuture, CodeReview, CodeReviewDraft, CodeReviewId, CodeReviews, CognitionResult, Page, Repo,
     code_review, error,
 };
 
@@ -58,7 +58,7 @@ impl ScopedCodeReviewOperation {
         self
     }
 
-    pub fn get(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn get(self) -> BoxFuture<'static, CognitionResult<CodeReview>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("code review id is required")) });
         };
@@ -71,14 +71,14 @@ impl ScopedCodeReviewOperation {
         )
     }
 
-    pub fn list(self) -> BoxFuture<'static, VcsResult<Page<CodeReview>>> {
+    pub fn list(self) -> BoxFuture<'static, CognitionResult<Page<CodeReview>>> {
         let code_reviews = self.code_reviews;
         let query = code_review().query().location(self.repo).list();
 
         Box::pin(async move { CodeReviews::list(&*code_reviews, query).await })
     }
 
-    pub fn create(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn create(self) -> BoxFuture<'static, CognitionResult<CodeReview>> {
         let Some(title) = self.title else {
             return Box::pin(async { Err(error().invalid_input("code review title is required")) });
         };
@@ -103,7 +103,7 @@ impl ScopedCodeReviewOperation {
         Box::pin(async move { CodeReviews::create(&*code_reviews, draft).await })
     }
 
-    pub fn update(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn update(self) -> BoxFuture<'static, CognitionResult<CodeReview>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("code review id is required")) });
         };
@@ -129,7 +129,7 @@ impl ScopedCodeReviewOperation {
         Box::pin(async move { CodeReviews::update(&*code_reviews, patch).await })
     }
 
-    pub fn close(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn close(self) -> BoxFuture<'static, CognitionResult<CodeReview>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("code review id is required")) });
         };
@@ -140,7 +140,7 @@ impl ScopedCodeReviewOperation {
         Box::pin(async move { CodeReviews::close(&*code_reviews, code_review).await })
     }
 
-    pub fn merge(self) -> BoxFuture<'static, VcsResult<CodeReview>> {
+    pub fn merge(self) -> BoxFuture<'static, CognitionResult<CodeReview>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("code review id is required")) });
         };
@@ -151,7 +151,7 @@ impl ScopedCodeReviewOperation {
         Box::pin(async move { CodeReviews::merge(&*code_reviews, code_review).await })
     }
 
-    pub fn delete(self) -> BoxFuture<'static, VcsResult<()>> {
+    pub fn delete(self) -> BoxFuture<'static, CognitionResult<()>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("code review id is required")) });
         };

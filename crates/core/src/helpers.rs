@@ -1,12 +1,13 @@
 use crate::repos::{MissingOwnerName, MissingRepositoryName};
 use crate::{
-    AuthBuilder, Branch, Capability, CapabilitySet, CodeReviewBuilder, Commit, ErrorBuilder,
-    HttpBuilder, IssueBuilder, IssueId, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId,
-    MissingIssueRepo, MissingPipelineId, MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo,
-    PaginationBuilder, PipelineBuilder, ProviderId, ProviderRegistry, ProviderRegistryBuilder,
-    ProviderRuntimeBuilder, RateLimitBuilder, ReleaseBuilder, ReleaseId, RepoBuilder, RequestBody,
-    RequestBuilder, RequestUrlBuilder, ResponseBuilder, RetryBuilder, TelemetryBuilder,
-    TransportPipeline, TransportPipelineBuilder, VcsManagerBuilder,
+    AuthBuilder, Branch, Capability, CapabilitySet, CodeReviewBuilder, CognitionManagerBuilder,
+    Commit, ErrorBuilder, HttpBuilder, IssueBuilder, IssueId, LocalGitBuilder, MissingCodeReviewId,
+    MissingCodeReviewRepo, MissingIssueId, MissingIssueRepo, MissingPipelineId,
+    MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo, PaginationBuilder, PipelineBuilder,
+    ProviderId, ProviderRegistry, ProviderRegistryBuilder, ProviderRuntimeBuilder,
+    RateLimitBuilder, ReleaseBuilder, ReleaseId, RepoBuilder, RequestBody, RequestBuilder,
+    RequestUrlBuilder, ResponseBuilder, RetryBuilder, TelemetryBuilder, TransportPipeline,
+    TransportPipelineBuilder,
 };
 
 #[cfg(feature = "testing")]
@@ -22,6 +23,14 @@ pub fn capabilities() -> CapabilitySetBuilder {
 
 pub fn error() -> ErrorBuilder {
     ErrorBuilder
+}
+
+pub fn git() -> LocalGitBuilder {
+    LocalGitBuilder
+}
+
+pub fn cognition() -> CognitionManagerBuilder {
+    CognitionManagerBuilder
 }
 
 pub fn repo() -> RepoBuilder<MissingOwnerName, MissingRepositoryName> {
@@ -78,13 +87,6 @@ pub fn provider() -> ProviderRegistryBuilder {
 #[cfg(feature = "testing")]
 pub fn conformance() -> ProviderConformanceBuilder {
     crate::testing::conformance()
-}
-
-pub fn vcs<Driver>(driver: Driver) -> crate::VcsManager<Driver>
-where
-    Driver: crate::ManagedProvider,
-{
-    VcsManagerBuilder.driver(driver).build()
 }
 
 pub fn runtime() -> ProviderRuntimeBuilder {

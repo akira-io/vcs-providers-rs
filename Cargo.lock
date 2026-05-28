@@ -196,6 +196,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "git-cognition-bitbucket"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "git-cognition-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "git-cognition-core"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "reqwest",
+ "serde",
+]
+
+[[package]]
+name = "git-cognition-github"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "git-cognition-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "git-cognition-gitlab"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "git-cognition-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "http"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1004,55 +1043,6 @@ name = "utf8_iter"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
-
-[[package]]
-name = "vcs-provider-bitbucket"
-version = "0.1.0"
-dependencies = [
- "futures",
- "serde",
- "serde_json",
- "vcs-provider-core",
-]
-
-[[package]]
-name = "vcs-provider-core"
-version = "0.1.0"
-dependencies = [
- "futures",
- "reqwest",
- "serde",
-]
-
-[[package]]
-name = "vcs-provider-examples"
-version = "0.1.0"
-dependencies = [
- "vcs-provider-bitbucket",
- "vcs-provider-core",
- "vcs-provider-github",
- "vcs-provider-gitlab",
-]
-
-[[package]]
-name = "vcs-provider-github"
-version = "0.1.0"
-dependencies = [
- "futures",
- "serde",
- "serde_json",
- "vcs-provider-core",
-]
-
-[[package]]
-name = "vcs-provider-gitlab"
-version = "0.1.0"
-dependencies = [
- "futures",
- "serde",
- "serde_json",
- "vcs-provider-core",
-]
 
 [[package]]
 name = "want"

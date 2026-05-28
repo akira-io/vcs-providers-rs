@@ -3,9 +3,9 @@
 Repository runtime clients expose read and write operations through the universal `Repos` contract.
 
 ```rust
-let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+let repo = repo().owner("akira-io").name("git-cognition-rs").get();
 
-let repository = vcs(github())
+let repository = cognition().provider(github())
     .transport(http().transport().get()?)
     .auth(auth().personal_access_token("token"))
     .repos()
@@ -49,4 +49,4 @@ Sources:
 
 ## Delete Semantics
 
-Delete returns `VcsResult<()>` because providers commonly return a success status with no resource body. If the transport returns a non-success status, the universal error mapper still converts it into `VcsError`.
+Delete returns `CognitionResult<()>` because providers commonly return a success status with no resource body. If the transport returns a non-success status, the universal error mapper still converts it into `CognitionError`.

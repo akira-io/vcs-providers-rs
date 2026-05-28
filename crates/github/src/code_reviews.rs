@@ -1,8 +1,8 @@
-use serde::Serialize;
-use vcs_provider_core::{
+use git_cognition_core::{
     CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, Request, RequestBody,
     RequestUrl, request, request_body, url,
 };
+use serde::Serialize;
 
 use crate::{DEFAULT_BASE_URL, request_pagination::apply_page};
 

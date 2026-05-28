@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-use crate::{BoxFuture, Request, RequestHeader, Response, Transport, VcsResult};
+use crate::{BoxFuture, CognitionResult, Request, RequestHeader, Response, Transport};
 
 pub trait Middleware: Send + Sync {
-    fn handle(&self, request: Request) -> BoxFuture<'_, VcsResult<Request>>;
+    fn handle(&self, request: Request) -> BoxFuture<'_, CognitionResult<Request>>;
 }
 
 #[derive(Clone)]
@@ -22,7 +22,7 @@ impl TransportPipeline {
 }
 
 impl Transport for TransportPipeline {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         Box::pin(async move {
             let mut current_request = request;
 
@@ -97,7 +97,7 @@ impl HeaderMiddleware {
 }
 
 impl Middleware for HeaderMiddleware {
-    fn handle(&self, request: Request) -> BoxFuture<'_, VcsResult<Request>> {
+    fn handle(&self, request: Request) -> BoxFuture<'_, CognitionResult<Request>> {
         let header = self.header.clone();
 
         Box::pin(async move { Ok(request.with_header(header)) })

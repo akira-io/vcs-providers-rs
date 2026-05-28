@@ -36,7 +36,7 @@ Provider crates map typed drafts and patches into transport bodies without expos
 Transport implementations implement `Transport`:
 
 ```rust
-fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>>;
+fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>>;
 ```
 
 The transport trait is async-first and object-safe. Concrete HTTP clients belong behind transport implementations, not in public provider contracts.

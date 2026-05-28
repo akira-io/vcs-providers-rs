@@ -1,18 +1,18 @@
-use vcs_provider_core::{
+use git_cognition_core::{
     CodeReviewsFluent, IssuesFluent, Page, PipelinesFluent, ReleasesFluent, Repo, repo,
     run_async_test,
 };
-use vcs_provider_github::github;
+use git_cognition_github::github;
 
 const NEXT_LINK: &str =
-    r#"<https://api.github.com/repos/akira-io/vcs-providers-rs/items?page=2>; rel="next""#;
+    r#"<https://api.github.com/repos/akira-io/git-cognition-rs/items?page=2>; rel="next""#;
 
 #[test]
-fn github_repo_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<()> {
+fn github_repo_lists_preserve_next_cursor() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repositories = github()
             .header("link", NEXT_LINK)
-            .body(r#"[{"full_name":"akira-io/vcs-providers-rs","private":false}]"#)
+            .body(r#"[{"full_name":"akira-io/git-cognition-rs","private":false}]"#)
             .repos()
             .list(github().repo().query().optional_pagination(None).list())
             .await?;
@@ -31,7 +31,7 @@ fn github_repo_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<()> 
 }
 
 #[test]
-fn github_collaboration_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<()> {
+fn github_collaboration_lists_preserve_next_cursor() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let issues = github()
             .header("link", NEXT_LINK)
@@ -64,7 +64,7 @@ fn github_collaboration_lists_preserve_next_cursor() -> vcs_provider_core::VcsRe
 }
 
 #[test]
-fn github_pipeline_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<()> {
+fn github_pipeline_lists_preserve_next_cursor() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let pipelines = github()
             .header("link", NEXT_LINK)
@@ -81,7 +81,7 @@ fn github_pipeline_lists_preserve_next_cursor() -> vcs_provider_core::VcsResult<
 }
 
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }
 
 fn assert_next<T>(page: Page<T>, expected_next: &str) {

@@ -1,11 +1,11 @@
-use vcs_provider_core::RequestMethod;
-use vcs_provider_github::github;
+use git_cognition_core::RequestMethod;
+use git_cognition_github::github;
 
 #[test]
 fn github_code_review_get_targets_repository_endpoint() {
     assert_eq!(
         code_review_resource().url().value(),
-        "https://api.github.com/repos/akira-io/vcs-providers-rs/pulls/42"
+        "https://api.github.com/repos/akira-io/git-cognition-rs/pulls/42"
     );
 }
 
@@ -14,7 +14,7 @@ fn github_code_review_list_targets_repository_endpoint() {
     let code_reviews = github()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .code_reviews()
         .pagination()
         .limit(50)
@@ -23,7 +23,7 @@ fn github_code_review_list_targets_repository_endpoint() {
 
     assert_eq!(
         code_reviews.url().value(),
-        "https://api.github.com/repos/akira-io/vcs-providers-rs/pulls?per_page=50&page=2"
+        "https://api.github.com/repos/akira-io/git-cognition-rs/pulls?per_page=50&page=2"
     );
 }
 
@@ -37,7 +37,7 @@ fn github_code_review_builder_accepts_existing_repo() {
             .get()
             .url()
             .value(),
-        "https://api.github.com/repos/akira-io/vcs-providers-rs/pulls/42"
+        "https://api.github.com/repos/akira-io/git-cognition-rs/pulls/42"
     );
 }
 
@@ -86,7 +86,7 @@ fn github_code_review_merge_builds_put_request() {
     assert_eq!(merge_request.method(), &RequestMethod::Put);
     assert_eq!(
         merge_request.url().as_str(),
-        "https://api.github.com/repos/akira-io/vcs-providers-rs/pulls/42/merge"
+        "https://api.github.com/repos/akira-io/git-cognition-rs/pulls/42/merge"
     );
 }
 
@@ -98,19 +98,19 @@ fn github_code_review_close_builds_patch_request() {
     assert_eq!(request_body(&close_request), Some(r#"{"state":"closed"}"#));
 }
 
-fn repository() -> vcs_provider_core::ManagedRepo<vcs_provider_github::GitHubProvider> {
+fn repository() -> git_cognition_core::ManagedRepo<git_cognition_github::GitHubProvider> {
     github()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get()
 }
 
 fn code_review_resource()
--> vcs_provider_core::ManagedCodeReview<vcs_provider_github::GitHubProvider> {
+-> git_cognition_core::ManagedCodeReview<git_cognition_github::GitHubProvider> {
     github().code_review().repo(repository()).id("42").get()
 }
 
-fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
-    request.body().map(vcs_provider_core::RequestBody::as_str)
+fn request_body(request: &git_cognition_core::Request) -> Option<&str> {
+    request.body().map(git_cognition_core::RequestBody::as_str)
 }

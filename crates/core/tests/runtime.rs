@@ -1,7 +1,7 @@
 mod support;
 
-use vcs_provider_core::{
-    VcsError, VcsResult, auth, error, response, run_async_test, runtime, telemetry,
+use git_cognition_core::{
+    CognitionError, CognitionResult, auth, error, response, run_async_test, runtime, telemetry,
 };
 
 use support::EchoTransport;
@@ -24,7 +24,7 @@ fn runtime_builds_provider_request_with_auth() {
 }
 
 #[test]
-fn runtime_executes_transport_with_telemetry() -> VcsResult<()> {
+fn runtime_executes_transport_with_telemetry() -> CognitionResult<()> {
     let recorder = telemetry().recorder();
     let response = run_async_test(async {
         runtime()
@@ -63,6 +63,6 @@ fn runtime_maps_failed_response_status_to_universal_error() {
 
     assert_eq!(
         error().from_response(&response),
-        Some(VcsError::RateLimited)
+        Some(CognitionError::RateLimited)
     );
 }

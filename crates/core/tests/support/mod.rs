@@ -1,1 +1,1 @@
-pub use vcs_provider_core::EchoTransport;
+pub use git_cognition_core::EchoTransport;

@@ -4,7 +4,7 @@ Provider runtime composes a provider, transport, optional telemetry, request bui
 
 ```rust
 let runtime = runtime()
-    .with_provider(vcs_provider_github::github())
+    .with_provider(git_cognition_github::github())
     .transport(transport)
     .build();
 
@@ -20,7 +20,7 @@ Use `with_provider(...)` when the provider already exists and you want the short
 
 ```rust
 let response = runtime()
-    .with_provider(vcs_provider_github::github())
+    .with_provider(git_cognition_github::github())
     .transport(transport)
     .request()
     .get("/repos/akira-io/core")
@@ -33,7 +33,7 @@ Use `provider().from(...)` when you want the full fluent provider configuration 
 ```rust
 let response = runtime()
     .provider()
-    .from(vcs_provider_github::github())
+    .from(git_cognition_github::github())
     .transport(transport)
     .request()
     .get("/repos/akira-io/core")

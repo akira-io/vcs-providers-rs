@@ -3,10 +3,10 @@
 Provider request builders create provider-specific HTTP requests. Runtime-backed provider clients execute those requests through a configured HTTP transport and hydrate provider-neutral resources.
 
 ```rust
-let repository = vcs(github())
+let repository = cognition().provider(github())
     .transport(my_http_transport)
     .repos()
-    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .get(repo().owner("akira-io").name("git-cognition-rs").get())
     .await?;
 ```
 
@@ -20,10 +20,10 @@ Core owns the reusable execution contract:
 
 ```rust
 pub trait RepositoryResponseMapper {
-    fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository>;
-    fn repositories(&self, response: &Response) -> VcsResult<Page<Repository>>;
-    fn branches(&self, response: &Response) -> VcsResult<Page<Branch>>;
-    fn commits(&self, response: &Response) -> VcsResult<Page<Commit>>;
+    fn repository(&self, requested_repo: &Repo, response: &Response) -> CognitionResult<Repository>;
+    fn repositories(&self, response: &Response) -> CognitionResult<Page<Repository>>;
+    fn branches(&self, response: &Response) -> CognitionResult<Page<Branch>>;
+    fn commits(&self, response: &Response) -> CognitionResult<Page<Commit>>;
 }
 ```
 
@@ -48,21 +48,21 @@ Provider payload structs remain private. Public APIs expose only universal resou
 ```rust
 run_async_test(async {
     let repository = github()
-        .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+        .body(r#"{"full_name":"akira-io/git-cognition-rs","private":false}"#)
         .repos()
-        .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+        .get(repo().owner("akira-io").name("git-cognition-rs").get())
         .await?;
 
     Ok(())
 })?;
 ```
 
-The body is plain text at the client boundary. Providers choose the parser privately and must map parse failures into `VcsError`.
+The body is plain text at the client boundary. Providers choose the parser privately and must map parse failures into `CognitionError`.
 
 Tests that need request assertions can terminate the same fixture with `record()`:
 
 ```rust
 let transport = github()
-    .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+    .body(r#"{"full_name":"akira-io/git-cognition-rs","private":false}"#)
     .record();
 ```

@@ -6,11 +6,11 @@ use crate::{
     RequestUrl,
 };
 
-use super::{ManagedCodeReviewProvider, VcsManager};
+use super::{CognitionManager, ManagedCodeReviewProvider};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedCodeReviewBuilder<Driver, RepoState, CodeReviewIdState> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) code_review: CodeReviewBuilder<RepoState, CodeReviewIdState>,
 }
 
@@ -88,7 +88,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedCodeReviewDraftBuilder<Driver, RepoState, TitleState> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     draft: CodeReviewDraftBuilder<RepoState, TitleState>,
 }
 
@@ -157,7 +157,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedCodeReview<Driver> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) code_review: CodeReview,
 }
 
@@ -188,7 +188,7 @@ where
             .driver
             .code_review_merge_request(&self.code_review)
     }
-    pub fn delete(&self) -> crate::VcsResult<Request> {
+    pub fn delete(&self) -> crate::CognitionResult<Request> {
         self.manager
             .driver
             .code_review_delete_request(&self.code_review)
@@ -197,7 +197,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedCodeReviewCollection<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
 }
 
 impl<Driver> ManagedCodeReviewCollection<Driver>
@@ -211,7 +211,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoCodeReviews<Driver> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) repo: Repo,
     pub(super) page: Option<PageRequest>,
 }
@@ -244,7 +244,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoCodeReviewsPagination<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     repo: Repo,
     page: PageRequestBuilder,
 }

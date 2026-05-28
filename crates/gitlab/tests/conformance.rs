@@ -1,18 +1,24 @@
-use vcs_provider_core::{AuthHeaderStyle, AuthKind, Capability, VcsResult, conformance};
-use vcs_provider_gitlab::{DISPLAY_NAME, PROVIDER_ID, gitlab};
+use git_cognition_core::{AuthHeaderStyle, AuthKind, Capability, CognitionResult, conformance};
+use git_cognition_gitlab::{DISPLAY_NAME, PROVIDER_ID, gitlab};
 
 #[test]
-fn gitlab_provider_passes_common_conformance_suite() -> VcsResult<()> {
+fn gitlab_provider_passes_common_conformance_suite() -> CognitionResult<()> {
     conformance()
         .provider(gitlab())
         .id(PROVIDER_ID)
         .display_name(DISPLAY_NAME)
         .supports([
+            Capability::Authentication,
+            Capability::AuthenticationValidate,
+            Capability::Organizations,
+            Capability::OrganizationList,
             Capability::Repos,
             Capability::RepoGet,
             Capability::RepoList,
             Capability::RepoSearch,
             Capability::RepoBranches,
+            Capability::RepoBranchCreate,
+            Capability::RepoBranchDelete,
             Capability::RepoCommits,
             Capability::RepoCreate,
             Capability::RepoUpdate,
@@ -45,11 +51,7 @@ fn gitlab_provider_passes_common_conformance_suite() -> VcsResult<()> {
             Capability::ReleaseDelete,
             Capability::SelfHosted,
         ])
-        .does_not_support([
-            Capability::Organizations,
-            Capability::Discussions,
-            Capability::Webhooks,
-        ])
+        .does_not_support([Capability::Discussions, Capability::Webhooks])
         .auth(
             AuthKind::PersonalAccessToken,
             AuthHeaderStyle::CustomHeader("private-token".into()),

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{BoxFuture, Page, Repo, VcsResult, transport_not_configured};
+use crate::{BoxFuture, CognitionResult, Page, Repo, transport_not_configured};
 
 #[path = "pipelines/queries.rs"]
 mod queries;
@@ -19,9 +19,9 @@ pub trait ManagedPipelineProvider: crate::ManagedProvider {
 
     fn pipeline_list_url(&self, query: &PipelineListQuery) -> crate::RequestUrl;
 
-    fn pipeline_rerun_request(&self, pipeline: &Pipeline) -> VcsResult<crate::Request>;
+    fn pipeline_rerun_request(&self, pipeline: &Pipeline) -> CognitionResult<crate::Request>;
 
-    fn pipeline_cancel_request(&self, pipeline: &Pipeline) -> VcsResult<crate::Request>;
+    fn pipeline_cancel_request(&self, pipeline: &Pipeline) -> CognitionResult<crate::Request>;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -126,32 +126,32 @@ impl PipelineBuilder<MissingPipelineRepo, MissingPipelineId> {
 }
 
 pub trait Pipelines: Send + Sync {
-    fn get(&self, repo: Repo, id: PipelineId) -> BoxFuture<'_, VcsResult<Pipeline>>;
+    fn get(&self, repo: Repo, id: PipelineId) -> BoxFuture<'_, CognitionResult<Pipeline>>;
 
-    fn list(&self, query: PipelineListQuery) -> BoxFuture<'_, VcsResult<Page<Pipeline>>>;
+    fn list(&self, query: PipelineListQuery) -> BoxFuture<'_, CognitionResult<Page<Pipeline>>>;
 
-    fn rerun(&self, pipeline: Pipeline) -> BoxFuture<'_, VcsResult<Pipeline>>;
+    fn rerun(&self, pipeline: Pipeline) -> BoxFuture<'_, CognitionResult<Pipeline>>;
 
-    fn cancel(&self, pipeline: Pipeline) -> BoxFuture<'_, VcsResult<Pipeline>>;
+    fn cancel(&self, pipeline: Pipeline) -> BoxFuture<'_, CognitionResult<Pipeline>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TransportNotConfiguredPipelines;
 
 impl Pipelines for TransportNotConfiguredPipelines {
-    fn get(&self, _repo: Repo, _id: PipelineId) -> BoxFuture<'_, VcsResult<Pipeline>> {
+    fn get(&self, _repo: Repo, _id: PipelineId) -> BoxFuture<'_, CognitionResult<Pipeline>> {
         transport_not_configured()
     }
 
-    fn list(&self, _query: PipelineListQuery) -> BoxFuture<'_, VcsResult<Page<Pipeline>>> {
+    fn list(&self, _query: PipelineListQuery) -> BoxFuture<'_, CognitionResult<Page<Pipeline>>> {
         transport_not_configured()
     }
 
-    fn rerun(&self, _pipeline: Pipeline) -> BoxFuture<'_, VcsResult<Pipeline>> {
+    fn rerun(&self, _pipeline: Pipeline) -> BoxFuture<'_, CognitionResult<Pipeline>> {
         transport_not_configured()
     }
 
-    fn cancel(&self, _pipeline: Pipeline) -> BoxFuture<'_, VcsResult<Pipeline>> {
+    fn cancel(&self, _pipeline: Pipeline) -> BoxFuture<'_, CognitionResult<Pipeline>> {
         transport_not_configured()
     }
 }

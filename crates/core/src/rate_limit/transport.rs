@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use super::{RateLimitHeaderProfile, RateLimitHeaderProfileBuilder, RateLimitObservation};
-use crate::{BoxFuture, Request, Response, Transport, VcsResult};
+use crate::{BoxFuture, CognitionResult, Request, Response, Transport};
 
 #[derive(Clone)]
 pub struct ProvidedRateLimitTransport {
@@ -111,7 +111,7 @@ impl RateLimitTransport {
 }
 
 impl Transport for RateLimitTransport {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         Box::pin(async move {
             let response = self.transport.send(request).await?;
             self.recorder.record(self.headers.observe(&response));

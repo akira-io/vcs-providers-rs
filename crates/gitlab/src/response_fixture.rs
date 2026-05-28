@@ -1,6 +1,6 @@
-use vcs_provider_core::{
-    CodeReviews, Issues, Pipelines, RecordingTransport, Releases, Repos, ResponseBuilder,
-    SingleResponseTransport, response, test_transport,
+use git_cognition_core::{
+    Authentication, CodeReviews, Issues, Organizations, Pipelines, RecordingTransport, Releases,
+    Repos, ResponseBuilder, SingleResponseTransport, response, test_transport,
 };
 
 use crate::{GitLabClient, GitLabProvider};
@@ -36,6 +36,14 @@ impl GitLabResponseBuilder {
 
     pub fn repos(self) -> Box<dyn Repos> {
         self.client().repos()
+    }
+
+    pub fn authentication(self) -> Box<dyn Authentication> {
+        self.client().authentication()
+    }
+
+    pub fn organizations(self) -> Box<dyn Organizations> {
+        self.client().organizations()
     }
 
     pub fn issues(self) -> Box<dyn Issues> {
@@ -83,7 +91,7 @@ impl GitLabProvider {
         GitLabResponseBuilder::make(self).body(body)
     }
 
-    pub fn responses(self) -> vcs_provider_core::TestTransportSequenceBuilder {
+    pub fn responses(self) -> git_cognition_core::TestTransportSequenceBuilder {
         test_transport().responses()
     }
 }

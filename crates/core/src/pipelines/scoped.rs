@@ -1,5 +1,6 @@
 use crate::{
-    BoxFuture, Page, PageRequestBuilder, Pipeline, PipelineId, Pipelines, Repo, VcsResult, error,
+    BoxFuture, CognitionResult, Page, PageRequestBuilder, Pipeline, PipelineId, Pipelines, Repo,
+    error,
 };
 
 pub trait PipelinesFluent {
@@ -40,7 +41,7 @@ impl ScopedPipelineOperation {
         }
     }
 
-    pub fn get(self) -> BoxFuture<'static, VcsResult<Pipeline>> {
+    pub fn get(self) -> BoxFuture<'static, CognitionResult<Pipeline>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("pipeline id is required")) });
         };
@@ -51,14 +52,14 @@ impl ScopedPipelineOperation {
         Box::pin(async move { Pipelines::get(&*pipelines, repo, PipelineId::make(id)).await })
     }
 
-    pub fn list(self) -> BoxFuture<'static, VcsResult<Page<Pipeline>>> {
+    pub fn list(self) -> BoxFuture<'static, CognitionResult<Page<Pipeline>>> {
         let pipelines = self.pipelines;
         let query = crate::pipeline().query().location(self.repo).list();
 
         Box::pin(async move { Pipelines::list(&*pipelines, query).await })
     }
 
-    pub fn rerun(self) -> BoxFuture<'static, VcsResult<Pipeline>> {
+    pub fn rerun(self) -> BoxFuture<'static, CognitionResult<Pipeline>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("pipeline id is required")) });
         };
@@ -69,7 +70,7 @@ impl ScopedPipelineOperation {
         Box::pin(async move { Pipelines::rerun(&*pipelines, pipeline).await })
     }
 
-    pub fn cancel(self) -> BoxFuture<'static, VcsResult<Pipeline>> {
+    pub fn cancel(self) -> BoxFuture<'static, CognitionResult<Pipeline>> {
         let Some(id) = self.id else {
             return Box::pin(async { Err(error().invalid_input("pipeline id is required")) });
         };
@@ -98,7 +99,7 @@ impl PipelinePaginationOperation {
         self
     }
 
-    pub fn list(self) -> BoxFuture<'static, VcsResult<Page<Pipeline>>> {
+    pub fn list(self) -> BoxFuture<'static, CognitionResult<Page<Pipeline>>> {
         let pipelines = self.pipelines;
         let query = crate::pipeline()
             .query()

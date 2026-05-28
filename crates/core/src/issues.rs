@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{BoxFuture, Page, Repo, VcsError, VcsResult, transport_not_configured};
+use crate::{BoxFuture, CognitionError, CognitionResult, Page, Repo, transport_not_configured};
 
 #[path = "issues/drafts.rs"]
 mod drafts;
@@ -191,44 +191,44 @@ impl IssueBuilder<MissingIssueRepo, MissingIssueId> {
 }
 
 pub trait Issues: Send + Sync {
-    fn get(&self, repo: Repo, id: IssueId) -> BoxFuture<'_, VcsResult<Issue>>;
+    fn get(&self, repo: Repo, id: IssueId) -> BoxFuture<'_, CognitionResult<Issue>>;
 
-    fn list(&self, query: IssueListQuery) -> BoxFuture<'_, VcsResult<Page<Issue>>>;
+    fn list(&self, query: IssueListQuery) -> BoxFuture<'_, CognitionResult<Page<Issue>>>;
 
-    fn create(&self, draft: IssueDraft) -> BoxFuture<'_, VcsResult<Issue>>;
+    fn create(&self, draft: IssueDraft) -> BoxFuture<'_, CognitionResult<Issue>>;
 
-    fn update(&self, patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>>;
+    fn update(&self, patch: IssuePatch) -> BoxFuture<'_, CognitionResult<Issue>>;
 
-    fn close(&self, patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>>;
+    fn close(&self, patch: IssuePatch) -> BoxFuture<'_, CognitionResult<Issue>>;
 
-    fn delete(&self, issue: Issue) -> BoxFuture<'_, VcsResult<()>>;
+    fn delete(&self, issue: Issue) -> BoxFuture<'_, CognitionResult<()>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TransportNotConfiguredIssues;
 
 impl Issues for TransportNotConfiguredIssues {
-    fn get(&self, _repo: Repo, _id: IssueId) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn get(&self, _repo: Repo, _id: IssueId) -> BoxFuture<'_, CognitionResult<Issue>> {
         transport_not_configured()
     }
 
-    fn list(&self, _query: IssueListQuery) -> BoxFuture<'_, VcsResult<Page<Issue>>> {
+    fn list(&self, _query: IssueListQuery) -> BoxFuture<'_, CognitionResult<Page<Issue>>> {
         transport_not_configured()
     }
 
-    fn create(&self, _draft: IssueDraft) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn create(&self, _draft: IssueDraft) -> BoxFuture<'_, CognitionResult<Issue>> {
         transport_not_configured()
     }
 
-    fn update(&self, _patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn update(&self, _patch: IssuePatch) -> BoxFuture<'_, CognitionResult<Issue>> {
         transport_not_configured()
     }
 
-    fn close(&self, _patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn close(&self, _patch: IssuePatch) -> BoxFuture<'_, CognitionResult<Issue>> {
         transport_not_configured()
     }
 
-    fn delete(&self, _issue: Issue) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete(&self, _issue: Issue) -> BoxFuture<'_, CognitionResult<()>> {
         transport_not_configured()
     }
 }
@@ -237,31 +237,33 @@ impl Issues for TransportNotConfiguredIssues {
 pub struct UnsupportedIssues;
 
 impl Issues for UnsupportedIssues {
-    fn get(&self, _repo: Repo, _id: IssueId) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn get(&self, _repo: Repo, _id: IssueId) -> BoxFuture<'_, CognitionResult<Issue>> {
         unsupported_issue_operation("issue get")
     }
 
-    fn list(&self, _query: IssueListQuery) -> BoxFuture<'_, VcsResult<Page<Issue>>> {
+    fn list(&self, _query: IssueListQuery) -> BoxFuture<'_, CognitionResult<Page<Issue>>> {
         unsupported_issue_operation("issue list")
     }
 
-    fn create(&self, _draft: IssueDraft) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn create(&self, _draft: IssueDraft) -> BoxFuture<'_, CognitionResult<Issue>> {
         unsupported_issue_operation("issue create")
     }
 
-    fn update(&self, _patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn update(&self, _patch: IssuePatch) -> BoxFuture<'_, CognitionResult<Issue>> {
         unsupported_issue_operation("issue update")
     }
 
-    fn close(&self, _patch: IssuePatch) -> BoxFuture<'_, VcsResult<Issue>> {
+    fn close(&self, _patch: IssuePatch) -> BoxFuture<'_, CognitionResult<Issue>> {
         unsupported_issue_operation("issue close")
     }
 
-    fn delete(&self, _issue: Issue) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete(&self, _issue: Issue) -> BoxFuture<'_, CognitionResult<()>> {
         unsupported_issue_operation("issue delete")
     }
 }
 
-fn unsupported_issue_operation<'a, T>(operation: &'static str) -> BoxFuture<'a, VcsResult<T>> {
-    Box::pin(async move { Err(VcsError::UnsupportedOperation(operation.into())) })
+fn unsupported_issue_operation<'a, T>(
+    operation: &'static str,
+) -> BoxFuture<'a, CognitionResult<T>> {
+    Box::pin(async move { Err(CognitionError::UnsupportedOperation(operation.into())) })
 }

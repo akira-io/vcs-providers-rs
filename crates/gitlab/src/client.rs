@@ -1,15 +1,16 @@
 use std::sync::Arc;
 
-use vcs_provider_core::{
-    AuthCredential, CodeReviews, Issues, ManagedClientProvider, Pipelines, Provider,
-    ProviderClient, ProviderDescriptor, Releases, Repos, RequestHeader, Transport,
-    TransportBackedCodeReviews, TransportBackedIssues, TransportBackedPipelines,
-    TransportBackedReleases, TransportBackedRepos,
+use git_cognition_core::{
+    AuthCredential, Authentication, CodeReviews, Issues, ManagedClientProvider, Organizations,
+    Pipelines, Provider, ProviderClient, ProviderDescriptor, Releases, Repos, RequestHeader,
+    Transport, TransportBackedAuthentication, TransportBackedCodeReviews, TransportBackedIssues,
+    TransportBackedOrganizations, TransportBackedPipelines, TransportBackedReleases,
+    TransportBackedRepos,
 };
 
 use crate::mappers::{
-    GitLabCodeReviewMapper, GitLabIssueMapper, GitLabPipelineMapper, GitLabReleaseMapper,
-    GitLabRepositoryMapper,
+    GitLabCodeReviewMapper, GitLabIssueMapper, GitLabOrganizationMapper, GitLabPipelineMapper,
+    GitLabReleaseMapper, GitLabRepositoryMapper,
 };
 use crate::{GitLabProvider, gitlab};
 
@@ -113,6 +114,24 @@ impl GitLabClient {
         )
     }
 
+    pub fn authentication(&self) -> Box<dyn Authentication> {
+        Box::new(
+            TransportBackedAuthentication::make(self.provider.clone(), Arc::clone(&self.transport))
+                .with_headers(self.headers.clone()),
+        )
+    }
+
+    pub fn organizations(&self) -> Box<dyn Organizations> {
+        Box::new(
+            TransportBackedOrganizations::make(
+                self.provider.clone(),
+                Arc::clone(&self.transport),
+                GitLabOrganizationMapper,
+            )
+            .with_headers(self.headers.clone()),
+        )
+    }
+
     pub fn auth(mut self, credential: AuthCredential) -> Self {
         if let Some(header) = self.provider.auth_header(&credential) {
             self.headers.push(RequestHeader::make(
@@ -132,6 +151,14 @@ impl Provider for GitLabClient {
 
     fn repos(&self) -> Box<dyn Repos> {
         GitLabClient::repos(self)
+    }
+
+    fn authentication(&self) -> Box<dyn Authentication> {
+        GitLabClient::authentication(self)
+    }
+
+    fn organizations(&self) -> Box<dyn Organizations> {
+        GitLabClient::organizations(self)
     }
 
     fn issues(&self) -> Box<dyn Issues> {
@@ -156,8 +183,8 @@ impl Provider for GitLabClient {
 
     fn auth_header_style(
         &self,
-        auth_kind: vcs_provider_core::AuthKind,
-    ) -> vcs_provider_core::AuthHeaderStyle {
+        auth_kind: git_cognition_core::AuthKind,
+    ) -> git_cognition_core::AuthHeaderStyle {
         self.provider.auth_header_style(auth_kind)
     }
 }

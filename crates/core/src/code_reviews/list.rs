@@ -1,6 +1,6 @@
 use crate::{
-    BoxFuture, CodeReview, CodeReviews, Page, PageRequest, PageRequestBuilder, Repo, VcsResult,
-    code_review, error,
+    BoxFuture, CodeReview, CodeReviews, CognitionResult, Page, PageRequest, PageRequestBuilder,
+    Repo, code_review, error,
 };
 
 pub struct CodeReviewListOperation {
@@ -31,7 +31,7 @@ impl CodeReviewListOperation {
         }
     }
 
-    pub fn list(self) -> BoxFuture<'static, VcsResult<Page<CodeReview>>> {
+    pub fn list(self) -> BoxFuture<'static, CognitionResult<Page<CodeReview>>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };

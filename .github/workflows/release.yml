@@ -68,7 +68,7 @@ jobs:
           color: "3447003"
           username: "GitHub Releases"
           avatar_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-          content: "New vcs-providers-rs release published."
-          footer_title: "akira-io/vcs-providers-rs"
+          content: "New git-cognition-rs release published."
+          footer_title: "akira-io/git-cognition-rs"
           footer_icon_url: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
           footer_timestamp: true

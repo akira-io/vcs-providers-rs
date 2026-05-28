@@ -3,7 +3,7 @@ use std::time::{Duration, Instant};
 
 use serde::{Deserialize, Serialize};
 
-use crate::{BoxFuture, Request, Response, Transport, VcsResult};
+use crate::{BoxFuture, CognitionResult, Request, Response, Transport};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum TelemetryEvent {
@@ -186,7 +186,7 @@ impl TelemetryTransport {
 }
 
 impl Transport for TelemetryTransport {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         Box::pin(async move {
             self.sink
                 .record(TelemetryEvent::RequestStarted(RequestTelemetry::make(

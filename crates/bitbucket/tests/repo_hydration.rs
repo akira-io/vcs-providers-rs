@@ -1,18 +1,18 @@
-use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::{LifecycleState, Repo, ReposFluent, Visibility, repo, run_async_test};
+use git_cognition_bitbucket::bitbucket;
+use git_cognition_core::{LifecycleState, Repo, ReposFluent, Visibility, repo, run_async_test};
 
 #[test]
-fn bitbucket_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_repository() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repository = bitbucket()
-            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
+            .body(r#"{"full_name":"akira-io/git-cognition-rs","is_private":false}"#)
             .repos()
             .get(repository_location())
             .await?;
 
         assert_eq!(repository.provider().as_str(), "bitbucket");
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
-        assert_eq!(repository.repo().name().as_str(), "vcs-providers-rs");
+        assert_eq!(repository.repo().name().as_str(), "git-cognition-rs");
         assert_eq!(repository.visibility(), &Visibility::Public);
         assert_eq!(repository.lifecycle_state(), &LifecycleState::Active);
 
@@ -21,10 +21,10 @@ fn bitbucket_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
 }
 
 #[test]
-fn bitbucket_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_repository_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repositories = bitbucket()
-            .body(r#"{"values":[{"full_name":"akira-io/vcs-providers-rs","is_private":true}]}"#)
+            .body(r#"{"values":[{"full_name":"akira-io/git-cognition-rs","is_private":true}]}"#)
             .repos()
             .list(bitbucket().repo().query().optional_pagination(None).list())
             .await?;
@@ -37,10 +37,10 @@ fn bitbucket_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<(
 }
 
 #[test]
-fn bitbucket_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_repository_create() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repository = bitbucket()
-            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":true}"#)
+            .body(r#"{"full_name":"akira-io/git-cognition-rs","is_private":true}"#)
             .repos()
             .create()
             .location(repository_location())
@@ -56,10 +56,10 @@ fn bitbucket_client_hydrates_repository_create() -> vcs_provider_core::VcsResult
 }
 
 #[test]
-fn bitbucket_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_repository_update() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repository = bitbucket()
-            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
+            .body(r#"{"full_name":"akira-io/git-cognition-rs","is_private":false}"#)
             .repos()
             .update()
             .location(repository_location())
@@ -75,7 +75,7 @@ fn bitbucket_client_hydrates_repository_update() -> vcs_provider_core::VcsResult
 }
 
 #[test]
-fn bitbucket_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_deletes_repository() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         bitbucket()
             .status(204)
@@ -86,7 +86,7 @@ fn bitbucket_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
 }
 
 #[test]
-fn bitbucket_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_branches_and_commits() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let branch_page = bitbucket()
             .body(r#"{"values":[{"name":"main"}]}"#)
@@ -106,6 +106,39 @@ fn bitbucket_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsRes
     })
 }
 
+#[test]
+fn bitbucket_client_hydrates_branch_create() -> git_cognition_core::CognitionResult<()> {
+    run_async_test(async {
+        let branch = bitbucket()
+            .body(r#"{"name":"feature"}"#)
+            .repos()
+            .branch()
+            .location(repository_location())
+            .name("feature")
+            .sha("abc123")
+            .create()
+            .await?;
+
+        assert_eq!(branch.name(), "feature");
+
+        Ok(())
+    })
+}
+
+#[test]
+fn bitbucket_client_deletes_branch() -> git_cognition_core::CognitionResult<()> {
+    run_async_test(async {
+        bitbucket()
+            .status(204)
+            .repos()
+            .branch()
+            .location(repository_location())
+            .name("feature")
+            .delete()
+            .await
+    })
+}
+
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }

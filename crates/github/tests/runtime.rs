@@ -1,8 +1,8 @@
-use vcs_provider_core::{EchoTransport, VcsResult, run_async_test, runtime};
-use vcs_provider_github::github;
+use git_cognition_core::{CognitionResult, EchoTransport, run_async_test, runtime};
+use git_cognition_github::github;
 
 #[test]
-fn github_provider_runs_through_core_runtime() -> VcsResult<()> {
+fn github_provider_runs_through_core_runtime() -> CognitionResult<()> {
     let response = run_async_test(async {
         runtime()
             .with_provider(github())
@@ -19,7 +19,7 @@ fn github_provider_runs_through_core_runtime() -> VcsResult<()> {
 }
 
 #[test]
-fn github_provider_runs_through_fluent_provider_configuration() -> VcsResult<()> {
+fn github_provider_runs_through_fluent_provider_configuration() -> CognitionResult<()> {
     let response = run_async_test(async {
         runtime()
             .provider()

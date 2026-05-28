@@ -1,4 +1,6 @@
-use vcs_provider_core::{Transport, rate_limit, request, response, run_async_test, test_transport};
+use git_cognition_core::{
+    Transport, rate_limit, request, response, run_async_test, test_transport,
+};
 
 #[test]
 fn rate_limit_profile_reads_configured_headers() {
@@ -72,7 +74,7 @@ fn rate_limit_profile_matches_headers_case_insensitively() {
 }
 
 #[test]
-fn rate_limit_transport_records_configured_headers() -> vcs_provider_core::VcsResult<()> {
+fn rate_limit_transport_records_configured_headers() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
         let response_transport = test_transport()

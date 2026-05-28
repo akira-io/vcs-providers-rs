@@ -8,7 +8,7 @@ Use the provider facade when the provider is known:
 let issue = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .issue("42")
     .get();
 
@@ -21,7 +21,7 @@ Use the collection builder for list URLs:
 let issues = gitlab()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .issues()
     .pagination()
     .limit(50)
@@ -36,7 +36,7 @@ If the provider uses cursor pagination, keep the pagination in the same chain:
 let issues = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .issues()
     .pagination()
     .limit(50)
@@ -52,7 +52,7 @@ If the repo already exists as a variable, pass it into the issue builder:
 let repo = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let issue = github()
@@ -62,15 +62,15 @@ let issue = github()
     .get();
 ```
 
-Use `vcs(driver)` when the provider is injected:
+Use `cognition().provider(driver)` when the provider is injected:
 
 ```rust
-let provider = vcs(gitlab());
+let provider = cognition().provider(gitlab());
 
 let issue = provider
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .issue("42")
     .get();
 ```
@@ -101,7 +101,7 @@ tracking should be modeled as a separate extension instead of leaking Jira behav
 provider-neutral issue contract.
 
 When a provider does not advertise `Capability::Issues`, issue operations must return
-`VcsError::UnsupportedOperation`. They must not return `TransportNotConfigured`, because that
+`CognitionError::UnsupportedOperation`. They must not return `TransportNotConfigured`, because that
 would imply the provider supports issues and only lacks an HTTP client.
 
 ## Create, Update, Close, Delete
@@ -112,7 +112,7 @@ Create, update, close and delete requests should stay fluent at the call site:
 let repo = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let create_request = github()
@@ -157,7 +157,7 @@ gitlab()
     .await?;
 ```
 
-GitHub issues do not expose a universal delete endpoint. Use `close` for GitHub issue lifecycle changes. Calling async `delete` on GitHub returns `VcsError::UnsupportedOperation`.
+GitHub issues do not expose a universal delete endpoint. Use `close` for GitHub issue lifecycle changes. Calling async `delete` on GitHub returns `CognitionError::UnsupportedOperation`.
 
 Provider support:
 

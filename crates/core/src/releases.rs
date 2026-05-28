@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{BoxFuture, Page, Repo, VcsError, VcsResult, transport_not_configured};
+use crate::{BoxFuture, CognitionError, CognitionResult, Page, Repo, transport_not_configured};
 
 #[path = "releases/drafts.rs"]
 mod drafts;
@@ -194,38 +194,38 @@ impl ReleaseBuilder<MissingReleaseRepo, MissingReleaseId> {
 }
 
 pub trait Releases: Send + Sync {
-    fn get(&self, repo: Repo, id: ReleaseId) -> BoxFuture<'_, VcsResult<Release>>;
+    fn get(&self, repo: Repo, id: ReleaseId) -> BoxFuture<'_, CognitionResult<Release>>;
 
-    fn list(&self, query: ReleaseListQuery) -> BoxFuture<'_, VcsResult<Page<Release>>>;
+    fn list(&self, query: ReleaseListQuery) -> BoxFuture<'_, CognitionResult<Page<Release>>>;
 
-    fn create(&self, draft: ReleaseDraft) -> BoxFuture<'_, VcsResult<Release>>;
+    fn create(&self, draft: ReleaseDraft) -> BoxFuture<'_, CognitionResult<Release>>;
 
-    fn update(&self, patch: ReleasePatch) -> BoxFuture<'_, VcsResult<Release>>;
+    fn update(&self, patch: ReleasePatch) -> BoxFuture<'_, CognitionResult<Release>>;
 
-    fn delete(&self, release: Release) -> BoxFuture<'_, VcsResult<()>>;
+    fn delete(&self, release: Release) -> BoxFuture<'_, CognitionResult<()>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TransportNotConfiguredReleases;
 
 impl Releases for TransportNotConfiguredReleases {
-    fn get(&self, _repo: Repo, _id: ReleaseId) -> BoxFuture<'_, VcsResult<Release>> {
+    fn get(&self, _repo: Repo, _id: ReleaseId) -> BoxFuture<'_, CognitionResult<Release>> {
         transport_not_configured()
     }
 
-    fn list(&self, _query: ReleaseListQuery) -> BoxFuture<'_, VcsResult<Page<Release>>> {
+    fn list(&self, _query: ReleaseListQuery) -> BoxFuture<'_, CognitionResult<Page<Release>>> {
         transport_not_configured()
     }
 
-    fn create(&self, _draft: ReleaseDraft) -> BoxFuture<'_, VcsResult<Release>> {
+    fn create(&self, _draft: ReleaseDraft) -> BoxFuture<'_, CognitionResult<Release>> {
         transport_not_configured()
     }
 
-    fn update(&self, _patch: ReleasePatch) -> BoxFuture<'_, VcsResult<Release>> {
+    fn update(&self, _patch: ReleasePatch) -> BoxFuture<'_, CognitionResult<Release>> {
         transport_not_configured()
     }
 
-    fn delete(&self, _release: Release) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete(&self, _release: Release) -> BoxFuture<'_, CognitionResult<()>> {
         transport_not_configured()
     }
 }
@@ -234,27 +234,29 @@ impl Releases for TransportNotConfiguredReleases {
 pub struct UnsupportedReleases;
 
 impl Releases for UnsupportedReleases {
-    fn get(&self, _repo: Repo, _id: ReleaseId) -> BoxFuture<'_, VcsResult<Release>> {
+    fn get(&self, _repo: Repo, _id: ReleaseId) -> BoxFuture<'_, CognitionResult<Release>> {
         unsupported_release_operation("release get")
     }
 
-    fn list(&self, _query: ReleaseListQuery) -> BoxFuture<'_, VcsResult<Page<Release>>> {
+    fn list(&self, _query: ReleaseListQuery) -> BoxFuture<'_, CognitionResult<Page<Release>>> {
         unsupported_release_operation("release list")
     }
 
-    fn create(&self, _draft: ReleaseDraft) -> BoxFuture<'_, VcsResult<Release>> {
+    fn create(&self, _draft: ReleaseDraft) -> BoxFuture<'_, CognitionResult<Release>> {
         unsupported_release_operation("release create")
     }
 
-    fn update(&self, _patch: ReleasePatch) -> BoxFuture<'_, VcsResult<Release>> {
+    fn update(&self, _patch: ReleasePatch) -> BoxFuture<'_, CognitionResult<Release>> {
         unsupported_release_operation("release update")
     }
 
-    fn delete(&self, _release: Release) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete(&self, _release: Release) -> BoxFuture<'_, CognitionResult<()>> {
         unsupported_release_operation("release delete")
     }
 }
 
-fn unsupported_release_operation<'a, T>(operation: &'static str) -> BoxFuture<'a, VcsResult<T>> {
-    Box::pin(async move { Err(VcsError::UnsupportedOperation(operation.into())) })
+fn unsupported_release_operation<'a, T>(
+    operation: &'static str,
+) -> BoxFuture<'a, CognitionResult<T>> {
+    Box::pin(async move { Err(CognitionError::UnsupportedOperation(operation.into())) })
 }

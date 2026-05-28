@@ -4,11 +4,11 @@ use crate::{
     ProvidedIssueRepo, ProvidedIssueTitle, Repo, Request, RequestUrl,
 };
 
-use super::{ManagedIssueProvider, VcsManager};
+use super::{CognitionManager, ManagedIssueProvider};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedIssueBuilder<Driver, RepoState, IssueIdState> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) issue: IssueBuilder<RepoState, IssueIdState>,
 }
 
@@ -82,7 +82,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedIssueDraftBuilder<Driver, RepoState, TitleState> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     draft: IssueDraftBuilder<RepoState, TitleState>,
 }
 
@@ -137,7 +137,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedIssue<Driver> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) issue: Issue,
 }
 
@@ -162,14 +162,14 @@ impl<Driver> ManagedIssue<Driver>
 where
     Driver: ManagedIssueProvider,
 {
-    pub fn delete(&self) -> crate::VcsResult<Request> {
+    pub fn delete(&self) -> crate::CognitionResult<Request> {
         self.manager.driver.issue_delete_request(&self.issue)
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedIssueCollection<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
 }
 
 impl<Driver> ManagedIssueCollection<Driver>
@@ -183,7 +183,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoIssues<Driver> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) repo: Repo,
     pub(super) page: Option<PageRequest>,
 }
@@ -216,7 +216,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoIssuesPagination<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     repo: Repo,
     page: PageRequestBuilder,
 }

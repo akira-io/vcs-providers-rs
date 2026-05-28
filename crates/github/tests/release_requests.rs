@@ -1,18 +1,18 @@
-use vcs_provider_core::RequestMethod;
-use vcs_provider_github::github;
+use git_cognition_core::RequestMethod;
+use git_cognition_github::github;
 
 #[test]
 fn github_release_get_targets_repository_endpoint() {
     let release = github()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .release("123")
         .get();
 
     assert_eq!(
         release.url().value(),
-        "https://api.github.com/repos/akira-io/vcs-providers-rs/releases/123"
+        "https://api.github.com/repos/akira-io/git-cognition-rs/releases/123"
     );
 }
 
@@ -21,7 +21,7 @@ fn github_release_list_targets_repository_endpoint() {
     let releases = github()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .releases()
         .pagination()
         .limit(50)
@@ -30,7 +30,7 @@ fn github_release_list_targets_repository_endpoint() {
 
     assert_eq!(
         releases.url().value(),
-        "https://api.github.com/repos/akira-io/vcs-providers-rs/releases?per_page=50&page=2"
+        "https://api.github.com/repos/akira-io/git-cognition-rs/releases?per_page=50&page=2"
     );
 }
 
@@ -39,13 +39,13 @@ fn github_release_builder_accepts_existing_repo() {
     let repo = github()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let release = github().release().repo(repo).id("123").get();
 
     assert_eq!(
         release.url().value(),
-        "https://api.github.com/repos/akira-io/vcs-providers-rs/releases/123"
+        "https://api.github.com/repos/akira-io/git-cognition-rs/releases/123"
     );
 }
 
@@ -54,7 +54,7 @@ fn github_release_create_builds_post_request() {
     let repo = github()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let create_request = github()
         .release()
@@ -77,7 +77,7 @@ fn github_release_update_builds_patch_request() {
     let repo = github()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let update_request = github()
         .release()
@@ -98,7 +98,7 @@ fn github_release_delete_builds_delete_request() {
     let repo = github()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let release_resource = github().release().repo(repo).id("123").get();
 
