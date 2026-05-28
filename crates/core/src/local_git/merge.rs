@@ -8,6 +8,8 @@ use super::LocalGitRepository;
 use super::commands::git_stdout_arguments;
 use tree_output::MergeTreeOutput;
 
+#[path = "merge/conflict_text.rs"]
+mod conflict_text;
 #[path = "merge/tree_output.rs"]
 mod tree_output;
 
