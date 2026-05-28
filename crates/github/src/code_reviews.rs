@@ -1,7 +1,7 @@
 use serde::Serialize;
 use vcs_provider_core::{
     CodeReview, CodeReviewDraft, CodeReviewListQuery, CodeReviewPatch, Request, RequestBody,
-    RequestUrl, request, url,
+    RequestUrl, request, request_body, url,
 };
 
 use crate::{DEFAULT_BASE_URL, request_pagination::apply_page};
@@ -60,7 +60,7 @@ impl GitHubCodeReview {
     pub fn close(&self) -> Request {
         request()
             .patch(self.url().value())
-            .body(RequestBody::make("{\"state\":\"closed\"}"))
+            .body(request_body("{\"state\":\"closed\"}"))
             .build()
     }
 }
@@ -161,7 +161,7 @@ struct GitHubCodeReviewPatchBody<'a> {
 
 fn json_body(payload: &impl Serialize) -> RequestBody {
     match serde_json::to_string(payload) {
-        Ok(body) => RequestBody::make(body),
-        Err(_) => RequestBody::make("{}"),
+        Ok(body) => request_body(body),
+        Err(_) => request_body("{}"),
     }
 }

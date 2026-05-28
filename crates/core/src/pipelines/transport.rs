@@ -65,7 +65,7 @@ where
 {
     fn get(&self, repo: Repo, id: PipelineId) -> BoxFuture<'_, VcsResult<Pipeline>> {
         Box::pin(async move {
-            let requested_pipeline = Pipeline::make(repo, id);
+            let requested_pipeline = crate::pipeline().repo(repo).id(id.as_str()).get();
             let request = crate::request()
                 .get(self.driver.pipeline_url(&requested_pipeline).value())
                 .build();

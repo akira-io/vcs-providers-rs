@@ -1,6 +1,7 @@
 use serde::Serialize;
 use vcs_provider_core::{
-    Issue, IssueDraft, IssueListQuery, IssuePatch, Request, RequestBody, RequestUrl, request, url,
+    Issue, IssueDraft, IssueListQuery, IssuePatch, Request, RequestBody, RequestUrl, request,
+    request_body, url,
 };
 
 use crate::{DEFAULT_BASE_URL, request_pagination::apply_page};
@@ -129,7 +130,7 @@ struct GitHubIssuePatchBody<'a> {
 
 fn json_body(payload: &impl Serialize) -> RequestBody {
     match serde_json::to_string(payload) {
-        Ok(body) => RequestBody::make(body),
-        Err(_) => RequestBody::make("{}"),
+        Ok(body) => request_body(body),
+        Err(_) => request_body("{}"),
     }
 }

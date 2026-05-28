@@ -25,7 +25,7 @@ Mutation requests can carry an opaque body:
 ```rust
 let request = request()
     .post("https://api.example.test/repos")
-    .body(RequestBody::make("{}"))
+    .body("{}")
     .build();
 ```
 

@@ -1,4 +1,4 @@
-use crate::{ManagedProvider, ManagedRepo, RepositoryPatchBuilder, Request, Visibility};
+use crate::{ManagedProvider, ManagedRepo, Request, Visibility};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepositoryUpdateBuilder<Driver> {
@@ -51,7 +51,7 @@ where
     }
 
     fn patch(&self) -> crate::RepositoryPatch {
-        let mut patch = RepositoryPatchBuilder::make(self.managed_repo.repo.clone());
+        let mut patch = self.managed_repo.repo.patch();
 
         if let Some(visibility) = self.visibility.clone() {
             patch = patch.visibility(visibility);

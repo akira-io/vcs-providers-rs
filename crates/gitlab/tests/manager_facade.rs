@@ -207,13 +207,13 @@ fn gitlab_facade_executes_client_with_configured_base_url() -> vcs_provider_core
 #[test]
 fn gitlab_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let provider_transport = gitlab()
+        let recording_transport = gitlab()
             .responses()
             .status(503)
             .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
             .record();
         let repository = vcs(gitlab())
-            .retry(provider_transport.clone())
+            .retry(recording_transport.clone())
             .attempts(2)
             .on_status(503)
             .repos()
@@ -221,7 +221,7 @@ fn gitlab_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResu
             .await?;
 
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
-        assert_eq!(provider_transport.requests().len(), 2);
+        assert_eq!(recording_transport.requests().len(), 2);
 
         Ok(())
     })
@@ -231,7 +231,7 @@ fn gitlab_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResu
 fn gitlab_facade_observes_rate_limit_headers() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
-        let provider_transport = gitlab()
+        let recording_transport = gitlab()
             .header("ratelimit-remaining", "41")
             .header("ratelimit-reset", "1710000001")
             .header("retry-after", "31")
@@ -239,7 +239,7 @@ fn gitlab_facade_observes_rate_limit_headers() -> vcs_provider_core::VcsResult<(
             .body(r#"{"path_with_namespace":"akira-io/vcs-providers-rs","visibility":"public"}"#)
             .record();
         let repository = vcs(gitlab())
-            .rate_limit(provider_transport)
+            .rate_limit(recording_transport)
             .remaining(["ratelimit-remaining"])
             .reset_at(["ratelimit-reset"])
             .retry_after(["retry-after"])

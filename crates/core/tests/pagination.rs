@@ -1,4 +1,4 @@
-use vcs_provider_core::{Branch, branch, pagination, repo};
+use vcs_provider_core::{branch, pagination, repo};
 
 #[test]
 fn pagination_request_carries_limit_and_cursor() {
@@ -26,7 +26,7 @@ fn pagination_page_carries_items_and_next_cursor() {
     assert!(page.has_next());
     assert_eq!(page.next().map(|cursor| cursor.as_str()), Some("next-page"));
 
-    let page_with_direct_branch = pagination().page([Branch::make("release")]).build();
+    let page_with_direct_branch = pagination().page([branch("release")]).build();
 
     assert_eq!(page_with_direct_branch.items().len(), 1);
 }

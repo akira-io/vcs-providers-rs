@@ -1,6 +1,8 @@
 mod support;
 
-use vcs_provider_core::{AuthHeaderStyle, RequestMethod, Transport, VcsResult, auth, request};
+use vcs_provider_core::{
+    AuthHeaderStyle, RequestMethod, Transport, VcsResult, auth, request, run_async_test,
+};
 
 use support::EchoTransport;
 
@@ -37,7 +39,7 @@ fn transport_contract_sends_request_and_returns_response() -> VcsResult<()> {
         .get("https://api.example.test/repos")
         .header("accept", "application/json")
         .build();
-    let response = futures::executor::block_on(EchoTransport.send(request))?;
+    let response = run_async_test(EchoTransport.send(request))?;
 
     assert_eq!(response.status().code(), 200);
     assert_eq!(response.headers().len(), 1);

@@ -63,7 +63,7 @@ Transport pipelines are still available when applications need to compose middle
 
 ```rust
 let transport = middleware()
-    .with(HeaderMiddleware::make("x-request-id", "request-1"))
+    .header("x-request-id", "request-1")
     .transport(http().transport().get()?)
     .build();
 

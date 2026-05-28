@@ -1,9 +1,8 @@
 use serde::Deserialize;
 use vcs_provider_core::{
-    Branch, CodeReview, CodeReviewId, CodeReviewResponseMapper, Commit, Issue, IssueId,
-    IssueResponseMapper, LifecycleState, Page, Release, ReleaseId, ReleaseResponseMapper, Repo,
-    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error,
-    pipeline, repo,
+    Branch, CodeReview, CodeReviewResponseMapper, Commit, Issue, IssueResponseMapper,
+    LifecycleState, Page, Release, ReleaseResponseMapper, Repo, Repository,
+    RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, pipeline, repo,
 };
 use vcs_provider_core::{Pipeline, PipelineResponseMapper};
 
@@ -70,10 +69,10 @@ impl IssueResponseMapper for GitHubIssueMapper {
     fn issue(&self, requested_issue: &Issue, response: &Response) -> VcsResult<Issue> {
         let issue = parse_body::<GitHubIssue>(response, "invalid github issue response")?;
 
-        Ok(Issue::make(
-            requested_issue.repo().clone(),
-            IssueId::make(issue.number.to_string()),
-        ))
+        Ok(vcs_provider_core::issue()
+            .repo(requested_issue.repo().clone())
+            .id(issue.number.to_string())
+            .get())
     }
 
     fn issues(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Issue>> {
@@ -81,10 +80,10 @@ impl IssueResponseMapper for GitHubIssueMapper {
             parse_body::<Vec<GitHubIssue>>(response, "invalid github issue list response")?
                 .into_iter()
                 .map(|issue| {
-                    Issue::make(
-                        requested_repo.clone(),
-                        IssueId::make(issue.number.to_string()),
-                    )
+                    vcs_provider_core::issue()
+                        .repo(requested_repo.clone())
+                        .id(issue.number.to_string())
+                        .get()
                 })
                 .collect();
 
@@ -101,10 +100,10 @@ impl CodeReviewResponseMapper for GitHubCodeReviewMapper {
         let code_review =
             parse_body::<GitHubCodeReview>(response, "invalid github code review response")?;
 
-        Ok(CodeReview::make(
-            requested_code_review.repo().clone(),
-            CodeReviewId::make(code_review.number.to_string()),
-        ))
+        Ok(vcs_provider_core::code_review()
+            .repo(requested_code_review.repo().clone())
+            .id(code_review.number.to_string())
+            .get())
     }
 
     fn code_reviews(
@@ -118,10 +117,10 @@ impl CodeReviewResponseMapper for GitHubCodeReviewMapper {
         )?
         .into_iter()
         .map(|code_review| {
-            CodeReview::make(
-                requested_repo.clone(),
-                CodeReviewId::make(code_review.number.to_string()),
-            )
+            vcs_provider_core::code_review()
+                .repo(requested_repo.clone())
+                .id(code_review.number.to_string())
+                .get()
         })
         .collect();
 
@@ -133,10 +132,10 @@ impl ReleaseResponseMapper for GitHubReleaseMapper {
     fn release(&self, requested_release: &Release, response: &Response) -> VcsResult<Release> {
         let release = parse_body::<GitHubRelease>(response, "invalid github release response")?;
 
-        Ok(Release::make(
-            requested_release.repo().clone(),
-            ReleaseId::make(release.id.to_string()),
-        ))
+        Ok(vcs_provider_core::release()
+            .repo(requested_release.repo().clone())
+            .id(release.id.to_string())
+            .get())
     }
 
     fn releases(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Release>> {
@@ -144,10 +143,10 @@ impl ReleaseResponseMapper for GitHubReleaseMapper {
             parse_body::<Vec<GitHubRelease>>(response, "invalid github release list response")?
                 .into_iter()
                 .map(|release| {
-                    Release::make(
-                        requested_repo.clone(),
-                        ReleaseId::make(release.id.to_string()),
-                    )
+                    vcs_provider_core::release()
+                        .repo(requested_repo.clone())
+                        .id(release.id.to_string())
+                        .get()
                 })
                 .collect();
 
@@ -159,10 +158,10 @@ impl PipelineResponseMapper for GitHubPipelineMapper {
     fn pipeline(&self, requested_pipeline: &Pipeline, response: &Response) -> VcsResult<Pipeline> {
         let pipeline = parse_body::<GitHubPipeline>(response, "invalid github pipeline response")?;
 
-        Ok(vcs_provider_core::Pipeline::make(
-            requested_pipeline.repo().clone(),
-            vcs_provider_core::PipelineId::make(pipeline.id.to_string()),
-        ))
+        Ok(vcs_provider_core::pipeline()
+            .repo(requested_pipeline.repo().clone())
+            .id(pipeline.id.to_string())
+            .get())
     }
 
     fn pipelines(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Pipeline>> {

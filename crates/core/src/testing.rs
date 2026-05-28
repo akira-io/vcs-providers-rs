@@ -47,10 +47,20 @@ impl Transport for SingleResponseTransport {
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct ProviderResponseBuilder;
+pub struct TestTransportBuilder;
 
-impl ProviderResponseBuilder {
-    pub fn status(self, code: u16) -> ProviderResponseTransportBuilder {
+impl TestTransportBuilder {
+    pub fn response(self) -> TestTransportResponseBuilder {
+        TestTransportResponseBuilder {
+            response: response(),
+        }
+    }
+
+    pub fn responses(self) -> TestTransportSequenceBuilder {
+        TestTransportSequenceBuilder::default()
+    }
+
+    pub fn status(self, code: u16) -> TestTransportResponseBuilder {
         self.response().status(code)
     }
 
@@ -58,27 +68,21 @@ impl ProviderResponseBuilder {
         self,
         name: impl Into<String>,
         value: impl Into<String>,
-    ) -> ProviderResponseTransportBuilder {
+    ) -> TestTransportResponseBuilder {
         self.response().header(name, value)
     }
 
-    pub fn body(self, body: impl Into<String>) -> ProviderResponseTransportBuilder {
+    pub fn body(self, body: impl Into<String>) -> TestTransportResponseBuilder {
         self.response().body(body)
-    }
-
-    fn response(self) -> ProviderResponseTransportBuilder {
-        ProviderResponseTransportBuilder {
-            response: response(),
-        }
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ProviderResponseTransportBuilder {
+pub struct TestTransportResponseBuilder {
     response: ResponseBuilder,
 }
 
-impl ProviderResponseTransportBuilder {
+impl TestTransportResponseBuilder {
     pub fn status(mut self, code: u16) -> Self {
         self.response = self.response.status(code);
         self
@@ -103,18 +107,18 @@ impl ProviderResponseTransportBuilder {
     }
 }
 
-pub fn provider_response() -> ProviderResponseBuilder {
-    ProviderResponseBuilder
+pub fn test_transport() -> TestTransportBuilder {
+    TestTransportBuilder
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
-pub struct ProviderResponseSequenceBuilder {
+pub struct TestTransportSequenceBuilder {
     responses: Vec<Response>,
 }
 
-impl ProviderResponseSequenceBuilder {
-    pub fn response(self) -> ProviderResponseSequenceResponseBuilder {
-        ProviderResponseSequenceResponseBuilder {
+impl TestTransportSequenceBuilder {
+    pub fn response(self) -> TestTransportSequenceResponseBuilder {
+        TestTransportSequenceResponseBuilder {
             responses: self,
             response: response(),
         }
@@ -132,19 +136,19 @@ impl ProviderResponseSequenceBuilder {
         ResponseSequenceTransport::make(self.responses)
     }
 
-    fn append_response(mut self, provider_response: Response) -> Self {
-        self.responses.push(provider_response);
+    fn append_response(mut self, test_response: Response) -> Self {
+        self.responses.push(test_response);
         self
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ProviderResponseSequenceResponseBuilder {
-    responses: ProviderResponseSequenceBuilder,
+pub struct TestTransportSequenceResponseBuilder {
+    responses: TestTransportSequenceBuilder,
     response: ResponseBuilder,
 }
 
-impl ProviderResponseSequenceResponseBuilder {
+impl TestTransportSequenceResponseBuilder {
     pub fn status(mut self, code: u16) -> Self {
         self.response = self.response.status(code);
         self
@@ -160,13 +164,9 @@ impl ProviderResponseSequenceResponseBuilder {
         self
     }
 
-    pub fn next_response(self) -> ProviderResponseSequenceBuilder {
+    pub fn next_response(self) -> TestTransportSequenceBuilder {
         self.responses.append_response(self.response.build())
     }
-}
-
-pub fn provider_responses() -> ProviderResponseSequenceBuilder {
-    ProviderResponseSequenceBuilder::default()
 }
 
 pub fn run_async_test<T>(future: impl Future<Output = VcsResult<T>>) -> VcsResult<T> {

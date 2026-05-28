@@ -1,9 +1,9 @@
-use vcs_provider_core::{EchoTransport, VcsResult, runtime};
+use vcs_provider_core::{EchoTransport, VcsResult, run_async_test, runtime};
 use vcs_provider_github::github;
 
 #[test]
 fn github_provider_runs_through_core_runtime() -> VcsResult<()> {
-    let response = futures::executor::block_on(async {
+    let response = run_async_test(async {
         runtime()
             .with_provider(github())
             .transport(EchoTransport)
@@ -20,7 +20,7 @@ fn github_provider_runs_through_core_runtime() -> VcsResult<()> {
 
 #[test]
 fn github_provider_runs_through_fluent_provider_configuration() -> VcsResult<()> {
-    let response = futures::executor::block_on(async {
+    let response = run_async_test(async {
         runtime()
             .provider()
             .from(github())

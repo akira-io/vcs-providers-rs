@@ -1,6 +1,6 @@
 use vcs_provider_core::{
     CodeReviews, Issues, Pipelines, RecordingTransport, Releases, Repos, ResponseBuilder,
-    SingleResponseTransport, provider_responses, response,
+    SingleResponseTransport, response, test_transport,
 };
 
 use crate::{GitHubClient, GitHubProvider};
@@ -83,7 +83,7 @@ impl GitHubProvider {
         GitHubResponseBuilder::make(self).body(body)
     }
 
-    pub fn responses(self) -> vcs_provider_core::ProviderResponseSequenceBuilder {
-        provider_responses()
+    pub fn responses(self) -> vcs_provider_core::TestTransportSequenceBuilder {
+        test_transport().responses()
     }
 }

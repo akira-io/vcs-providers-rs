@@ -88,7 +88,8 @@ impl ScopedIssueOperation {
             return Box::pin(async { Err(error().invalid_input("issue id is required")) });
         };
 
-        let mut patch = IssuePatchBuilder::make(Issue::make(self.repo, IssueId::make(id)));
+        let issue = crate::issue().repo(self.repo).id(id).get();
+        let mut patch = issue.patch();
 
         if let Some(title) = self.title {
             patch = patch.title(title);
@@ -113,8 +114,8 @@ impl ScopedIssueOperation {
             return Box::pin(async { Err(error().invalid_input("issue id is required")) });
         };
 
-        let issue = Issue::make(self.repo, IssueId::make(id));
-        let patch = IssuePatchBuilder::make(issue).closed().get();
+        let issue = crate::issue().repo(self.repo).id(id).get();
+        let patch = issue.patch().closed().get();
         let issues = self.issues;
 
         Box::pin(async move { Issues::close(&*issues, patch).await })
@@ -126,7 +127,7 @@ impl ScopedIssueOperation {
         };
 
         let issues = self.issues;
-        let issue = Issue::make(self.repo, IssueId::make(id));
+        let issue = crate::issue().repo(self.repo).id(id).get();
 
         Box::pin(async move { Issues::delete(&*issues, issue).await })
     }

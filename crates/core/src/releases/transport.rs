@@ -65,7 +65,7 @@ where
 {
     fn get(&self, repo: Repo, id: ReleaseId) -> BoxFuture<'_, VcsResult<Release>> {
         Box::pin(async move {
-            let requested_release = Release::make(repo, id);
+            let requested_release = crate::release().repo(repo).id(id.as_str()).get();
             let request = crate::request()
                 .get(self.driver.release_url(&requested_release).value())
                 .build();
@@ -88,8 +88,10 @@ where
 
     fn create(&self, draft: ReleaseDraft) -> BoxFuture<'_, VcsResult<Release>> {
         Box::pin(async move {
-            let requested_release =
-                Release::make(draft.repo().clone(), ReleaseId::make(draft.tag()));
+            let requested_release = crate::release()
+                .repo(draft.repo().clone())
+                .id(draft.tag())
+                .get();
             let response = self
                 .send_request(self.driver.release_create_request(&draft))
                 .await?;

@@ -1,7 +1,4 @@
-use crate::{
-    BoxFuture, Page, Release, ReleaseId, ReleasePatchBuilder, Releases, Repo, VcsResult, error,
-    release,
-};
+use crate::{BoxFuture, Page, Release, ReleaseId, Releases, Repo, VcsResult, error, release};
 
 pub struct ScopedReleaseOperation {
     releases: Box<dyn Releases>,
@@ -88,8 +85,8 @@ impl ScopedReleaseOperation {
             return Box::pin(async { Err(error().invalid_input("release id is required")) });
         };
 
-        let release = Release::make(self.repo, ReleaseId::make(id));
-        let mut patch = ReleasePatchBuilder::make(release);
+        let release = crate::release().repo(self.repo).id(id).get();
+        let mut patch = release.patch();
 
         if let Some(name) = self.name {
             patch = patch.name(name);
@@ -111,7 +108,7 @@ impl ScopedReleaseOperation {
         };
 
         let releases = self.releases;
-        let release = Release::make(self.repo, ReleaseId::make(id));
+        let release = crate::release().repo(self.repo).id(id).get();
 
         Box::pin(async move { Releases::delete(&*releases, release).await })
     }

@@ -45,8 +45,8 @@ pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
 pub use helpers::conformance;
 pub use helpers::{
     CapabilitySetBuilder, auth, branch, capabilities, code_review, commit, error, http, issue,
-    middleware, pagination, pipeline, provider, rate_limit, release, repo, request, response,
-    retry, runtime, telemetry, url, vcs,
+    issue_id, middleware, pagination, pipeline, provider, provider_id, rate_limit, release,
+    release_id, repo, request, request_body, response, retry, runtime, telemetry, url, vcs,
 };
 pub use http::{HttpBuilder, HttpTransport, HttpTransportBuilder};
 pub use issues::{
@@ -123,10 +123,9 @@ pub use telemetry::{
     TelemetryTransportBuilder,
 };
 pub use testing::{
-    EchoTransport, ProviderResponseBuilder, ProviderResponseSequenceBuilder,
-    ProviderResponseSequenceResponseBuilder, ProviderResponseTransportBuilder, RecordingTransport,
-    ResponseSequenceTransport, SingleResponseTransport, provider_response, provider_responses,
-    run_async_test,
+    EchoTransport, RecordingTransport, ResponseSequenceTransport, SingleResponseTransport,
+    TestTransportBuilder, TestTransportResponseBuilder, TestTransportSequenceBuilder,
+    TestTransportSequenceResponseBuilder, run_async_test, test_transport,
 };
 #[cfg(feature = "testing")]
 pub use testing::{ProviderConformance, ProviderConformanceBuilder};

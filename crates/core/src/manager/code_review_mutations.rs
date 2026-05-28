@@ -97,7 +97,7 @@ where
     }
 
     fn patch(&self) -> crate::CodeReviewPatch {
-        let mut patch = CodeReviewPatchBuilder::make(self.managed_code_review.code_review.clone());
+        let mut patch = self.managed_code_review.code_review.patch();
 
         if let Some(title) = self.title.clone() {
             patch = patch.title(title);

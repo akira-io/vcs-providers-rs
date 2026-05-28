@@ -1,12 +1,12 @@
 use crate::repos::{MissingOwnerName, MissingRepositoryName};
 use crate::{
     AuthBuilder, Branch, Capability, CapabilitySet, CodeReviewBuilder, Commit, ErrorBuilder,
-    HttpBuilder, IssueBuilder, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId,
+    HttpBuilder, IssueBuilder, IssueId, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId,
     MissingIssueRepo, MissingPipelineId, MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo,
-    PaginationBuilder, PipelineBuilder, ProviderRegistry, ProviderRegistryBuilder,
-    ProviderRuntimeBuilder, RateLimitBuilder, ReleaseBuilder, RepoBuilder, RequestBuilder,
-    RequestUrlBuilder, ResponseBuilder, RetryBuilder, TelemetryBuilder, TransportPipeline,
-    TransportPipelineBuilder, VcsManagerBuilder,
+    PaginationBuilder, PipelineBuilder, ProviderId, ProviderRegistry, ProviderRegistryBuilder,
+    ProviderRuntimeBuilder, RateLimitBuilder, ReleaseBuilder, ReleaseId, RepoBuilder, RequestBody,
+    RequestBuilder, RequestUrlBuilder, ResponseBuilder, RetryBuilder, TelemetryBuilder,
+    TransportPipeline, TransportPipelineBuilder, VcsManagerBuilder,
 };
 
 #[cfg(feature = "testing")]
@@ -59,6 +59,18 @@ pub fn commit(id: impl Into<String>) -> Commit {
     Commit::make(id)
 }
 
+pub fn provider_id(id: impl Into<String>) -> ProviderId {
+    ProviderId::make(id)
+}
+
+pub fn issue_id(id: impl Into<String>) -> IssueId {
+    IssueId::make(id)
+}
+
+pub fn release_id(id: impl Into<String>) -> ReleaseId {
+    ReleaseId::make(id)
+}
+
 pub fn provider() -> ProviderRegistryBuilder {
     ProviderRegistry::builder()
 }
@@ -81,6 +93,10 @@ pub fn runtime() -> ProviderRuntimeBuilder {
 
 pub fn request() -> RequestBuilder {
     RequestBuilder::default()
+}
+
+pub fn request_body(body: impl Into<String>) -> RequestBody {
+    RequestBody::make(body)
 }
 
 pub fn response() -> ResponseBuilder {

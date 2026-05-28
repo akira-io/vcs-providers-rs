@@ -177,13 +177,13 @@ fn bitbucket_facade_executes_client_with_configured_base_url() -> vcs_provider_c
 #[test]
 fn bitbucket_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let provider_transport = bitbucket()
+        let recording_transport = bitbucket()
             .responses()
             .status(429)
             .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
             .record();
         let repository = vcs(bitbucket())
-            .retry(provider_transport.clone())
+            .retry(recording_transport.clone())
             .attempts(2)
             .on_status(429)
             .repos()
@@ -191,7 +191,7 @@ fn bitbucket_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsR
             .await?;
 
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
-        assert_eq!(provider_transport.requests().len(), 2);
+        assert_eq!(recording_transport.requests().len(), 2);
 
         Ok(())
     })
@@ -201,14 +201,14 @@ fn bitbucket_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsR
 fn bitbucket_facade_observes_rate_limit_headers() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
-        let provider_transport = bitbucket()
+        let recording_transport = bitbucket()
             .header("x-ratelimit-remaining", "40")
             .header("x-ratelimit-reset", "1710000002")
             .header("retry-after", "32")
             .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
             .record();
         let repository = vcs(bitbucket())
-            .rate_limit(provider_transport)
+            .rate_limit(recording_transport)
             .remaining(["x-ratelimit-remaining"])
             .reset_at(["x-ratelimit-reset"])
             .retry_after(["retry-after"])

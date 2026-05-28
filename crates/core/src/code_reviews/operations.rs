@@ -1,7 +1,7 @@
 use super::delete::CodeReviewDeleteOperation;
 use crate::{
-    BoxFuture, CodeReview, CodeReviewDraft, CodeReviewId, CodeReviewListOperation,
-    CodeReviewPatchBuilder, CodeReviews, Repo, ScopedCodeReviewOperation, VcsResult, error,
+    BoxFuture, CodeReview, CodeReviewDraft, CodeReviewListOperation, CodeReviewPatchBuilder,
+    CodeReviews, Repo, ScopedCodeReviewOperation, VcsResult, error,
 };
 
 pub trait CodeReviewsFluent {
@@ -186,8 +186,8 @@ impl CodeReviewUpdateOperation {
             return Box::pin(async { Err(error().invalid_input("code review id is required")) });
         };
 
-        let code_review = CodeReview::make(repo, CodeReviewId::make(id));
-        let mut patch = CodeReviewPatchBuilder::make(code_review);
+        let code_review = crate::code_review().repo(repo).id(id).get();
+        let mut patch = code_review.patch();
 
         if let Some(title) = self.title {
             patch = patch.title(title);
@@ -235,7 +235,7 @@ impl CodeReviewMergeOperation {
         };
 
         let code_reviews = self.code_reviews;
-        let code_review = CodeReview::make(repo, CodeReviewId::make(id));
+        let code_review = crate::code_review().repo(repo).id(id).get();
 
         Box::pin(async move { CodeReviews::merge(&*code_reviews, code_review).await })
     }
@@ -268,7 +268,7 @@ impl CodeReviewCloseOperation {
         };
 
         let code_reviews = self.code_reviews;
-        let code_review = CodeReview::make(repo, CodeReviewId::make(id));
+        let code_review = crate::code_review().repo(repo).id(id).get();
 
         Box::pin(async move { CodeReviews::close(&*code_reviews, code_review).await })
     }

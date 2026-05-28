@@ -1,7 +1,4 @@
-use vcs_provider_core::{
-    RequestHeader, Response, ResponseStatus, Transport, provider_response, rate_limit, request,
-    run_async_test,
-};
+use vcs_provider_core::{Transport, rate_limit, request, response, run_async_test, test_transport};
 
 #[test]
 fn rate_limit_profile_reads_configured_headers() {
@@ -12,15 +9,13 @@ fn rate_limit_profile_reads_configured_headers() {
         .retry_after(["retry-after"])
         .cost(["x-ratelimit-used", "ratelimit-used"])
         .build();
-    let response = Response::make(
-        ResponseStatus::make(200),
-        vec![
-            RequestHeader::make("x-ratelimit-remaining", "42"),
-            RequestHeader::make("x-ratelimit-reset", "1710000000"),
-            RequestHeader::make("retry-after", "30"),
-            RequestHeader::make("x-ratelimit-used", "7"),
-        ],
-    );
+    let response = response()
+        .status(200)
+        .header("x-ratelimit-remaining", "42")
+        .header("x-ratelimit-reset", "1710000000")
+        .header("retry-after", "30")
+        .header("x-ratelimit-used", "7")
+        .build();
     let observation = profile.observe(&response);
 
     assert_eq!(
@@ -46,10 +41,10 @@ fn rate_limit_profile_ignores_unconfigured_headers() {
         .headers()
         .remaining(["ratelimit-remaining"])
         .build();
-    let response = Response::make(
-        ResponseStatus::make(200),
-        vec![RequestHeader::make("x-ratelimit-remaining", "42")],
-    );
+    let response = response()
+        .status(200)
+        .header("x-ratelimit-remaining", "42")
+        .build();
     let observation = profile.observe(&response);
 
     assert_eq!(observation.remaining(), None);
@@ -64,10 +59,10 @@ fn rate_limit_profile_matches_headers_case_insensitively() {
         .headers()
         .remaining(["x-ratelimit-remaining"])
         .build();
-    let response = Response::make(
-        ResponseStatus::make(200),
-        vec![RequestHeader::make("X-RateLimit-Remaining", "42")],
-    );
+    let response = response()
+        .status(200)
+        .header("X-RateLimit-Remaining", "42")
+        .build();
     let observation = profile.observe(&response);
 
     assert_eq!(
@@ -80,15 +75,15 @@ fn rate_limit_profile_matches_headers_case_insensitively() {
 fn rate_limit_transport_records_configured_headers() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
+        let response_transport = test_transport()
+            .response()
+            .header("x-ratelimit-remaining", "42")
+            .header("x-ratelimit-reset", "1710000000")
+            .header("retry-after", "30")
+            .body(r#"{"ok":true}"#)
+            .get();
         let transport = rate_limit()
-            .transport(
-                provider_response()
-                    .header("x-ratelimit-remaining", "42")
-                    .header("x-ratelimit-reset", "1710000000")
-                    .header("retry-after", "30")
-                    .body(r#"{"ok":true}"#)
-                    .get(),
-            )
+            .transport(response_transport)
             .remaining(["x-ratelimit-remaining"])
             .reset_at(["x-ratelimit-reset"])
             .retry_after(["retry-after"])

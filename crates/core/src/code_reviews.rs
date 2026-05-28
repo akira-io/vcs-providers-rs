@@ -75,6 +75,10 @@ impl CodeReview {
     pub fn id(&self) -> &CodeReviewId {
         &self.id
     }
+
+    pub fn patch(&self) -> CodeReviewPatchBuilder {
+        CodeReviewPatchBuilder::make(self.clone())
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

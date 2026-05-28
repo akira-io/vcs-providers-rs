@@ -1,7 +1,8 @@
 use serde::Serialize;
 use vcs_provider_core::{
     PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
-    RepositorySearchQuery, Request, RequestBody, RequestUrl, Visibility, request, url,
+    RepositorySearchQuery, Request, RequestBody, RequestUrl, Visibility, request, request_body,
+    url,
 };
 
 use crate::{DEFAULT_BASE_URL, request_pagination::apply_page};
@@ -154,7 +155,7 @@ struct GitLabRepositoryPatchBody<'a> {
 
 fn json_body(payload: &impl Serialize) -> RequestBody {
     match serde_json::to_string(payload) {
-        Ok(body) => RequestBody::make(body),
-        Err(_) => RequestBody::make("{}"),
+        Ok(body) => request_body(body),
+        Err(_) => request_body("{}"),
     }
 }

@@ -54,6 +54,10 @@ impl<TransportState> TransportPipelineBuilder<TransportState> {
         self.middleware.push(Arc::new(middleware));
         self
     }
+
+    pub fn header(self, name: impl Into<String>, value: impl Into<String>) -> Self {
+        self.with(HeaderMiddleware::make(name, value))
+    }
 }
 
 impl TransportPipelineBuilder<MissingTransport> {

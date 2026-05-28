@@ -208,13 +208,13 @@ fn github_facade_executes_client_with_configured_base_url() -> vcs_provider_core
 #[test]
 fn github_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
-        let provider_transport = github()
+        let recording_transport = github()
             .responses()
             .status(500)
             .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
             .record();
         let repository = vcs(github())
-            .retry(provider_transport.clone())
+            .retry(recording_transport.clone())
             .attempts(2)
             .on_status(500)
             .repos()
@@ -222,7 +222,7 @@ fn github_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResu
             .await?;
 
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
-        assert_eq!(provider_transport.requests().len(), 2);
+        assert_eq!(recording_transport.requests().len(), 2);
 
         Ok(())
     })
@@ -232,7 +232,7 @@ fn github_facade_executes_repo_client_with_retry() -> vcs_provider_core::VcsResu
 fn github_facade_observes_rate_limit_headers() -> vcs_provider_core::VcsResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
-        let provider_transport = github()
+        let recording_transport = github()
             .header("x-ratelimit-remaining", "42")
             .header("x-ratelimit-reset", "1710000000")
             .header("retry-after", "30")
@@ -240,7 +240,7 @@ fn github_facade_observes_rate_limit_headers() -> vcs_provider_core::VcsResult<(
             .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
             .record();
         let repository = vcs(github())
-            .rate_limit(provider_transport)
+            .rate_limit(recording_transport)
             .remaining(["x-ratelimit-remaining"])
             .reset_at(["x-ratelimit-reset"])
             .retry_after(["retry-after"])

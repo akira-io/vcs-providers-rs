@@ -1,6 +1,6 @@
 use vcs_provider_core::{
     AuthHeaderStyle, AuthKind, Capability, Provider, VcsError, VcsResult, Visibility, auth,
-    provider, repo, run_async_test, vcs,
+    provider, provider_id, repo, run_async_test, vcs,
 };
 use vcs_provider_github::{DISPLAY_NAME, PROVIDER_ID, github};
 
@@ -107,7 +107,7 @@ fn github_client_routes_auth_and_middleware_through_transport() -> VcsResult<()>
 fn github_provider_registers_through_core_registry() -> VcsResult<()> {
     let registry = provider().register(github())?.build();
 
-    assert!(registry.contains_provider(&vcs_provider_core::ProviderId::make(PROVIDER_ID)));
+    assert!(registry.contains_provider(&provider_id(PROVIDER_ID)));
 
     Ok(())
 }

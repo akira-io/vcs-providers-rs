@@ -64,7 +64,7 @@ impl ScopedPipelineOperation {
         };
 
         let pipelines = self.pipelines;
-        let pipeline = Pipeline::make(self.repo, PipelineId::make(id));
+        let pipeline = crate::pipeline().repo(self.repo).id(id).get();
 
         Box::pin(async move { Pipelines::rerun(&*pipelines, pipeline).await })
     }
@@ -75,7 +75,7 @@ impl ScopedPipelineOperation {
         };
 
         let pipelines = self.pipelines;
-        let pipeline = Pipeline::make(self.repo, PipelineId::make(id));
+        let pipeline = crate::pipeline().repo(self.repo).id(id).get();
 
         Box::pin(async move { Pipelines::cancel(&*pipelines, pipeline).await })
     }

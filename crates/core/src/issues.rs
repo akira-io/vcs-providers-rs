@@ -89,6 +89,10 @@ impl Issue {
     pub fn id(&self) -> &IssueId {
         &self.id
     }
+
+    pub fn patch(&self) -> IssuePatchBuilder {
+        IssuePatchBuilder::make(self.clone())
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

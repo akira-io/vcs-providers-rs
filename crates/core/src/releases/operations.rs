@@ -1,6 +1,6 @@
 use crate::{
-    BoxFuture, Release, ReleaseId, ReleaseListOperation, ReleasePatchBuilder, Releases, Repo,
-    ScopedReleaseOperation, VcsResult, error,
+    BoxFuture, Release, ReleaseListOperation, Releases, Repo, ScopedReleaseOperation, VcsResult,
+    error,
 };
 
 pub trait ReleasesFluent {
@@ -146,8 +146,8 @@ impl ReleaseUpdateOperation {
             return Box::pin(async { Err(error().invalid_input("release id is required")) });
         };
 
-        let release = Release::make(repo, ReleaseId::make(id));
-        let mut patch = ReleasePatchBuilder::make(release);
+        let release = crate::release().repo(repo).id(id).get();
+        let mut patch = release.patch();
 
         if let Some(name) = self.name {
             patch = patch.name(name);
@@ -191,7 +191,7 @@ impl ReleaseDeleteOperation {
         };
 
         let releases = self.releases;
-        let release = Release::make(repo, ReleaseId::make(id));
+        let release = crate::release().repo(repo).id(id).get();
 
         Box::pin(async move { Releases::delete(&*releases, release).await })
     }

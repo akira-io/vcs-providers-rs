@@ -114,7 +114,7 @@ where
     }
 
     fn patch(&self) -> crate::IssuePatch {
-        let mut patch = IssuePatchBuilder::make(self.managed_issue.issue.clone());
+        let mut patch = self.managed_issue.issue.patch();
 
         if let Some(title) = self.title.clone() {
             patch = patch.title(title);

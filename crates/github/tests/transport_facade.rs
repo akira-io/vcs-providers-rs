@@ -6,7 +6,7 @@ fn github_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_core
     run_async_test(async {
         let recorder = rate_limit().recorder();
         let telemetry_recorder = telemetry().recorder();
-        let provider_transport = github()
+        let recording_transport = github()
             .responses()
             .response()
             .status(429)
@@ -18,7 +18,7 @@ fn github_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_core
             .next_response()
             .record();
         let repository = vcs(github())
-            .middleware(provider_transport.clone())
+            .middleware(recording_transport.clone())
             .header("x-request-id", "request-1")
             .retry()
             .attempts(2)
@@ -31,7 +31,7 @@ fn github_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_core
             .repos()
             .get(repo().owner("akira-io").name("vcs-providers-rs").get())
             .await?;
-        let requests = provider_transport.requests();
+        let requests = recording_transport.requests();
         let observations = recorder.observations();
         let telemetry_events = telemetry_recorder.events();
 
