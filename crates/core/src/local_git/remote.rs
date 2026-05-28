@@ -1,7 +1,7 @@
 use crate::VcsResult;
 
 use super::LocalGitRepository;
-use super::commands::{git_stdout_optional, run_git};
+use super::commands::{git_stdout_arguments, git_stdout_optional, run_git};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LocalGitBranch {
@@ -10,6 +10,13 @@ pub struct LocalGitBranch {
 }
 
 impl LocalGitBranch {
+    pub fn sha(&self) -> VcsResult<String> {
+        git_stdout_arguments(
+            &self.repository.path,
+            &["rev-parse".into(), self.name.clone()],
+        )
+    }
+
     pub fn create(&self) -> VcsResult<()> {
         run_git(
             &self.repository.path,

@@ -281,6 +281,44 @@ impl BranchDraft {
     }
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BranchDraftBuilder {
+    repo: Repo,
+    name: Option<String>,
+    sha: Option<String>,
+}
+
+impl BranchDraftBuilder {
+    pub fn make(repo: Repo) -> Self {
+        Self {
+            repo,
+            name: None,
+            sha: None,
+        }
+    }
+
+    pub fn name(mut self, name: impl Into<String>) -> Self {
+        self.name = Some(name.into());
+        self
+    }
+
+    pub fn sha(mut self, sha: impl Into<String>) -> Self {
+        self.sha = Some(sha.into());
+        self
+    }
+
+    pub fn get(self) -> crate::VcsResult<BranchDraft> {
+        let name = self
+            .name
+            .ok_or_else(|| crate::error().invalid_input("branch name is required"))?;
+        let sha = self
+            .sha
+            .ok_or_else(|| crate::error().invalid_input("branch sha is required"))?;
+
+        Ok(BranchDraft::make(self.repo, name, sha))
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Commit {
     id: String,

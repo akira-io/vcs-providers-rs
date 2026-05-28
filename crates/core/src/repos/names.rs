@@ -58,6 +58,10 @@ impl Repo {
     pub fn patch(&self) -> RepositoryPatchBuilder {
         RepositoryPatchBuilder::make(self.clone())
     }
+
+    pub fn branch(&self) -> crate::BranchDraftBuilder {
+        crate::BranchDraftBuilder::make(self.clone())
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

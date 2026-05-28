@@ -16,9 +16,10 @@ pub use names::{
 pub use operations::{RepoBranchOperation, RepoCreateOperation, RepoUpdateOperation, ReposFluent};
 pub use queries::{RepoQueryBuilder, RepositoryListQuery, RepositorySearchQuery};
 pub use resources::{
-    Branch, BranchDraft, Commit, LifecycleState, MissingLifecycleState, MissingVisibility,
-    ProvidedLifecycleState, ProvidedProviderId, ProvidedVisibility, Repository, RepositoryBuilder,
-    RepositoryDraft, RepositoryDraftBuilder, RepositoryPatch, RepositoryPatchBuilder, Visibility,
+    Branch, BranchDraft, BranchDraftBuilder, Commit, LifecycleState, MissingLifecycleState,
+    MissingVisibility, ProvidedLifecycleState, ProvidedProviderId, ProvidedVisibility, Repository,
+    RepositoryBuilder, RepositoryDraft, RepositoryDraftBuilder, RepositoryPatch,
+    RepositoryPatchBuilder, Visibility,
 };
 pub use transport::{RepositoryResponseMapper, TransportBackedRepos};
 

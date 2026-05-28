@@ -61,9 +61,15 @@ pub use issues::{
     UnsupportedIssues,
 };
 pub use local_git::{
-    LocalGitBranch, LocalGitBuilder, LocalGitCloneBuilder, LocalGitFetchHead, LocalGitRemote,
-    LocalGitRemoteBranch, LocalGitRemoteCommit, LocalGitRemoteReference, LocalGitRepository,
-    LocalGitUrl, MissingCloneDestination, ProvidedCloneDestination,
+    Blame, BlameSpan, ChangeKind, CommitGraph, ConflictKind, ConflictRegion, DiffFile, DiffLine,
+    DiffModel, FileState, GraphRow, Hunk, LineOrigin, LocalGitBlame, LocalGitBranch,
+    LocalGitBuilder, LocalGitCapability, LocalGitCapabilitySet, LocalGitCloneBuilder, LocalGitDiff,
+    LocalGitFetchHead, LocalGitLog, LocalGitLogRange, LocalGitMergeBase, LocalGitMergeBuilder,
+    LocalGitReference, LocalGitRemote, LocalGitRemoteBranch, LocalGitRemoteCommit,
+    LocalGitRemoteReference, LocalGitRepository, LocalGitShow, LocalGitUrl, LocalGitWorktreeAdd,
+    LocalGitWorktrees, MergeOutcome, MergePlan, MergePreview, MissingBase, MissingCloneDestination,
+    MissingOurs, MissingTheirs, ProvidedBase, ProvidedCloneDestination, ProvidedOurs,
+    ProvidedTheirs, StatusEntry, Worktree,
 };
 pub use manager::{
     ManagedAuthProvider, ManagedClientProvider, ManagedCodeReview, ManagedCodeReviewBuilder,
@@ -112,13 +118,13 @@ pub use releases::{
     TransportBackedReleases, TransportNotConfiguredReleases, UnsupportedReleases,
 };
 pub use repos::{
-    BoxFuture, Branch, BranchDraft, Commit, LifecycleState, MissingLifecycleState,
-    MissingOwnerName, MissingRepositoryName, MissingVisibility, OwnerName, ProvidedLifecycleState,
-    ProvidedOwnerName, ProvidedProviderId, ProvidedRepositoryName, ProvidedVisibility, Repo,
-    RepoBranchOperation, RepoBuilder, RepoCreateOperation, RepoQueryBuilder, RepoUpdateOperation,
-    Repos, ReposFluent, Repository, RepositoryBuilder, RepositoryDraft, RepositoryDraftBuilder,
-    RepositoryListQuery, RepositoryName, RepositoryPatch, RepositoryPatchBuilder,
-    RepositoryResponseMapper, RepositorySearchQuery, TransportBackedRepos,
+    BoxFuture, Branch, BranchDraft, BranchDraftBuilder, Commit, LifecycleState,
+    MissingLifecycleState, MissingOwnerName, MissingRepositoryName, MissingVisibility, OwnerName,
+    ProvidedLifecycleState, ProvidedOwnerName, ProvidedProviderId, ProvidedRepositoryName,
+    ProvidedVisibility, Repo, RepoBranchOperation, RepoBuilder, RepoCreateOperation,
+    RepoQueryBuilder, RepoUpdateOperation, Repos, ReposFluent, Repository, RepositoryBuilder,
+    RepositoryDraft, RepositoryDraftBuilder, RepositoryListQuery, RepositoryName, RepositoryPatch,
+    RepositoryPatchBuilder, RepositoryResponseMapper, RepositorySearchQuery, TransportBackedRepos,
     TransportNotConfiguredRepos, Visibility,
 };
 pub use retry::{

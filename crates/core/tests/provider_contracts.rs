@@ -33,7 +33,7 @@ fn repo_contract_reports_unconfigured_transport() -> VcsResult<()> {
     let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
     let draft = repo.clone().draft().visibility(Visibility::Private).get();
     let patch = repo.clone().patch().visibility(Visibility::Public).get();
-    let branch_draft = vcs_provider_core::BranchDraft::make(repo.clone(), "feature", "abc123");
+    let branch_draft = repo.clone().branch().name("feature").sha("abc123").get()?;
 
     assert_eq!(
         run_async_test(TransportNotConfiguredRepos.create(draft)),
