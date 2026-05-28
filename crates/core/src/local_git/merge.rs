@@ -1,10 +1,15 @@
 use std::marker::PhantomData;
 use std::path::PathBuf;
+use std::process::Command;
 
 use crate::{CognitionResult, error};
 
 use super::LocalGitRepository;
 use super::commands::git_stdout_arguments;
+use tree_output::MergeTreeOutput;
+
+#[path = "merge/tree_output.rs"]
+mod tree_output;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MissingBase;
@@ -81,12 +86,14 @@ impl<Base, Ours> LocalGitMergeBuilder<Base, Ours, MissingTheirs> {
 
 impl LocalGitMergeBuilder<ProvidedBase, ProvidedOurs, ProvidedTheirs> {
     pub fn preview(self) -> CognitionResult<MergePreview> {
-        let output = git_stdout_arguments(&self.repository.path, &self.arguments()?)?;
+        let output = self.merge_tree_output()?;
+        let merge_output = MergeTreeOutput::parse(&output);
+        let conflicts = self.conflicts(&merge_output)?;
 
         Ok(MergePreview {
-            clean: merge_output_is_clean(&output),
-            conflicts: conflict_regions(&output),
-            merged_files: Vec::new(),
+            clean: conflicts.is_empty(),
+            merged_files: merge_output.merged_files(),
+            conflicts,
         })
     }
 
@@ -97,9 +104,31 @@ impl LocalGitMergeBuilder<ProvidedBase, ProvidedOurs, ProvidedTheirs> {
         Err(error().unsupported_operation("local git merge apply"))
     }
 
+    fn merge_tree_output(&self) -> CognitionResult<String> {
+        let output = Command::new("git")
+            .current_dir(&self.repository.path)
+            .args(self.arguments()?)
+            .output()
+            .map_err(|io_error| error().invalid_input(io_error.to_string()))?;
+
+        if !output.stdout.is_empty() {
+            return Ok(String::from_utf8_lossy(&output.stdout).to_string());
+        }
+
+        if output.status.success() {
+            return Ok(String::new());
+        }
+
+        Err(error().invalid_input(String::from_utf8_lossy(&output.stderr).trim().to_owned()))
+    }
+
     fn arguments(&self) -> CognitionResult<Vec<String>> {
         Ok(vec![
             "merge-tree".into(),
+            "--write-tree".into(),
+            "--messages".into(),
+            "-z".into(),
+            "--merge-base".into(),
             self.base
                 .clone()
                 .ok_or_else(|| error().invalid_input("missing merge base"))?,
@@ -110,6 +139,14 @@ impl LocalGitMergeBuilder<ProvidedBase, ProvidedOurs, ProvidedTheirs> {
                 .clone()
                 .ok_or_else(|| error().invalid_input("missing merge theirs"))?,
         ])
+    }
+
+    fn conflicts(&self, output: &MergeTreeOutput) -> CognitionResult<Vec<ConflictRegion>> {
+        output.conflicts(|revision| self.git_show(revision))
+    }
+
+    fn git_show(&self, revision: impl Into<String>) -> CognitionResult<String> {
+        git_stdout_arguments(&self.repository.path, &["show".into(), revision.into()])
     }
 }
 
@@ -146,70 +183,4 @@ pub struct MergePlan;
 pub struct MergeOutcome {
     pub merged_sha: Option<String>,
     pub recovery_ref: String,
-}
-
-fn conflict_regions(output: &str) -> Vec<ConflictRegion> {
-    let mut regions = Vec::new();
-    let mut ours = Vec::new();
-    let mut theirs = Vec::new();
-    let mut in_ours = false;
-    let mut in_theirs = false;
-
-    for line in output.lines() {
-        if line.starts_with("<<<<<<<") {
-            in_ours = true;
-            continue;
-        }
-
-        if line.starts_with("=======") {
-            in_ours = false;
-            in_theirs = true;
-            continue;
-        }
-
-        if line.starts_with(">>>>>>>") {
-            in_theirs = false;
-            regions.push(region(&ours, &theirs));
-            ours.clear();
-            theirs.clear();
-            continue;
-        }
-
-        if in_ours {
-            ours.push(line.to_owned());
-            continue;
-        }
-
-        if in_theirs {
-            theirs.push(line.to_owned());
-        }
-    }
-
-    if !regions.is_empty() {
-        return regions;
-    }
-
-    if output.contains("changed in both") {
-        return vec![region(&[], &[])];
-    }
-
-    regions
-}
-
-fn merge_output_is_clean(output: &str) -> bool {
-    if output.contains("<<<<<<<") {
-        return false;
-    }
-
-    !output.contains("changed in both")
-}
-
-fn region(ours: &[String], theirs: &[String]) -> ConflictRegion {
-    ConflictRegion {
-        path: PathBuf::new(),
-        base: None,
-        ours: ours.join("\n"),
-        theirs: theirs.join("\n"),
-        kind: ConflictKind::Overlap,
-    }
 }

@@ -5,7 +5,7 @@ surface for repository cognition features that need commit history, diffs, blame
 or merge previews.
 
 This API does not use provider drivers, HTTP transport, auth middleware, or provider capabilities.
-It shells out to the local `git` binary and returns normalized Rust resources.
+It shells out to the local `git` binary and returns normalized Rust resources. Merge preview requires Git 2.38 or newer because it uses `git merge-tree --write-tree`; the tested development version is Git 2.50.1.
 
 ## Repository
 
@@ -48,6 +48,8 @@ let commits = repository
     .limit(50)
     .commits()?;
 
+let commit = repository.commit_meta(&feature)?;
+
 let graph = repository
     .log()
     .since_ref("main")
@@ -59,6 +61,8 @@ let base = repository
     .and(&feature)
     .get()?;
 ```
+
+`commits()` returns commit identifiers for cheap history scans. Use `commit_meta()` when author, committer, message and timestamps are needed. `graph()` computes lane positions from parent topology for rendering.
 
 ## Diff
 
@@ -73,7 +77,7 @@ let diff = cognition().local()
 ```
 
 The returned `DiffModel` contains files, hunks, line origins, additions, deletions, binary markers,
-and provider-neutral change kinds.
+and provider-neutral change kinds. Addition and deletion counts include hunk body lines only, not file headers.
 
 ## Blame
 
@@ -127,5 +131,4 @@ let preview = cognition().local()
     .preview()?;
 ```
 
-`preview()` does not apply the merge. It returns whether the merge is clean and exposes conflict
-regions when Git reports conflicts. Applying a merge is intentionally separate from previewing it.
+`preview()` does not apply the merge. It returns whether the merge is clean, the files touched by Git's merge machinery, and conflict regions with paths plus base, ours and theirs content when Git reports conflicts. Applying a merge is intentionally separate from previewing it. `MergeApply` is not advertised until recovery refs and `MergePlan` are implemented.
