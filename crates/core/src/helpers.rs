@@ -4,7 +4,7 @@ use crate::{
     HttpBuilder, IssueBuilder, IssueId, MissingCodeReviewId, MissingCodeReviewRepo, MissingIssueId,
     MissingIssueRepo, MissingPipelineId, MissingPipelineRepo, MissingReleaseId, MissingReleaseRepo,
     PaginationBuilder, PipelineBuilder, ProviderId, ProviderRegistry, ProviderRegistryBuilder,
-    ProviderRuntimeBuilder, RateLimitBuilder, ReleaseBuilder, ReleaseId, RepoBuilder,
+    ProviderRuntimeBuilder, RateLimitBuilder, ReleaseBuilder, ReleaseId, RepoBuilder, RequestBody,
     RequestBuilder, RequestUrlBuilder, ResponseBuilder, RetryBuilder, TelemetryBuilder,
     TransportPipeline, TransportPipelineBuilder, VcsManagerBuilder,
 };
@@ -93,6 +93,10 @@ pub fn runtime() -> ProviderRuntimeBuilder {
 
 pub fn request() -> RequestBuilder {
     RequestBuilder::default()
+}
+
+pub fn request_body(body: impl Into<String>) -> RequestBody {
+    RequestBody::make(body)
 }
 
 pub fn response() -> ResponseBuilder {

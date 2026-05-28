@@ -74,7 +74,7 @@ where
 {
     fn get(&self, repo: Repo, id: CodeReviewId) -> BoxFuture<'_, VcsResult<CodeReview>> {
         Box::pin(async move {
-            let requested_code_review = CodeReview::make(repo, id);
+            let requested_code_review = crate::code_review().repo(repo).id(id.as_str()).get();
             let request = crate::request()
                 .get(self.driver.code_review_url(&requested_code_review).value())
                 .build();
@@ -98,7 +98,7 @@ where
     fn create(&self, draft: CodeReviewDraft) -> BoxFuture<'_, VcsResult<CodeReview>> {
         Box::pin(async move {
             let requested_code_review =
-                CodeReview::make(draft.repo().clone(), CodeReviewId::make(""));
+                crate::code_review().repo(draft.repo().clone()).id("").get();
             let response = self
                 .send_request(self.driver.code_review_create_request(&draft))
                 .await?;

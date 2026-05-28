@@ -66,7 +66,7 @@ where
 {
     fn get(&self, repo: Repo, id: IssueId) -> BoxFuture<'_, VcsResult<Issue>> {
         Box::pin(async move {
-            let requested_issue = Issue::make(repo, id);
+            let requested_issue = crate::issue().repo(repo).id(id.as_str()).get();
             let request = crate::request()
                 .get(self.driver.issue_url(&requested_issue).value())
                 .build();
@@ -89,7 +89,7 @@ where
 
     fn create(&self, draft: IssueDraft) -> BoxFuture<'_, VcsResult<Issue>> {
         Box::pin(async move {
-            let requested_issue = Issue::make(draft.repo().clone(), IssueId::make(""));
+            let requested_issue = crate::issue().repo(draft.repo().clone()).id("").get();
             let response = self
                 .send_request(self.driver.issue_create_request(&draft))
                 .await?;

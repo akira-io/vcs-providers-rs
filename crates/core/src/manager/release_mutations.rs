@@ -1,7 +1,4 @@
-use crate::{
-    ManagedRelease, ManagedReleaseBuilder, ProvidedReleaseId, ProvidedReleaseRepo,
-    ReleasePatchBuilder,
-};
+use crate::{ManagedRelease, ManagedReleaseBuilder, ProvidedReleaseId, ProvidedReleaseRepo};
 
 use super::ManagedReleaseProvider;
 
@@ -69,7 +66,7 @@ where
     }
 
     fn patch(&self) -> crate::ReleasePatch {
-        let mut patch = ReleasePatchBuilder::make(self.managed_release.release.clone());
+        let mut patch = self.managed_release.release.patch();
 
         if let Some(name) = self.name.clone() {
             patch = patch.name(name);

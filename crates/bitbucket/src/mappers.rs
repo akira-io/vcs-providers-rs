@@ -1,8 +1,7 @@
 use serde::Deserialize;
 use vcs_provider_core::{
-    Branch, CodeReview, CodeReviewId, CodeReviewResponseMapper, Commit, LifecycleState, Page, Repo,
-    Repository, RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error,
-    pipeline, repo,
+    Branch, CodeReview, CodeReviewResponseMapper, Commit, LifecycleState, Page, Repo, Repository,
+    RepositoryResponseMapper, Response, VcsError, VcsResult, Visibility, error, pipeline, repo,
 };
 use vcs_provider_core::{Pipeline, PipelineResponseMapper};
 
@@ -80,10 +79,10 @@ impl CodeReviewResponseMapper for BitbucketCodeReviewMapper {
         let code_review =
             parse_body::<BitbucketCodeReview>(response, "invalid bitbucket code review response")?;
 
-        Ok(CodeReview::make(
-            requested_code_review.repo().clone(),
-            CodeReviewId::make(code_review.id.to_string()),
-        ))
+        Ok(vcs_provider_core::code_review()
+            .repo(requested_code_review.repo().clone())
+            .id(code_review.id.to_string())
+            .get())
     }
 
     fn code_reviews(
@@ -99,10 +98,10 @@ impl CodeReviewResponseMapper for BitbucketCodeReviewMapper {
             .values
             .into_iter()
             .map(|code_review| {
-                CodeReview::make(
-                    requested_repo.clone(),
-                    CodeReviewId::make(code_review.id.to_string()),
-                )
+                vcs_provider_core::code_review()
+                    .repo(requested_repo.clone())
+                    .id(code_review.id.to_string())
+                    .get()
             })
             .collect();
 
@@ -115,10 +114,10 @@ impl PipelineResponseMapper for BitbucketPipelineMapper {
         let pipeline =
             parse_body::<BitbucketPipeline>(response, "invalid bitbucket pipeline response")?;
 
-        Ok(vcs_provider_core::Pipeline::make(
-            requested_pipeline.repo().clone(),
-            vcs_provider_core::PipelineId::make(pipeline.uuid),
-        ))
+        Ok(vcs_provider_core::pipeline()
+            .repo(requested_pipeline.repo().clone())
+            .id(pipeline.uuid)
+            .get())
     }
 
     fn pipelines(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Pipeline>> {

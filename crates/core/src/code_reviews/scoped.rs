@@ -1,6 +1,6 @@
 use crate::{
-    BoxFuture, CodeReview, CodeReviewDraft, CodeReviewId, CodeReviewPatchBuilder, CodeReviews,
-    Page, Repo, VcsResult, code_review, error,
+    BoxFuture, CodeReview, CodeReviewDraft, CodeReviewId, CodeReviews, Page, Repo, VcsResult,
+    code_review, error,
 };
 
 pub struct ScopedCodeReviewOperation {
@@ -108,8 +108,8 @@ impl ScopedCodeReviewOperation {
             return Box::pin(async { Err(error().invalid_input("code review id is required")) });
         };
 
-        let code_review = CodeReview::make(self.repo, CodeReviewId::make(id));
-        let mut patch = CodeReviewPatchBuilder::make(code_review);
+        let code_review = crate::code_review().repo(self.repo).id(id).get();
+        let mut patch = code_review.patch();
 
         if let Some(title) = self.title {
             patch = patch.title(title);
@@ -135,7 +135,7 @@ impl ScopedCodeReviewOperation {
         };
 
         let code_reviews = self.code_reviews;
-        let code_review = CodeReview::make(self.repo, CodeReviewId::make(id));
+        let code_review = crate::code_review().repo(self.repo).id(id).get();
 
         Box::pin(async move { CodeReviews::close(&*code_reviews, code_review).await })
     }
@@ -146,7 +146,7 @@ impl ScopedCodeReviewOperation {
         };
 
         let code_reviews = self.code_reviews;
-        let code_review = CodeReview::make(self.repo, CodeReviewId::make(id));
+        let code_review = crate::code_review().repo(self.repo).id(id).get();
 
         Box::pin(async move { CodeReviews::merge(&*code_reviews, code_review).await })
     }
@@ -157,7 +157,7 @@ impl ScopedCodeReviewOperation {
         };
 
         let code_reviews = self.code_reviews;
-        let code_review = CodeReview::make(self.repo, CodeReviewId::make(id));
+        let code_review = crate::code_review().repo(self.repo).id(id).get();
 
         Box::pin(async move { CodeReviews::delete(&*code_reviews, code_review).await })
     }

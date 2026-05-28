@@ -1,4 +1,4 @@
-use crate::{BoxFuture, CodeReview, CodeReviewId, CodeReviews, Repo, VcsResult, error};
+use crate::{BoxFuture, CodeReviews, Repo, VcsResult, error};
 
 pub struct CodeReviewDeleteOperation {
     code_reviews: Box<dyn CodeReviews>,
@@ -35,7 +35,7 @@ impl CodeReviewDeleteOperation {
         };
 
         let code_reviews = self.code_reviews;
-        let code_review = CodeReview::make(repo, CodeReviewId::make(id));
+        let code_review = crate::code_review().repo(repo).id(id).get();
 
         Box::pin(async move { CodeReviews::delete(&*code_reviews, code_review).await })
     }

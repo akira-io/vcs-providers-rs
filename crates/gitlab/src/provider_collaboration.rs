@@ -1,5 +1,5 @@
 use vcs_provider_core::{
-    CodeReviewPatchBuilder, ManagedCodeReviewProvider, ManagedIssueProvider, ManagedReleaseProvider,
+    ManagedCodeReviewProvider, ManagedIssueProvider, ManagedReleaseProvider,
 };
 
 use crate::{
@@ -81,9 +81,7 @@ impl ManagedCodeReviewProvider for GitLabProvider {
         &self,
         code_review: &vcs_provider_core::CodeReview,
     ) -> vcs_provider_core::Request {
-        let close_patch = CodeReviewPatchBuilder::make(code_review.clone())
-            .closed()
-            .get();
+        let close_patch = code_review.patch().closed().get();
 
         GitLabCodeReview::make(self.api_base_url(), code_review.clone()).update(&close_patch)
     }

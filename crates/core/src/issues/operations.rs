@@ -1,6 +1,6 @@
 use crate::{
-    BoxFuture, Issue, IssueId, IssueListOperation, IssuePatchBuilder, Issues, Repo,
-    ScopedIssueOperation, VcsResult, error,
+    BoxFuture, Issue, IssueListOperation, IssuePatchBuilder, Issues, Repo, ScopedIssueOperation,
+    VcsResult, error,
 };
 
 pub trait IssuesFluent {
@@ -157,8 +157,8 @@ impl IssueUpdateOperation {
             return Box::pin(async { Err(error().invalid_input("issue id is required")) });
         };
 
-        let issue = Issue::make(repo, IssueId::make(id));
-        let mut patch = IssuePatchBuilder::make(issue);
+        let issue = crate::issue().repo(repo).id(id).get();
+        let mut patch = issue.patch();
 
         if let Some(title) = self.title {
             patch = patch.title(title);
@@ -206,8 +206,8 @@ impl IssueCloseOperation {
         };
 
         let issues = self.issues;
-        let issue = Issue::make(repo, IssueId::make(id));
-        let patch = IssuePatchBuilder::make(issue).closed().get();
+        let issue = crate::issue().repo(repo).id(id).get();
+        let patch = issue.patch().closed().get();
 
         Box::pin(async move { Issues::close(&*issues, patch).await })
     }
@@ -240,7 +240,7 @@ impl IssueDeleteOperation {
         };
 
         let issues = self.issues;
-        let issue = Issue::make(repo, IssueId::make(id));
+        let issue = crate::issue().repo(repo).id(id).get();
 
         Box::pin(async move { Issues::delete(&*issues, issue).await })
     }
