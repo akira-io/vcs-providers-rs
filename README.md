@@ -23,6 +23,10 @@ git-cognition-rs/
 
 Provider crates implement those contracts. They do not define universal behavior and they do not require changes inside `core` when a new provider is added.
 
+## Local Git Requirement
+
+Local cognition APIs shell out to `git`. Merge preview requires Git 2.38 or newer because it uses `git merge-tree --write-tree`. Use Git 2.50.1 or newer in CI and development to match the tested environment.
+
 ## Development
 
 ```sh

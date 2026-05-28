@@ -81,6 +81,8 @@ fn local_git_reads_status_show_diff_and_blame() -> CognitionResult<()> {
     );
     assert!(show.contains("test"));
     assert_eq!(diff.files[0].change, ChangeKind::Modified);
+    assert_eq!(diff.files[0].additions, 1);
+    assert_eq!(diff.files[0].deletions, 0);
     assert!(
         diff.files[0]
             .hunks
@@ -136,7 +138,17 @@ fn local_git_previews_merge_conflicts_without_applying() -> CognitionResult<()> 
         .preview()?;
 
     assert!(!preview.clean);
-    assert!(!preview.conflicts.is_empty());
+    assert_eq!(
+        preview.merged_files,
+        [std::path::PathBuf::from("README.md")]
+    );
+    assert_eq!(
+        preview.conflicts[0].path,
+        std::path::PathBuf::from("README.md")
+    );
+    assert_eq!(preview.conflicts[0].base.as_deref(), Some("test"));
+    assert_eq!(preview.conflicts[0].ours, "ours");
+    assert_eq!(preview.conflicts[0].theirs, "theirs");
 
     Ok(())
 }

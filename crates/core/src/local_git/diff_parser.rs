@@ -77,6 +77,16 @@ fn parse_file_metadata(line: &str, current: &mut Option<DiffFile>) {
         return;
     }
 
+    if line.starts_with("copy from ") {
+        file.change = ChangeKind::Copied;
+        return;
+    }
+
+    if line.starts_with("old mode ") {
+        file.change = ChangeKind::TypeChanged;
+        return;
+    }
+
     if line.starts_with("Binary files ") {
         file.binary = true;
     }
@@ -150,10 +160,11 @@ fn parse_hunk_line(
 }
 
 fn addition(line: &str, file: &mut DiffFile, old_line: &mut usize, new_line: &mut usize) {
-    file.additions += 1;
     let Some(hunk) = file.hunks.last_mut() else {
         return;
     };
+
+    file.additions += 1;
 
     hunk.lines.push(DiffLine {
         origin: LineOrigin::Addition,
@@ -166,10 +177,11 @@ fn addition(line: &str, file: &mut DiffFile, old_line: &mut usize, new_line: &mu
 }
 
 fn deletion(line: &str, file: &mut DiffFile, old_line: &mut usize, new_line: &mut usize) {
-    file.deletions += 1;
     let Some(hunk) = file.hunks.last_mut() else {
         return;
     };
+
+    file.deletions += 1;
 
     hunk.lines.push(DiffLine {
         origin: LineOrigin::Deletion,
