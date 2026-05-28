@@ -18,6 +18,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install Rust
+        run: rustup toolchain install 1.89.0 --profile minimal && rustup default 1.89.0
+
+      - name: Resolve version from tag
+        id: plan
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Bump workspace version
+        run: |
+          cargo install cargo-edit --locked
+          cargo set-version --workspace "${{ steps.plan.outputs.version }}"
+          cargo update --workspace --offline || cargo update --workspace
+
       - name: Install git-cliff
         uses: taiki-e/install-action@8f531eaecd1898bc3da7d104ad91bee98d1b97bd
         with:
@@ -26,15 +43,15 @@ jobs:
       - name: Generate CHANGELOG
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: git-cliff --config cliff.toml --tag "${{ github.ref_name }}" --output CHANGELOG.md
+        run: git-cliff --config cliff.toml --tag "${{ steps.plan.outputs.tag }}" --output CHANGELOG.md
 
-      - name: Commit CHANGELOG
+      - name: Commit version bump and changelog
         run: |
           git config user.name "${GITHUB_ACTOR}"
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           DEFAULT_BRANCH="$(git remote show origin | sed -n 's/.*HEAD branch: //p')"
-          git add CHANGELOG.md
-          git diff --cached --quiet || git commit -m "chore(changelog): ${{ github.ref_name }}"
+          git add -A
+          git diff --cached --quiet || git commit -m "chore(release): ${{ steps.plan.outputs.tag }}"
           git push origin "HEAD:${DEFAULT_BRANCH}" || true
 
       - name: Extract release notes

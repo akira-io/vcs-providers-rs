@@ -1,0 +1,52 @@
+name: publish
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Install Rust
+        run: rustup toolchain install 1.89.0 --profile minimal && rustup default 1.89.0
+
+      - name: Bump workspace version from tag
+        run: |
+          cargo install cargo-edit --locked
+          VERSION="${GITHUB_REF_NAME#v}"
+          cargo set-version --workspace "$VERSION"
+
+      - name: Authenticate to crates.io via Trusted Publishing
+        uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe
+        id: auth
+
+      - name: Publish workspace topologically
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: |
+          PKGS=(git-cognition-core git-cognition-github git-cognition-gitlab git-cognition-bitbucket git-cognition)
+          for pkg in "${PKGS[@]}"; do
+            published=0
+            for attempt in $(seq 1 10); do
+              if cargo publish -p "$pkg" --allow-dirty; then
+                published=1
+                break
+              fi
+              echo "${pkg} dependencies not resolvable yet (attempt ${attempt}); retrying in 30s"
+              sleep 30
+            done
+            if [ "$published" != "1" ]; then
+              echo "failed to publish ${pkg}"
+              exit 1
+            fi
+          done
