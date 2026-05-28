@@ -224,3 +224,46 @@ if github().capabilities().supports(&Capability::Releases) {
 Runtime capability checks are part of the public contract. Provider-specific features should stay in provider crates or extensions.
 
 Capabilities describe framework-supported universal contracts, not every upstream provider endpoint. A provider can have native webhooks or organization APIs without exposing those capabilities until `git-cognition-core` has typed contracts for them.
+
+## Local Git Plane
+
+The same `cognition()` entry exposes a local Git plane that does not use HTTP transport or
+provider drivers. Use it for repository cognition features that read the local object database:
+
+```rust
+use git_cognition_core::cognition;
+
+let repository = cognition().local().repo("/workspace/project");
+
+let default_branch = repository.default_branch()?;
+let status = repository.status()?;
+let head = repository.show("HEAD").file("README.md")?;
+```
+
+Provider and local planes compose in one flow. Pull repository metadata over HTTP, then read the
+local history that backs it:
+
+```rust
+use git_cognition_core::{cognition, repo};
+use git_cognition_github::github;
+
+let location = repo().owner("akira-io").name("git-cognition-rs").get();
+let metadata = cognition().provider(github())
+    .transport(http().transport().get()?)
+    .repos()
+    .get(location.clone())
+    .await?;
+
+let local = cognition().local().repo("/workspace/git-cognition-rs");
+let commits_ahead = local
+    .log()
+    .range()
+    .base(metadata.repo().default_branch().to_string())
+    .head("feature")
+    .commits()?;
+
+println!("{} commits ahead of {}", commits_ahead.len(), metadata.repo().default_branch());
+```
+
+See `24-local-git-cognition-reads.md` for the full local surface: `log`, `diff`, `blame`,
+`merge`, `worktree`, `status`, `show`, `merge_base`, and `capabilities`.

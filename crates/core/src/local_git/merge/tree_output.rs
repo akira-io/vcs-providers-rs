@@ -1,15 +1,18 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use crate::CognitionResult;
 
+use super::conflict_text::conflict_regions;
 use super::{ConflictKind, ConflictRegion};
+
+const MESSAGE_WINDOW: usize = 256;
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub(super) struct MergeTreeOutput {
     tree_oid: String,
     stages: BTreeMap<String, ConflictStages>,
-    messages: BTreeMap<String, Vec<String>>,
+    messages_blob: String,
 }
 
 impl MergeTreeOutput {
@@ -19,7 +22,7 @@ impl MergeTreeOutput {
         let mut parsed = Self {
             tree_oid,
             stages: BTreeMap::new(),
-            messages: BTreeMap::new(),
+            messages_blob: String::new(),
         };
 
         let mut message_tokens = Vec::new();
@@ -31,14 +34,14 @@ impl MergeTreeOutput {
             }
 
             if in_messages {
-                message_tokens.push(token.to_owned());
+                message_tokens.push(token);
                 continue;
             }
 
             parsed.insert_stage(token);
         }
 
-        parsed.insert_messages(message_tokens);
+        parsed.messages_blob = message_tokens.join("\n");
         parsed
     }
 
@@ -46,39 +49,42 @@ impl MergeTreeOutput {
     where
         F: FnMut(String) -> CognitionResult<String>,
     {
-        self.stages
-            .keys()
-            .map(|path| self.conflict(path, &mut git_show))
-            .collect()
+        let mut out = Vec::new();
+        for path in self.stages.keys() {
+            out.extend(self.conflict(path, &mut git_show)?);
+        }
+
+        Ok(out)
     }
 
     pub(super) fn merged_files(&self) -> Vec<PathBuf> {
-        let mut paths = BTreeSet::new();
-        paths.extend(self.stages.keys().map(PathBuf::from));
-        paths.extend(self.messages.keys().map(PathBuf::from));
-        paths.into_iter().collect()
+        self.stages.keys().map(PathBuf::from).collect()
     }
 
-    fn conflict<F>(&self, path: &str, git_show: &mut F) -> CognitionResult<ConflictRegion>
+    fn conflict<F>(&self, path: &str, git_show: &mut F) -> CognitionResult<Vec<ConflictRegion>>
     where
         F: FnMut(String) -> CognitionResult<String>,
     {
         let merged = git_show(format!("{}:{path}", self.tree_oid))?;
-        let mut regions = conflict_regions(path, &merged, self.kind(path));
+        let kind = self.kind(path);
         let base = self.base_text(path, git_show)?;
+        let mut regions = conflict_regions(path, &merged, kind.clone());
 
-        if let Some(region) = regions.first_mut() {
-            region.base = base;
-            return Ok(region.clone());
+        if regions.is_empty() {
+            return Ok(vec![ConflictRegion {
+                path: PathBuf::from(path),
+                base,
+                ours: self.stage_text(path, StageSide::Ours, git_show)?,
+                theirs: self.stage_text(path, StageSide::Theirs, git_show)?,
+                kind,
+            }]);
         }
 
-        Ok(ConflictRegion {
-            path: PathBuf::from(path),
-            base,
-            ours: self.stage_text(path, StageSide::Ours, git_show)?,
-            theirs: self.stage_text(path, StageSide::Theirs, git_show)?,
-            kind: self.kind(path),
-        })
+        for region in &mut regions {
+            region.base = base.clone();
+        }
+
+        Ok(regions)
     }
 
     fn insert_stage(&mut self, token: &str) {
@@ -96,19 +102,6 @@ impl MergeTreeOutput {
             "2" => stages.ours = Some(blob),
             "3" => stages.theirs = Some(blob),
             _ => {}
-        }
-    }
-
-    fn insert_messages(&mut self, tokens: Vec<String>) {
-        for chunk in tokens.chunks(4) {
-            if chunk.len() < 4 {
-                continue;
-            }
-
-            self.messages
-                .entry(chunk[1].clone())
-                .or_default()
-                .push(chunk[2].clone());
         }
     }
 
@@ -147,20 +140,18 @@ impl MergeTreeOutput {
     }
 
     fn kind(&self, path: &str) -> ConflictKind {
-        let message = self
-            .messages
-            .get(path)
-            .into_iter()
-            .flatten()
-            .map(String::as_str)
-            .collect::<Vec<_>>()
-            .join(" ");
+        let blob = self.messages_blob.as_str();
+        let Some(start) = blob.find(path) else {
+            return ConflictKind::Overlap;
+        };
+        let end = blob.len().min(start + path.len() + MESSAGE_WINDOW);
+        let window = &blob[start..end];
 
-        if message.contains("add/add") {
+        if window.contains("add/add") {
             return ConflictKind::AddAdd;
         }
 
-        if message.contains("delete/modify") {
+        if window.contains("delete/modify") || window.contains("modify/delete") {
             return ConflictKind::DeleteModify;
         }
 
@@ -181,89 +172,98 @@ enum StageSide {
     Theirs,
 }
 
-fn conflict_regions(path: &str, output: &str, fallback_kind: ConflictKind) -> Vec<ConflictRegion> {
-    let mut regions = Vec::new();
-    let mut ours = Vec::new();
-    let mut theirs = Vec::new();
-    let mut in_ours = false;
-    let mut in_theirs = false;
+#[cfg(test)]
+mod tests {
+    use super::{ConflictKind, MergeTreeOutput};
+    use crate::CognitionResult;
+    use std::path::PathBuf;
 
-    for line in output.lines() {
-        if line.starts_with("<<<<<<<") {
-            in_ours = true;
-            continue;
+    fn tree_with_stages(paths: &[&str]) -> String {
+        let mut out = String::from("treeoid");
+        for path in paths {
+            out.push('\0');
+            out.push_str(&format!(
+                "100644 baseblob 1\t{path}\0100644 oursblob 2\t{path}\0100644 theirsblob 3\t{path}"
+            ));
         }
-
-        if line.starts_with("=======") {
-            in_ours = false;
-            in_theirs = true;
-            continue;
-        }
-
-        if line.starts_with(">>>>>>>") {
-            in_theirs = false;
-            regions.push(region(path, &ours, &theirs, fallback_kind.clone()));
-            ours.clear();
-            theirs.clear();
-            continue;
-        }
-
-        if in_ours {
-            ours.push(line.to_owned());
-            continue;
-        }
-
-        if in_theirs {
-            theirs.push(line.to_owned());
-        }
+        out.push('\0');
+        out.push('\0');
+        out
     }
 
-    regions
-}
+    #[test]
+    fn parse_collects_stage_paths_into_merged_files() {
+        let raw = tree_with_stages(&["src/a.rs", "src/b.rs"]);
+        let parsed = MergeTreeOutput::parse(&raw);
 
-fn region(
-    path: &str,
-    ours: &[String],
-    theirs: &[String],
-    fallback_kind: ConflictKind,
-) -> ConflictRegion {
-    let ours = ours.join("\n");
-    let theirs = theirs.join("\n");
-    let kind = content_kind(&ours, &theirs).unwrap_or(fallback_kind);
-
-    ConflictRegion {
-        path: PathBuf::from(path),
-        base: None,
-        ours,
-        theirs,
-        kind,
-    }
-}
-
-fn content_kind(ours: &str, theirs: &str) -> Option<ConflictKind> {
-    if ours.trim() == theirs.trim() {
-        return Some(ConflictKind::Whitespace);
+        let files: Vec<PathBuf> = parsed.merged_files();
+        assert!(files.contains(&PathBuf::from("src/a.rs")));
+        assert!(files.contains(&PathBuf::from("src/b.rs")));
     }
 
-    if import_only(ours) && import_only(theirs) {
-        return Some(ConflictKind::ImportOrder);
+    #[test]
+    fn kind_detects_add_add_message_near_path() {
+        let mut raw = tree_with_stages(&["src/a.rs"]);
+        raw.push_str("src/a.rs\0CONFLICT (add/add)\0both sides added\0");
+        let parsed = MergeTreeOutput::parse(&raw);
+
+        assert_eq!(parsed.kind_for_test("src/a.rs"), ConflictKind::AddAdd);
     }
 
-    None
-}
+    #[test]
+    fn kind_detects_modify_delete_message_near_path() {
+        let mut raw = tree_with_stages(&["src/a.rs"]);
+        raw.push_str("src/a.rs\0CONFLICT (modify/delete)\0one side deleted\0");
+        let parsed = MergeTreeOutput::parse(&raw);
 
-fn import_only(content: &str) -> bool {
-    let mut lines = content
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty());
-    let Some(first) = lines.next() else {
-        return false;
-    };
+        assert_eq!(parsed.kind_for_test("src/a.rs"), ConflictKind::DeleteModify);
+    }
 
-    import_line(first) && lines.all(import_line)
-}
+    #[test]
+    fn kind_defaults_to_overlap_when_path_absent_from_messages() {
+        let raw = tree_with_stages(&["src/a.rs"]);
+        let parsed = MergeTreeOutput::parse(&raw);
 
-fn import_line(line: &str) -> bool {
-    line.starts_with("use ") || line.starts_with("import ") || line.starts_with("from ")
+        assert_eq!(parsed.kind_for_test("src/a.rs"), ConflictKind::Overlap);
+    }
+
+    #[test]
+    fn conflicts_returns_every_region_with_base_propagated() -> CognitionResult<()> {
+        let raw = tree_with_stages(&["src/a.rs"]);
+        let parsed = MergeTreeOutput::parse(&raw);
+
+        let merged = String::from(
+            "ctx\n\
+             <<<<<<< ours\nours-1\n=======\ntheirs-1\n>>>>>>> theirs\n\
+             middle\n\
+             <<<<<<< ours\nours-2\n=======\ntheirs-2\n>>>>>>> theirs\n",
+        );
+
+        let regions = parsed.conflicts(|revision| {
+            if revision == format!("{}:{}", "treeoid", "src/a.rs") {
+                return Ok(merged.clone());
+            }
+
+            if revision == "baseblob" {
+                return Ok("base-text".into());
+            }
+
+            Ok(String::new())
+        })?;
+
+        assert_eq!(regions.len(), 2);
+        for region in &regions {
+            assert_eq!(region.base.as_deref(), Some("base-text"));
+            assert_eq!(region.path, PathBuf::from("src/a.rs"));
+        }
+        assert_eq!(regions[0].ours, "ours-1");
+        assert_eq!(regions[1].theirs, "theirs-2");
+        Ok(())
+    }
+
+    impl MergeTreeOutput {
+        fn kind_for_test(&self, path: &str) -> ConflictKind {
+            self.kind(path)
+        }
+    }
 }
