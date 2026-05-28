@@ -47,3 +47,24 @@ The `unified-dev` adapter should check capability support before exposing a UI
 action or calling an operation. Unsupported operations must surface
 `CognitionError::UnsupportedOperation` and should not fall back to direct provider API
 calls inside the app.
+
+```rust
+use git_cognition_core::{Capability, cognition};
+use git_cognition_bitbucket::bitbucket;
+
+let provider = bitbucket();
+
+if provider.capabilities().supports(&Capability::Releases) {
+    // expose the "Create release" affordance
+} else {
+    // hide it; do not call provider HTTP directly as a workaround
+}
+
+// Local plane has its own capability set, separate from the remote one above.
+use git_cognition_core::LocalGitCapability;
+
+let local = cognition().local().repo("/workspace/project");
+if local.capabilities().supports(&LocalGitCapability::MergePreview) {
+    // expose merge preview UI
+}
+```
