@@ -23,6 +23,24 @@ git-cognition-rs/
 
 ## Install
 
+From the CLI:
+
+```sh
+# Default: GitHub provider + local Git plane
+cargo add git-cognition
+
+# GitLab only
+cargo add git-cognition --no-default-features --features gitlab
+
+# All providers
+cargo add git-cognition --features all
+
+# Local Git plane only, no remote provider
+cargo add git-cognition --no-default-features
+```
+
+Or by hand in `Cargo.toml`:
+
 ```toml
 # Default: GitHub provider + local Git plane
 git-cognition = "0.1"
