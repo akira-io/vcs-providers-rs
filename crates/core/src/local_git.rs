@@ -1,7 +1,7 @@
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
-use crate::{VcsResult, error};
+use crate::{CognitionResult, error};
 
 #[path = "local_git/blame.rs"]
 mod blame;
@@ -98,7 +98,7 @@ impl LocalGitRepository {
         run_git(&self.path, ["rev-parse", "HEAD"]).is_ok()
     }
 
-    pub fn name(&self) -> VcsResult<String> {
+    pub fn name(&self) -> CognitionResult<String> {
         let top_level = git_stdout(&self.path, ["rev-parse", "--show-toplevel"])?;
         let name = Path::new(top_level.trim())
             .file_name()
@@ -108,7 +108,7 @@ impl LocalGitRepository {
         Ok(name.to_owned())
     }
 
-    pub fn default_branch(&self) -> VcsResult<String> {
+    pub fn default_branch(&self) -> CognitionResult<String> {
         if let Some(branch) = self.origin_head_branch()? {
             return Ok(branch);
         }
@@ -174,7 +174,7 @@ impl LocalGitRepository {
         LocalGitLog::make(self.clone())
     }
 
-    pub fn commit_meta(&self, sha: impl Into<String>) -> VcsResult<crate::Commit> {
+    pub fn commit_meta(&self, sha: impl Into<String>) -> CognitionResult<crate::Commit> {
         self.reference(sha).commit()
     }
 
@@ -198,7 +198,7 @@ impl LocalGitRepository {
         LocalGitWorktrees::make(self.clone())
     }
 
-    pub fn status(&self) -> VcsResult<Vec<StatusEntry>> {
+    pub fn status(&self) -> CognitionResult<Vec<StatusEntry>> {
         status::status(self)
     }
 
@@ -206,7 +206,7 @@ impl LocalGitRepository {
         LocalGitShow::make(self.clone(), revision)
     }
 
-    fn origin_head_branch(&self) -> VcsResult<Option<String>> {
+    fn origin_head_branch(&self) -> CognitionResult<Option<String>> {
         let output = git_stdout_optional(
             &self.path,
             ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"],
@@ -219,7 +219,7 @@ impl LocalGitRepository {
         Ok(non_empty_branch(branch))
     }
 
-    fn current_branch(&self) -> VcsResult<Option<String>> {
+    fn current_branch(&self) -> CognitionResult<Option<String>> {
         let output = git_stdout_optional(&self.path, ["rev-parse", "--abbrev-ref", "HEAD"])?;
         let Some(raw) = output else {
             return Ok(None);
@@ -233,7 +233,7 @@ impl LocalGitRepository {
         Ok(non_empty_branch(branch))
     }
 
-    fn remote_head_branch(&self) -> VcsResult<Option<String>> {
+    fn remote_head_branch(&self) -> CognitionResult<Option<String>> {
         let output = git_stdout_optional(&self.path, ["ls-remote", "--symref", "origin", "HEAD"])?;
         let Some(raw) = output else {
             return Ok(None);
@@ -250,7 +250,7 @@ impl LocalGitRepository {
         Ok(None)
     }
 
-    fn local_head_branch(&self) -> VcsResult<Option<String>> {
+    fn local_head_branch(&self) -> CognitionResult<Option<String>> {
         let output = git_stdout_optional(&self.path, ["symbolic-ref", "HEAD"])?;
         let Some(raw) = output else {
             return Ok(None);

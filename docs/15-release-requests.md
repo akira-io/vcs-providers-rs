@@ -8,7 +8,7 @@ Use the provider facade when the provider is known:
 let release = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .release("123")
     .get();
 
@@ -21,7 +21,7 @@ Use the repository collection builder for list URLs:
 let releases = gitlab()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .releases()
     .pagination()
     .limit(50)
@@ -36,7 +36,7 @@ If the repo already exists as a variable, pass it into the release builder:
 let repo = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let release = github()
@@ -46,15 +46,15 @@ let release = github()
     .get();
 ```
 
-Use `vcs(driver)` when the provider is injected:
+Use `cognition().provider(driver)` when the provider is injected:
 
 ```rust
-let provider = vcs(gitlab());
+let provider = cognition().provider(gitlab());
 
 let release = provider
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .release("v1.0.0")
     .get();
 ```
@@ -78,7 +78,7 @@ GitLab releases are addressed by tag name through the project releases endpoint:
 Bitbucket Cloud is intentionally not exposed through this facade. Bitbucket Cloud has repository downloads, but downloads are not equivalent to provider-neutral releases. A Bitbucket downloads extension can model that behavior without weakening the release contract.
 
 When a provider does not advertise `Capability::Releases`, release operations must return
-`VcsError::UnsupportedOperation`. They must not return `TransportNotConfigured`, because that
+`CognitionError::UnsupportedOperation`. They must not return `TransportNotConfigured`, because that
 would imply the provider supports releases and only lacks an HTTP client.
 
 Pagination remains provider-neutral in the caller. Providers map it to their own query names.
@@ -91,7 +91,7 @@ Create and update requests should stay fluent at the call site:
 let repo = github()
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let create_request = github()

@@ -307,7 +307,7 @@ impl BranchDraftBuilder {
         self
     }
 
-    pub fn get(self) -> crate::VcsResult<BranchDraft> {
+    pub fn get(self) -> crate::CognitionResult<BranchDraft> {
         let name = self
             .name
             .ok_or_else(|| crate::error().invalid_input("branch name is required"))?;

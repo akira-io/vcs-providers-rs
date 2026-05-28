@@ -1,8 +1,8 @@
-use vcs_provider_bitbucket::{DISPLAY_NAME, PROVIDER_ID, bitbucket};
-use vcs_provider_core::{AuthHeaderStyle, AuthKind, Capability, VcsResult, conformance};
+use git_cognition_bitbucket::{DISPLAY_NAME, PROVIDER_ID, bitbucket};
+use git_cognition_core::{AuthHeaderStyle, AuthKind, Capability, CognitionResult, conformance};
 
 #[test]
-fn bitbucket_provider_passes_common_conformance_suite() -> VcsResult<()> {
+fn bitbucket_provider_passes_common_conformance_suite() -> CognitionResult<()> {
     conformance()
         .provider(bitbucket())
         .id(PROVIDER_ID)

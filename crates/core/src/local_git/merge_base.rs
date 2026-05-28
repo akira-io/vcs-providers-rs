@@ -1,4 +1,4 @@
-use crate::{VcsResult, error};
+use crate::{CognitionResult, error};
 
 use super::LocalGitRepository;
 use super::commands::git_stdout_arguments;
@@ -29,11 +29,11 @@ impl LocalGitMergeBase {
         self
     }
 
-    pub fn get(self) -> VcsResult<String> {
+    pub fn get(self) -> CognitionResult<String> {
         git_stdout_arguments(&self.repository.path, &self.arguments()?)
     }
 
-    fn arguments(&self) -> VcsResult<Vec<String>> {
+    fn arguments(&self) -> CognitionResult<Vec<String>> {
         Ok(vec![
             "merge-base".into(),
             self.reference

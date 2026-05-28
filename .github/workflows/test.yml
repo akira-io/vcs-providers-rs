@@ -36,9 +36,9 @@ jobs:
           - macos-latest
           - windows-latest
         package:
-          - vcs-provider-github
-          - vcs-provider-gitlab
-          - vcs-provider-bitbucket
+          - git-cognition-github
+          - git-cognition-gitlab
+          - git-cognition-bitbucket
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6

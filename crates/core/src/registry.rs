@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use crate::{
-    Capability, Provider, ProviderDescriptor, ProviderDescriptorBuilder, ProviderId, VcsResult,
-    error,
+    Capability, CognitionResult, Provider, ProviderDescriptor, ProviderDescriptorBuilder,
+    ProviderId, error,
 };
 
 #[derive(Clone, Default)]
@@ -16,7 +16,7 @@ impl ProviderRegistry {
         ProviderRegistryBuilder::default()
     }
 
-    pub fn get_provider(&self, id: &ProviderId) -> VcsResult<Arc<dyn Provider>> {
+    pub fn get_provider(&self, id: &ProviderId) -> CognitionResult<Arc<dyn Provider>> {
         match self.providers.get(id) {
             Some(provider) => Ok(Arc::clone(provider)),
             None => Err(error().provider_not_registered(id.as_str())),
@@ -58,7 +58,7 @@ impl ProviderRegistryBuilder {
         ProviderDescriptorBuilder::make(id)
     }
 
-    pub fn register(mut self, provider: impl Provider + 'static) -> VcsResult<Self> {
+    pub fn register(mut self, provider: impl Provider + 'static) -> CognitionResult<Self> {
         let descriptor = provider.descriptor();
         let id = descriptor.id().clone();
 

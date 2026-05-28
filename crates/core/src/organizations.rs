@@ -3,25 +3,25 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    BoxFuture, ManagedOrganizationProvider, Page, PageRequest, ProviderId, Request, RequestHeader,
-    Response, Transport, VcsResult, error, request, transport_not_configured,
+    BoxFuture, CognitionResult, ManagedOrganizationProvider, Page, PageRequest, ProviderId,
+    Request, RequestHeader, Response, Transport, error, request, transport_not_configured,
 };
 
 pub trait Organizations: Send + Sync {
-    fn list(&self) -> BoxFuture<'_, VcsResult<Page<Organization>>>;
+    fn list(&self) -> BoxFuture<'_, CognitionResult<Page<Organization>>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TransportNotConfiguredOrganizations;
 
 impl Organizations for TransportNotConfiguredOrganizations {
-    fn list(&self) -> BoxFuture<'_, VcsResult<Page<Organization>>> {
+    fn list(&self) -> BoxFuture<'_, CognitionResult<Page<Organization>>> {
         transport_not_configured()
     }
 }
 
 pub trait OrganizationResponseMapper: Send + Sync {
-    fn organizations(&self, response: &Response) -> VcsResult<Page<Organization>>;
+    fn organizations(&self, response: &Response) -> CognitionResult<Page<Organization>>;
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -66,7 +66,7 @@ where
         self
     }
 
-    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, VcsResult<Response>> {
+    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, CognitionResult<Response>> {
         Box::pin(async move {
             let response = self.transport.send(self.apply_headers(request)).await?;
 
@@ -91,7 +91,7 @@ where
     Driver: ManagedOrganizationProvider + Send + Sync,
     Mapper: OrganizationResponseMapper,
 {
-    fn list(&self) -> BoxFuture<'_, VcsResult<Page<Organization>>> {
+    fn list(&self) -> BoxFuture<'_, CognitionResult<Page<Organization>>> {
         Box::pin(async move {
             let request = request()
                 .get(self.driver.organization_list_url(None).value())

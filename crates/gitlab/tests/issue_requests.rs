@@ -1,18 +1,18 @@
-use vcs_provider_core::RequestMethod;
-use vcs_provider_gitlab::gitlab;
+use git_cognition_core::RequestMethod;
+use git_cognition_gitlab::gitlab;
 
 #[test]
 fn gitlab_issue_get_targets_repository_endpoint() {
     let issue_resource = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .issue("42")
         .get();
 
     assert_eq!(
         issue_resource.url().value(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/issues/42"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/issues/42"
     );
 }
 
@@ -21,7 +21,7 @@ fn gitlab_issue_list_targets_repository_endpoint() {
     let issues = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .issues()
         .pagination()
         .limit(50)
@@ -30,7 +30,7 @@ fn gitlab_issue_list_targets_repository_endpoint() {
 
     assert_eq!(
         issues.url().value(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/issues?per_page=50&page=2"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/issues?per_page=50&page=2"
     );
 }
 
@@ -39,13 +39,13 @@ fn gitlab_issue_builder_accepts_existing_repo() {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let issue_resource = gitlab().issue().repo(repo).id("42").get();
 
     assert_eq!(
         issue_resource.url().value(),
-        "https://gitlab.com/api/v4/projects/akira-io%2Fvcs-providers-rs/issues/42"
+        "https://gitlab.com/api/v4/projects/akira-io%2Fgit-cognition-rs/issues/42"
     );
 }
 
@@ -54,7 +54,7 @@ fn gitlab_issue_create_builds_post_request() {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let create_request = gitlab()
         .issue()
@@ -76,7 +76,7 @@ fn gitlab_issue_update_builds_put_request() {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let update_request = gitlab()
         .issue()
@@ -98,7 +98,7 @@ fn gitlab_issue_close_builds_put_request() {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let close_request = gitlab().issue().repo(repo).id("42").closed().close();
 
@@ -110,11 +110,11 @@ fn gitlab_issue_close_builds_put_request() {
 }
 
 #[test]
-fn gitlab_issue_delete_builds_delete_request() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_issue_delete_builds_delete_request() -> git_cognition_core::CognitionResult<()> {
     let repo = gitlab()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let issue_resource = gitlab().issue().repo(repo).id("42").get();
     let delete_request = issue_resource.delete()?;
@@ -124,6 +124,6 @@ fn gitlab_issue_delete_builds_delete_request() -> vcs_provider_core::VcsResult<(
     Ok(())
 }
 
-fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
-    request.body().map(vcs_provider_core::RequestBody::as_str)
+fn request_body(request: &git_cognition_core::Request) -> Option<&str> {
+    request.body().map(git_cognition_core::RequestBody::as_str)
 }

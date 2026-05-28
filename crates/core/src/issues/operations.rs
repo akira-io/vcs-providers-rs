@@ -1,6 +1,6 @@
 use crate::{
-    BoxFuture, Issue, IssueListOperation, IssuePatchBuilder, Issues, Repo, ScopedIssueOperation,
-    VcsResult, error,
+    BoxFuture, CognitionResult, Issue, IssueListOperation, IssuePatchBuilder, Issues, Repo,
+    ScopedIssueOperation, error,
 };
 
 pub trait IssuesFluent {
@@ -86,7 +86,7 @@ impl IssueCreateOperation {
         self
     }
 
-    pub fn create(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn create(self) -> BoxFuture<'static, CognitionResult<Issue>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -148,7 +148,7 @@ impl IssueUpdateOperation {
         self
     }
 
-    pub fn update(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn update(self) -> BoxFuture<'static, CognitionResult<Issue>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -196,7 +196,7 @@ impl IssueCloseOperation {
         self
     }
 
-    pub fn close(self) -> BoxFuture<'static, VcsResult<Issue>> {
+    pub fn close(self) -> BoxFuture<'static, CognitionResult<Issue>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };
@@ -230,7 +230,7 @@ impl IssueDeleteOperation {
         self
     }
 
-    pub fn delete(self) -> BoxFuture<'static, VcsResult<()>> {
+    pub fn delete(self) -> BoxFuture<'static, CognitionResult<()>> {
         let Some(repo) = self.repo else {
             return Box::pin(async { Err(error().invalid_input("repository is required")) });
         };

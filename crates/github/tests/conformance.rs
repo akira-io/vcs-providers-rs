@@ -1,8 +1,8 @@
-use vcs_provider_core::{AuthHeaderStyle, AuthKind, Capability, VcsResult, conformance};
-use vcs_provider_github::{DISPLAY_NAME, PROVIDER_ID, github};
+use git_cognition_core::{AuthHeaderStyle, AuthKind, Capability, CognitionResult, conformance};
+use git_cognition_github::{DISPLAY_NAME, PROVIDER_ID, github};
 
 #[test]
-fn github_provider_passes_common_conformance_suite() -> VcsResult<()> {
+fn github_provider_passes_common_conformance_suite() -> CognitionResult<()> {
     conformance()
         .provider(github())
         .id(PROVIDER_ID)

@@ -1,19 +1,19 @@
 use crate::{
-    AuthCredential, Authentication, CodeReviews, Issues, ManagedClientProvider, Organizations,
-    Pipelines, Provider, ProviderClient, Releases, Repos, RetryPolicy, RetryTransport, Transport,
-    VcsManager,
+    AuthCredential, Authentication, CodeReviews, CognitionManager, Issues, ManagedClientProvider,
+    Organizations, Pipelines, Provider, ProviderClient, Releases, Repos, RetryPolicy,
+    RetryTransport, Transport,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRetryTransportBuilder<Driver, TransportKind> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     transport: TransportKind,
     max_attempts: u16,
     retry_status_codes: Vec<u16>,
 }
 
 impl<Driver, TransportKind> ManagedRetryTransportBuilder<Driver, TransportKind> {
-    pub fn make(manager: VcsManager<Driver>, transport: TransportKind) -> Self {
+    pub fn make(manager: CognitionManager<Driver>, transport: TransportKind) -> Self {
         Self {
             manager,
             transport,

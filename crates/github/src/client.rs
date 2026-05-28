@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use vcs_provider_core::{
+use git_cognition_core::{
     AuthCredential, Authentication, CodeReviews, Issues, ManagedClientProvider, Organizations,
     Pipelines, Provider, ProviderClient, ProviderDescriptor, Releases, Repos, RequestHeader,
     Transport, TransportBackedAuthentication, TransportBackedCodeReviews, TransportBackedIssues,
@@ -183,8 +183,8 @@ impl Provider for GitHubClient {
 
     fn auth_header_style(
         &self,
-        auth_kind: vcs_provider_core::AuthKind,
-    ) -> vcs_provider_core::AuthHeaderStyle {
+        auth_kind: git_cognition_core::AuthKind,
+    ) -> git_cognition_core::AuthHeaderStyle {
         self.provider.auth_header_style(auth_kind)
     }
 }

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::VcsResult;
+use crate::CognitionResult;
 
 use super::LocalGitRepository;
 use super::commands::git_stdout_arguments;
@@ -26,7 +26,7 @@ impl LocalGitBlame {
         self
     }
 
-    pub fn compute(self) -> VcsResult<Blame> {
+    pub fn compute(self) -> CognitionResult<Blame> {
         let output = git_stdout_arguments(&self.repository.path, &self.arguments())?;
 
         Ok(Blame {

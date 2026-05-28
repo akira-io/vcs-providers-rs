@@ -1,4 +1,4 @@
-use vcs_provider_core::{Capability, CapabilitySet, capabilities};
+use git_cognition_core::{Capability, CapabilitySet, capabilities};
 
 pub fn gitlab_capabilities() -> CapabilitySet {
     capabilities().make([

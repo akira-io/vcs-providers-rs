@@ -2,19 +2,21 @@
 mod local_git_conflict_support;
 mod local_git_support;
 
-use vcs_provider_core::{ChangeKind, FileState, LineOrigin, LocalGitCapability, VcsResult, git};
+use git_cognition_core::{
+    ChangeKind, CognitionResult, FileState, LineOrigin, LocalGitCapability, cognition,
+};
 
 use local_git_conflict_support::local_git_conflict;
 use local_git_support::local_git_fixture;
 
 #[test]
-fn local_git_exposes_cognition_capabilities() -> VcsResult<()> {
+fn local_git_exposes_cognition_capabilities() -> CognitionResult<()> {
     let source = local_git_fixture()
         .workspace("capabilities")
         .repo("source")
         .create()?;
 
-    let capabilities = git().repo(&source).capabilities();
+    let capabilities = cognition().local().repo(&source).capabilities();
 
     assert!(capabilities.supports(&LocalGitCapability::Log));
     assert!(capabilities.supports(&LocalGitCapability::Diff));
@@ -25,13 +27,13 @@ fn local_git_exposes_cognition_capabilities() -> VcsResult<()> {
 }
 
 #[test]
-fn local_git_reads_log_graph_and_merge_base() -> VcsResult<()> {
+fn local_git_reads_log_graph_and_merge_base() -> CognitionResult<()> {
     let source = local_git_fixture()
         .workspace("log")
         .repo("source")
         .create()?;
     source.branch("feature").commit()?;
-    let repository = git().repo(&source);
+    let repository = cognition().local().repo(&source);
     let main = repository.branch("main").sha()?;
     let feature = repository.branch("feature").sha()?;
 
@@ -58,14 +60,14 @@ fn local_git_reads_log_graph_and_merge_base() -> VcsResult<()> {
 }
 
 #[test]
-fn local_git_reads_status_show_diff_and_blame() -> VcsResult<()> {
+fn local_git_reads_status_show_diff_and_blame() -> CognitionResult<()> {
     let source = local_git_fixture()
         .workspace("reads")
         .repo("source")
         .create()?;
     source.file("README.md").write("test\nchanged\n")?;
     source.file("new.txt").write("new\n")?;
-    let repository = git().repo(&source);
+    let repository = cognition().local().repo(&source);
 
     let status = repository.status()?;
     let show = repository.show("HEAD").file("README.md")?;
@@ -93,12 +95,12 @@ fn local_git_reads_status_show_diff_and_blame() -> VcsResult<()> {
 }
 
 #[test]
-fn local_git_manages_ephemeral_worktrees() -> VcsResult<()> {
+fn local_git_manages_ephemeral_worktrees() -> CognitionResult<()> {
     let workspace = local_git_fixture().workspace("worktree");
     let source = workspace.repo("source").create()?;
     let sandbox = workspace.repo("sandbox");
     let sandbox_path = std::path::PathBuf::from(sandbox.clone());
-    let repository = git().repo(&source);
+    let repository = cognition().local().repo(&source);
     let head = repository.reference("HEAD").sha()?;
     let worktrees = repository.worktree();
 
@@ -118,12 +120,12 @@ fn local_git_manages_ephemeral_worktrees() -> VcsResult<()> {
 }
 
 #[test]
-fn local_git_previews_merge_conflicts_without_applying() -> VcsResult<()> {
+fn local_git_previews_merge_conflicts_without_applying() -> CognitionResult<()> {
     let source = local_git_fixture()
         .workspace("merge")
         .repo("source")
         .create()?;
-    let repository = git().repo(&source);
+    let repository = cognition().local().repo(&source);
     let (base, ours, theirs) = local_git_conflict(&source).create()?;
 
     let preview = repository

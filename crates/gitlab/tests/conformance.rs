@@ -1,8 +1,8 @@
-use vcs_provider_core::{AuthHeaderStyle, AuthKind, Capability, VcsResult, conformance};
-use vcs_provider_gitlab::{DISPLAY_NAME, PROVIDER_ID, gitlab};
+use git_cognition_core::{AuthHeaderStyle, AuthKind, Capability, CognitionResult, conformance};
+use git_cognition_gitlab::{DISPLAY_NAME, PROVIDER_ID, gitlab};
 
 #[test]
-fn gitlab_provider_passes_common_conformance_suite() -> VcsResult<()> {
+fn gitlab_provider_passes_common_conformance_suite() -> CognitionResult<()> {
     conformance()
         .provider(gitlab())
         .id(PROVIDER_ID)

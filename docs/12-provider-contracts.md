@@ -36,7 +36,7 @@ Universal resources use fluent builders so construction order stays explicit and
 ```rust
 let repo = repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let issue = issue()
@@ -71,7 +71,7 @@ List operations use query objects. That keeps the contracts stable when filters 
 ```rust
 let repo = repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let page = pagination()
@@ -114,7 +114,7 @@ if provider.capabilities().supports(&Capability::Pipelines) {
 }
 ```
 
-Calling a contract that is not transport-backed returns `VcsError::TransportNotConfigured` until the provider wires transport and response mapping for that domain.
+Calling a contract that is not transport-backed returns `CognitionError::TransportNotConfigured` until the provider wires transport and response mapping for that domain.
 
 A provider must only advertise capabilities backed by the current universal contract surface. Provider APIs can expose more concepts than the core crate models today. GitHub organizations, GitHub discussions, GitLab groups and provider webhooks are real provider APIs, but they are not advertised as `Capability::Organizations`, `Capability::Discussions` or `Capability::Webhooks` until the framework has typed contracts, request builders, hydration and conformance coverage for them.
 

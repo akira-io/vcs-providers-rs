@@ -44,7 +44,7 @@ let next_page = repositories.next();
 
 ```rust
 let next_page_cursor = next_page
-    .ok_or(VcsError::InvalidInput("missing next cursor".into()))?;
+    .ok_or(CognitionError::InvalidInput("missing next cursor".into()))?;
 
 let next_page_request = pagination()
     .request()

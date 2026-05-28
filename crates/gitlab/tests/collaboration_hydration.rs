@@ -1,10 +1,10 @@
-use vcs_provider_core::{
+use git_cognition_core::{
     CodeReviewsFluent, IssuesFluent, ReleasesFluent, Repo, repo, run_async_test,
 };
-use vcs_provider_gitlab::gitlab;
+use git_cognition_gitlab::gitlab;
 
 #[test]
-fn gitlab_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_issue_get_and_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let issue_resource = gitlab()
             .body(r#"{"iid":42}"#)
@@ -28,7 +28,7 @@ fn gitlab_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResult<(
 }
 
 #[test]
-fn gitlab_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_issue_mutations() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let created_issue = gitlab()
             .body(r#"{"iid":42}"#)
@@ -71,7 +71,7 @@ fn gitlab_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> 
 }
 
 #[test]
-fn gitlab_client_hydrates_code_review_get_and_list() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_code_review_get_and_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let code_review_resource = gitlab()
             .body(r#"{"iid":42}"#)
@@ -95,7 +95,7 @@ fn gitlab_client_hydrates_code_review_get_and_list() -> vcs_provider_core::VcsRe
 }
 
 #[test]
-fn gitlab_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_code_review_mutations() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let created_code_review = gitlab()
             .body(r#"{"iid":42}"#)
@@ -148,7 +148,7 @@ fn gitlab_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
 }
 
 #[test]
-fn gitlab_client_hydrates_release_get_and_list() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_release_get_and_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let release_resource = gitlab()
             .body(r#"{"tag_name":"v1.0.0"}"#)
@@ -172,7 +172,7 @@ fn gitlab_client_hydrates_release_get_and_list() -> vcs_provider_core::VcsResult
 }
 
 #[test]
-fn gitlab_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()> {
+fn gitlab_client_hydrates_release_mutations() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let created_release = gitlab()
             .body(r#"{"tag_name":"v1.0.0"}"#)
@@ -208,5 +208,5 @@ fn gitlab_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()
 }
 
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }

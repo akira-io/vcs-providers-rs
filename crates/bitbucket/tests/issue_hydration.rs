@@ -1,8 +1,8 @@
-use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::{IssuesFluent, Repo, repo, run_async_test};
+use git_cognition_bitbucket::bitbucket;
+use git_cognition_core::{IssuesFluent, Repo, repo, run_async_test};
 
 #[test]
-fn bitbucket_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_issue_get_and_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let issue_resource = bitbucket()
             .body(r#"{"id":42}"#)
@@ -26,7 +26,7 @@ fn bitbucket_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResul
 }
 
 #[test]
-fn bitbucket_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_issue_mutations() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let created_issue = bitbucket()
             .body(r#"{"id":42}"#)
@@ -69,5 +69,5 @@ fn bitbucket_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<(
 }
 
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }

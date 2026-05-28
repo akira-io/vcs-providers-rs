@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    AuthCredential, BoxFuture, Provider, Request, RequestBuilder, RequestUrl, Response,
-    TelemetrySink, Transport, VcsError, VcsResult, error, middleware, telemetry, url,
+    AuthCredential, BoxFuture, CognitionError, CognitionResult, Provider, Request, RequestBuilder,
+    RequestUrl, Response, TelemetrySink, Transport, error, middleware, telemetry, url,
 };
 
 mod configuration;
@@ -41,7 +41,7 @@ impl ProviderRuntime {
         }
     }
 
-    pub fn execute(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    pub fn execute(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         Box::pin(async move {
             let response = self.transport().send(request).await?;
 
@@ -103,7 +103,7 @@ impl ProviderRequestBuilder {
         self.request.build()
     }
 
-    pub fn send(self) -> BoxFuture<'static, VcsResult<Response>> {
+    pub fn send(self) -> BoxFuture<'static, CognitionResult<Response>> {
         let runtime = self.runtime.clone();
         let request = self.build();
 
@@ -193,7 +193,7 @@ impl ProviderRuntimeWithProviderBuilder<ProvidedProviderTransport> {
         self.build().request()
     }
 
-    pub fn execute(self, request: Request) -> BoxFuture<'static, VcsResult<Response>> {
+    pub fn execute(self, request: Request) -> BoxFuture<'static, CognitionResult<Response>> {
         let runtime = self.build();
 
         Box::pin(async move { runtime.execute(request).await })
@@ -214,7 +214,7 @@ impl ArcTransport {
 }
 
 impl Transport for ArcTransport {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         self.transport.send(request)
     }
 }
@@ -238,6 +238,6 @@ impl TelemetrySink for ArcTelemetrySink {
     }
 }
 
-pub fn transport_status_error(response: &Response) -> Option<VcsError> {
+pub fn transport_status_error(response: &Response) -> Option<CognitionError> {
     error().from_response(response)
 }

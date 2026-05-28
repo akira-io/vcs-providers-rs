@@ -1,6 +1,6 @@
 use crate::{
-    Capability, CodeReviewId, PipelineId, Provider, VcsResult, Visibility, code_review, issue,
-    issue_id, pipeline, release, release_id, repo, testing::run_async_test,
+    Capability, CodeReviewId, CognitionResult, PipelineId, Provider, Visibility, code_review,
+    issue, issue_id, pipeline, release, release_id, repo, testing::run_async_test,
 };
 
 #[path = "contracts/support.rs"]
@@ -11,7 +11,7 @@ use support::{
     sample_code_review, sample_issue, sample_pipeline, sample_release, sample_repo_location,
 };
 
-pub fn check_provider_contracts(provider: &impl Provider) -> VcsResult<()> {
+pub fn check_provider_contracts(provider: &impl Provider) -> CognitionResult<()> {
     check_authentication(provider)?;
     check_organizations(provider)?;
     check_repos(provider)?;
@@ -21,7 +21,7 @@ pub fn check_provider_contracts(provider: &impl Provider) -> VcsResult<()> {
     check_releases(provider)
 }
 
-fn check_authentication(provider: &impl Provider) -> VcsResult<()> {
+fn check_authentication(provider: &impl Provider) -> CognitionResult<()> {
     let authentication = provider.authentication();
 
     assert_transport_not_configured(
@@ -30,13 +30,13 @@ fn check_authentication(provider: &impl Provider) -> VcsResult<()> {
     )
 }
 
-fn check_organizations(provider: &impl Provider) -> VcsResult<()> {
+fn check_organizations(provider: &impl Provider) -> CognitionResult<()> {
     let organizations = provider.organizations();
 
     assert_transport_not_configured("organization list", run_async_test(organizations.list()))
 }
 
-fn check_repos(provider: &impl Provider) -> VcsResult<()> {
+fn check_repos(provider: &impl Provider) -> CognitionResult<()> {
     let repo_location = sample_repo_location();
     let repos = provider.repos();
 
@@ -51,7 +51,7 @@ fn check_repos(provider: &impl Provider) -> VcsResult<()> {
             repos.search(
                 repo()
                     .query()
-                    .search("vcs")
+                    .search("cognition")
                     .optional_pagination(None)
                     .search(),
             ),
@@ -104,7 +104,7 @@ fn check_repos(provider: &impl Provider) -> VcsResult<()> {
     assert_transport_not_configured("repo commits", run_async_test(repos.commits(repo_location)))
 }
 
-fn check_issues(provider: &impl Provider) -> VcsResult<()> {
+fn check_issues(provider: &impl Provider) -> CognitionResult<()> {
     let repo_location = sample_repo_location();
     let issue_resource = sample_issue(repo_location.clone());
     let issues = provider.issues();
@@ -150,7 +150,7 @@ fn check_issues(provider: &impl Provider) -> VcsResult<()> {
     )
 }
 
-fn check_code_reviews(provider: &impl Provider) -> VcsResult<()> {
+fn check_code_reviews(provider: &impl Provider) -> CognitionResult<()> {
     let repo_location = sample_repo_location();
     let code_review_resource = sample_code_review(repo_location.clone());
     let code_reviews = provider.code_reviews();
@@ -202,7 +202,7 @@ fn check_code_reviews(provider: &impl Provider) -> VcsResult<()> {
     )
 }
 
-fn check_pipelines(provider: &impl Provider) -> VcsResult<()> {
+fn check_pipelines(provider: &impl Provider) -> CognitionResult<()> {
     let repo_location = sample_repo_location();
     let pipeline_resource = sample_pipeline(repo_location.clone());
     let pipelines = provider.pipelines();
@@ -225,7 +225,7 @@ fn check_pipelines(provider: &impl Provider) -> VcsResult<()> {
     )
 }
 
-fn check_releases(provider: &impl Provider) -> VcsResult<()> {
+fn check_releases(provider: &impl Provider) -> CognitionResult<()> {
     let repo_location = sample_repo_location();
     let release_resource = sample_release(repo_location.clone());
     let releases = provider.releases();

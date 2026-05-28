@@ -1,10 +1,10 @@
-use vcs_provider_core::{
-    CodeReviewsFluent, IssuesFluent, ReleasesFluent, Repo, VcsError, repo, run_async_test,
+use git_cognition_core::{
+    CodeReviewsFluent, CognitionError, IssuesFluent, ReleasesFluent, Repo, repo, run_async_test,
 };
-use vcs_provider_github::github;
+use git_cognition_github::github;
 
 #[test]
-fn github_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_issue_get_and_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let issue_resource = github()
             .body(r#"{"number":42}"#)
@@ -28,7 +28,7 @@ fn github_client_hydrates_issue_get_and_list() -> vcs_provider_core::VcsResult<(
 }
 
 #[test]
-fn github_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_issue_mutations() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let created_issue = github()
             .body(r#"{"number":42}"#)
@@ -63,7 +63,7 @@ fn github_client_hydrates_issue_mutations() -> vcs_provider_core::VcsResult<()> 
 }
 
 #[test]
-fn github_client_reports_unsupported_issue_delete() -> vcs_provider_core::VcsResult<()> {
+fn github_client_reports_unsupported_issue_delete() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let result = github()
             .body("{}")
@@ -75,7 +75,7 @@ fn github_client_reports_unsupported_issue_delete() -> vcs_provider_core::VcsRes
 
         assert_eq!(
             result,
-            Err(VcsError::UnsupportedOperation("issue delete".into()))
+            Err(CognitionError::UnsupportedOperation("issue delete".into()))
         );
 
         Ok(())
@@ -83,7 +83,7 @@ fn github_client_reports_unsupported_issue_delete() -> vcs_provider_core::VcsRes
 }
 
 #[test]
-fn github_client_hydrates_code_review_get_and_list() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_code_review_get_and_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let code_review_resource = github()
             .body(r#"{"number":42}"#)
@@ -107,7 +107,7 @@ fn github_client_hydrates_code_review_get_and_list() -> vcs_provider_core::VcsRe
 }
 
 #[test]
-fn github_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_code_review_mutations() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let created_code_review = github()
             .body(r#"{"number":42}"#)
@@ -152,7 +152,8 @@ fn github_client_hydrates_code_review_mutations() -> vcs_provider_core::VcsResul
 }
 
 #[test]
-fn github_client_reports_unsupported_code_review_delete() -> vcs_provider_core::VcsResult<()> {
+fn github_client_reports_unsupported_code_review_delete() -> git_cognition_core::CognitionResult<()>
+{
     run_async_test(async {
         let result = github()
             .body("{}")
@@ -164,7 +165,9 @@ fn github_client_reports_unsupported_code_review_delete() -> vcs_provider_core::
 
         assert_eq!(
             result,
-            Err(VcsError::UnsupportedOperation("code review delete".into()))
+            Err(CognitionError::UnsupportedOperation(
+                "code review delete".into()
+            ))
         );
 
         Ok(())
@@ -172,7 +175,7 @@ fn github_client_reports_unsupported_code_review_delete() -> vcs_provider_core::
 }
 
 #[test]
-fn github_client_hydrates_release_get_and_list() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_release_get_and_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let release_resource = github()
             .body(r#"{"id":123}"#)
@@ -196,7 +199,7 @@ fn github_client_hydrates_release_get_and_list() -> vcs_provider_core::VcsResult
 }
 
 #[test]
-fn github_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_release_mutations() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let created_release = github()
             .body(r#"{"id":123}"#)
@@ -232,5 +235,5 @@ fn github_client_hydrates_release_mutations() -> vcs_provider_core::VcsResult<()
 }
 
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }

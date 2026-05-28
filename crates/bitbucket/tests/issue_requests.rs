@@ -1,18 +1,18 @@
-use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::RequestMethod;
+use git_cognition_bitbucket::bitbucket;
+use git_cognition_core::RequestMethod;
 
 #[test]
 fn bitbucket_issue_get_targets_repository_endpoint() {
     let issue_resource = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .issue("42")
         .get();
 
     assert_eq!(
         issue_resource.url().value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/issues/42"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/issues/42"
     );
 }
 
@@ -21,7 +21,7 @@ fn bitbucket_issue_list_targets_repository_endpoint() {
     let issues = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .issues()
         .pagination()
         .limit(50)
@@ -30,7 +30,7 @@ fn bitbucket_issue_list_targets_repository_endpoint() {
 
     assert_eq!(
         issues.url().value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/issues?pagelen=50&page=2"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/issues?pagelen=50&page=2"
     );
 }
 
@@ -39,7 +39,7 @@ fn bitbucket_issue_create_builds_post_request() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let create_request = bitbucket()
         .issue()
@@ -61,7 +61,7 @@ fn bitbucket_issue_update_builds_put_request() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let update_request = bitbucket()
         .issue()
@@ -85,7 +85,7 @@ fn bitbucket_issue_close_builds_put_request() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let close_request = bitbucket().issue().repo(repo).id("42").closed().close();
 
@@ -97,11 +97,11 @@ fn bitbucket_issue_close_builds_put_request() {
 }
 
 #[test]
-fn bitbucket_issue_delete_builds_delete_request() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_issue_delete_builds_delete_request() -> git_cognition_core::CognitionResult<()> {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let issue_resource = bitbucket().issue().repo(repo).id("42").get();
     let delete_request = issue_resource.delete()?;
@@ -111,6 +111,6 @@ fn bitbucket_issue_delete_builds_delete_request() -> vcs_provider_core::VcsResul
     Ok(())
 }
 
-fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
-    request.body().map(vcs_provider_core::RequestBody::as_str)
+fn request_body(request: &git_cognition_core::Request) -> Option<&str> {
+    request.body().map(git_cognition_core::RequestBody::as_str)
 }

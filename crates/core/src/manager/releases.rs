@@ -4,11 +4,11 @@ use crate::{
     ReleaseDraftBuilder, ReleaseListQuery, ReleaseQueryBuilder, Repo, Request, RequestUrl,
 };
 
-use super::{ManagedReleaseProvider, VcsManager};
+use super::{CognitionManager, ManagedReleaseProvider};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedReleaseBuilder<Driver, RepoState, ReleaseIdState> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) release: ReleaseBuilder<RepoState, ReleaseIdState>,
 }
 
@@ -84,7 +84,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedReleaseDraftBuilder<Driver, RepoState, TagState> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     draft: ReleaseDraftBuilder<RepoState, TagState>,
 }
 
@@ -146,7 +146,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRelease<Driver> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) release: Release,
 }
 
@@ -173,7 +173,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedReleaseCollection<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
 }
 
 impl<Driver> ManagedReleaseCollection<Driver>
@@ -187,7 +187,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoReleases<Driver> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) repo: Repo,
     pub(super) page: Option<PageRequest>,
 }
@@ -220,7 +220,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoReleasesPagination<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     repo: Repo,
     page: PageRequestBuilder,
 }

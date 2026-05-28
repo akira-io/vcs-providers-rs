@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::VcsResult;
+use crate::CognitionResult;
 
 use super::LocalGitRepository;
 use super::commands::git_stdout_arguments;
@@ -19,7 +19,7 @@ impl LocalGitShow {
         }
     }
 
-    pub fn file(self, path: impl Into<PathBuf>) -> VcsResult<String> {
+    pub fn file(self, path: impl Into<PathBuf>) -> CognitionResult<String> {
         let path = path.into();
         let object = format!("{}:{}", self.revision, path.to_string_lossy());
 

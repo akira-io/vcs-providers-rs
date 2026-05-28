@@ -3,8 +3,8 @@
 The common conformance suite verifies provider behavior through core contracts. It is used by GitHub, GitLab and Bitbucket tests with provider-specific expectations supplied by each provider crate.
 
 ```rust
-use vcs_provider_core::{Capability, conformance};
-use vcs_provider_github::github;
+use git_cognition_core::{Capability, conformance};
+use git_cognition_github::github;
 
 conformance()
     .provider(github())
@@ -35,7 +35,7 @@ New providers should add one conformance test before adding provider-specific re
 
 ```rust
 #[test]
-fn custom_provider_passes_common_conformance_suite() -> vcs_provider_core::VcsResult<()> {
+fn custom_provider_passes_common_conformance_suite() -> git_cognition_core::CognitionResult<()> {
     conformance()
         .provider(custom())
         .id("custom")

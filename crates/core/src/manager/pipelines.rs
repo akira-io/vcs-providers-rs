@@ -1,12 +1,12 @@
 use crate::{
-    ManagedPipelineProvider, MissingPipelineId, MissingPipelineRepo, PageRequest,
+    CognitionManager, ManagedPipelineProvider, MissingPipelineId, MissingPipelineRepo, PageRequest,
     PageRequestBuilder, Pipeline, PipelineBuilder, PipelineListQuery, PipelineQueryBuilder,
-    ProvidedPipelineId, ProvidedPipelineRepo, Repo, Request, RequestUrl, VcsManager,
+    ProvidedPipelineId, ProvidedPipelineRepo, Repo, Request, RequestUrl,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedPipelineBuilder<Driver, RepoState, PipelineIdState> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) pipeline: PipelineBuilder<RepoState, PipelineIdState>,
 }
 
@@ -73,7 +73,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedPipeline<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     pipeline: Pipeline,
 }
 
@@ -93,18 +93,18 @@ where
         self.pipeline.repo()
     }
 
-    pub fn rerun(&self) -> crate::VcsResult<Request> {
+    pub fn rerun(&self) -> crate::CognitionResult<Request> {
         self.manager.driver.pipeline_rerun_request(&self.pipeline)
     }
 
-    pub fn cancel(&self) -> crate::VcsResult<Request> {
+    pub fn cancel(&self) -> crate::CognitionResult<Request> {
         self.manager.driver.pipeline_cancel_request(&self.pipeline)
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedPipelineCollection<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
 }
 
 impl<Driver> ManagedPipelineCollection<Driver>
@@ -118,7 +118,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoPipelines<Driver> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) repo: Repo,
     pub(super) page: Option<PageRequest>,
 }
@@ -154,7 +154,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoPipelinesPagination<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     repo: Repo,
     page: PageRequestBuilder,
 }

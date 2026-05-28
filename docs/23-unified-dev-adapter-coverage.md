@@ -1,6 +1,6 @@
 # Unified Dev Adapter Coverage
 
-`vcs-providers-rs` is intended to own provider transport, endpoint semantics,
+`git-cognition-rs` is intended to own provider transport, endpoint semantics,
 hydration, pagination, capabilities, and normalized errors. `unified-dev`
 should keep only thin adapters that convert these resources into app DTOs.
 
@@ -45,5 +45,5 @@ operations must be based on official provider gaps, not implementation order.
 
 The `unified-dev` adapter should check capability support before exposing a UI
 action or calling an operation. Unsupported operations must surface
-`VcsError::UnsupportedOperation` and should not fall back to direct provider API
+`CognitionError::UnsupportedOperation` and should not fall back to direct provider API
 calls inside the app.

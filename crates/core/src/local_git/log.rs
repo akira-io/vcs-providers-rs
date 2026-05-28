@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::{Commit, VcsResult};
+use crate::{CognitionResult, Commit};
 
 use super::LocalGitRepository;
 use super::commands::git_stdout_arguments;
@@ -59,13 +59,13 @@ impl LocalGitLog {
         self
     }
 
-    pub fn commits(self) -> VcsResult<Vec<Commit>> {
+    pub fn commits(self) -> CognitionResult<Vec<Commit>> {
         let output = git_stdout_arguments(&self.repository.path, &self.arguments(false))?;
 
         Ok(output.lines().map(Commit::make).collect())
     }
 
-    pub fn graph(self) -> VcsResult<CommitGraph> {
+    pub fn graph(self) -> CognitionResult<CommitGraph> {
         let output = git_stdout_arguments(&self.repository.path, &self.arguments(true))?;
         let rows = output.lines().enumerate().map(graph_row).collect();
 

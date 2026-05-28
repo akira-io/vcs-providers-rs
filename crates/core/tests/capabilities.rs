@@ -1,4 +1,4 @@
-use vcs_provider_core::{Capability, capabilities};
+use git_cognition_core::{Capability, capabilities};
 
 #[test]
 fn capability_set_reports_supported_capabilities() {

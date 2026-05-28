@@ -1,6 +1,6 @@
 # Local Git Cognition Reads
 
-`vcs-provider-core::git()` exposes local Git operations separately from HTTP providers. Use this
+`git-cognition-core::cognition().local()` exposes local Git operations separately from HTTP providers. Use this
 surface for repository cognition features that need commit history, diffs, blame, worktrees, status,
 or merge previews.
 
@@ -10,9 +10,9 @@ It shells out to the local `git` binary and returns normalized Rust resources.
 ## Repository
 
 ```rust
-use vcs_provider_core::git;
+use git_cognition_core::cognition;
 
-let repository = git().repo("/workspace/project");
+let repository = cognition().local().repo("/workspace/project");
 
 let name = repository.name()?;
 let default_branch = repository.default_branch()?;
@@ -24,9 +24,9 @@ let is_clone = repository.is_valid_clone();
 Local capabilities are separate from remote provider capabilities.
 
 ```rust
-use vcs_provider_core::{LocalGitCapability, git};
+use git_cognition_core::{cognition, LocalGitCapability};
 
-let capabilities = git().repo("/workspace/project").capabilities();
+let capabilities = cognition().local().repo("/workspace/project").capabilities();
 
 assert!(capabilities.supports(&LocalGitCapability::Diff));
 assert!(capabilities.supports(&LocalGitCapability::Blame));
@@ -35,7 +35,7 @@ assert!(capabilities.supports(&LocalGitCapability::Blame));
 ## Log And Graph
 
 ```rust
-let repository = git().repo("/workspace/project");
+let repository = cognition().local().repo("/workspace/project");
 
 let main = repository.branch("main").sha()?;
 let feature = repository.branch("feature").sha()?;
@@ -63,7 +63,7 @@ let base = repository
 ## Diff
 
 ```rust
-let diff = git()
+let diff = cognition().local()
     .repo("/workspace/project")
     .diff()
     .working()
@@ -78,7 +78,7 @@ and provider-neutral change kinds.
 ## Blame
 
 ```rust
-let blame = git()
+let blame = cognition().local()
     .repo("/workspace/project")
     .blame("src/lib.rs")
     .at("HEAD")
@@ -88,7 +88,7 @@ let blame = git()
 ## Status And Show
 
 ```rust
-let repository = git().repo("/workspace/project");
+let repository = cognition().local().repo("/workspace/project");
 
 let status = repository.status()?;
 let file = repository.show("HEAD").file("README.md")?;
@@ -99,7 +99,7 @@ let file = repository.show("HEAD").file("README.md")?;
 ## Worktrees
 
 ```rust
-let repository = git().repo("/workspace/project");
+let repository = cognition().local().repo("/workspace/project");
 
 let worktree = repository
     .worktree()
@@ -118,7 +118,7 @@ analysis.
 ## Merge Preview
 
 ```rust
-let preview = git()
+let preview = cognition().local()
     .repo("/workspace/project")
     .merge()
     .base("base-sha")

@@ -55,11 +55,11 @@ pub use repos::{
 pub use retry::ManagedRetryTransportBuilder;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct VcsManager<Driver> {
+pub struct CognitionManager<Driver> {
     driver: Driver,
 }
 
-impl<Driver> VcsManager<Driver>
+impl<Driver> CognitionManager<Driver>
 where
     Driver: ManagedProvider,
 {
@@ -184,13 +184,16 @@ pub trait ManagedProvider: Clone + Provider {
 
     fn repo_delete_request(&self, repo: &Repo) -> crate::Request;
 
-    fn repo_branch_create_request(&self, draft: &BranchDraft) -> crate::VcsResult<crate::Request>;
+    fn repo_branch_create_request(
+        &self,
+        draft: &BranchDraft,
+    ) -> crate::CognitionResult<crate::Request>;
 
     fn repo_branch_delete_request(
         &self,
         repo: &Repo,
         branch_name: &str,
-    ) -> crate::VcsResult<crate::Request>;
+    ) -> crate::CognitionResult<crate::Request>;
 }
 
 pub trait ManagedIssueProvider: ManagedProvider {
@@ -206,7 +209,7 @@ pub trait ManagedIssueProvider: ManagedProvider {
         self.issue_update_request(patch)
     }
 
-    fn issue_delete_request(&self, _issue: &Issue) -> crate::VcsResult<crate::Request> {
+    fn issue_delete_request(&self, _issue: &Issue) -> crate::CognitionResult<crate::Request> {
         Err(crate::error().unsupported_operation("issue delete"))
     }
 }
@@ -227,7 +230,7 @@ pub trait ManagedCodeReviewProvider: ManagedProvider {
     fn code_review_delete_request(
         &self,
         _code_review: &CodeReview,
-    ) -> crate::VcsResult<crate::Request> {
+    ) -> crate::CognitionResult<crate::Request> {
         Err(crate::error().unsupported_operation("code review delete"))
     }
 }
@@ -245,28 +248,39 @@ pub trait ManagedReleaseProvider: ManagedProvider {
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct VcsManagerBuilder;
+pub struct CognitionManagerBuilder;
 
-impl VcsManagerBuilder {
-    pub fn driver<Driver>(self, driver: Driver) -> VcsManagerWithDriverBuilder<Driver>
+impl CognitionManagerBuilder {
+    pub fn provider<Driver>(self, driver: Driver) -> CognitionManager<Driver>
     where
         Driver: ManagedProvider,
     {
-        VcsManagerWithDriverBuilder { driver }
+        CognitionManager { driver }
+    }
+
+    pub fn driver<Driver>(self, driver: Driver) -> CognitionManagerWithDriverBuilder<Driver>
+    where
+        Driver: ManagedProvider,
+    {
+        CognitionManagerWithDriverBuilder { driver }
+    }
+
+    pub fn local(self) -> crate::LocalGitBuilder {
+        crate::git()
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct VcsManagerWithDriverBuilder<Driver> {
+pub struct CognitionManagerWithDriverBuilder<Driver> {
     driver: Driver,
 }
 
-impl<Driver> VcsManagerWithDriverBuilder<Driver>
+impl<Driver> CognitionManagerWithDriverBuilder<Driver>
 where
     Driver: ManagedProvider,
 {
-    pub fn build(self) -> VcsManager<Driver> {
-        VcsManager {
+    pub fn build(self) -> CognitionManager<Driver> {
+        CognitionManager {
             driver: self.driver,
         }
     }

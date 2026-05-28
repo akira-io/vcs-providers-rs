@@ -1,17 +1,17 @@
-use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::{RequestMethod, Visibility};
+use git_cognition_bitbucket::bitbucket;
+use git_cognition_core::{RequestMethod, Visibility};
 
 #[test]
 fn bitbucket_repo_get_targets_repository_endpoint() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
 
     assert_eq!(
         repo.url().value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs"
     );
 }
 
@@ -20,7 +20,7 @@ fn bitbucket_repo_branch_list_targets_repository_endpoint() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let page = bitbucket()
         .pagination()
@@ -31,7 +31,7 @@ fn bitbucket_repo_branch_list_targets_repository_endpoint() {
 
     assert_eq!(
         repo.branches(Some(&page)).value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches?pagelen=50&page=2"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/refs/branches?pagelen=50&page=2"
     );
 }
 
@@ -40,33 +40,33 @@ fn bitbucket_repo_branch_list_accepts_provider_next_url() {
     let page = bitbucket()
         .pagination()
         .request()
-        .cursor("https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches?page=2")
+        .cursor("https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/refs/branches?page=2")
         .build();
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
 
     assert_eq!(
         repo.branches(Some(&page)).value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches?page=2"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/refs/branches?page=2"
     );
 }
 
 #[test]
-fn bitbucket_repo_branch_create_builds_post_request() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_repo_branch_create_builds_post_request() -> git_cognition_core::CognitionResult<()> {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let request = repo.branch().name("feature").sha("abc123").create()?;
 
     assert_eq!(request.method(), &RequestMethod::Post);
     assert_eq!(
         request.url().value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/refs/branches"
     );
     assert_eq!(
         request_body(&request),
@@ -77,18 +77,18 @@ fn bitbucket_repo_branch_create_builds_post_request() -> vcs_provider_core::VcsR
 }
 
 #[test]
-fn bitbucket_repo_branch_delete_builds_delete_request() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_repo_branch_delete_builds_delete_request() -> git_cognition_core::CognitionResult<()> {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let request = repo.branch().name("feature").delete()?;
 
     assert_eq!(request.method(), &RequestMethod::Delete);
     assert_eq!(
         request.url().value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/refs/branches/feature"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/refs/branches/feature"
     );
 
     Ok(())
@@ -99,12 +99,12 @@ fn bitbucket_repo_commit_list_targets_repository_endpoint() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
 
     assert_eq!(
         repo.commits(None).value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/commits"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/commits"
     );
 }
 
@@ -128,13 +128,13 @@ fn bitbucket_repo_search_targets_collection_endpoint() {
     let collection = repo.collection();
     let search_query = repo
         .query()
-        .search("vcs provider")
+        .search("cognition provider")
         .pagination(page)
         .search();
 
     assert_eq!(
         collection.search(&search_query).value(),
-        "https://api.bitbucket.org/2.0/repositories?q=name~%22vcs%20provider%22&pagelen=25"
+        "https://api.bitbucket.org/2.0/repositories?q=name~%22cognition%20provider%22&pagelen=25"
     );
 }
 
@@ -143,7 +143,7 @@ fn bitbucket_repo_create_builds_put_request() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let create_request = bitbucket()
         .repo()
@@ -164,7 +164,7 @@ fn bitbucket_repo_update_builds_put_request() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
     let update_request = repo
         .visibility(Visibility::Public)
@@ -183,12 +183,12 @@ fn bitbucket_repo_delete_builds_delete_request() {
     let repo = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get();
 
     assert_eq!(repo.delete().method(), &RequestMethod::Delete);
 }
 
-fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
-    request.body().map(vcs_provider_core::RequestBody::as_str)
+fn request_body(request: &git_cognition_core::Request) -> Option<&str> {
+    request.body().map(git_cognition_core::RequestBody::as_str)
 }

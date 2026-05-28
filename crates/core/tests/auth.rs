@@ -1,4 +1,4 @@
-use vcs_provider_core::{AuthHeaderStyle, AuthKind, auth};
+use git_cognition_core::{AuthHeaderStyle, AuthKind, auth};
 
 #[test]
 fn anonymous_auth_has_no_header() {

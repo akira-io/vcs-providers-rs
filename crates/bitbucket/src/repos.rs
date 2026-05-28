@@ -1,9 +1,9 @@
-use serde::Serialize;
-use vcs_provider_core::{
+use git_cognition_core::{
     BranchDraft, PageRequest, Repo, RepositoryDraft, RepositoryListQuery, RepositoryPatch,
     RepositorySearchQuery, Request, RequestBody, RequestUrl, Visibility, request, request_body,
     url,
 };
+use serde::Serialize;
 
 use crate::{DEFAULT_BASE_URL, request_pagination::apply_page};
 

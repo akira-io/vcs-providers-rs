@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::VcsResult;
+use crate::CognitionResult;
 
 use super::LocalGitRepository;
 use super::commands::{git_stdout_arguments, run_git_arguments};
@@ -15,7 +15,7 @@ impl LocalGitWorktrees {
         Self { repository }
     }
 
-    pub fn list(&self) -> VcsResult<Vec<Worktree>> {
+    pub fn list(&self) -> CognitionResult<Vec<Worktree>> {
         let output = git_stdout_arguments(
             &self.repository.path,
             &["worktree".into(), "list".into(), "--porcelain".into()],
@@ -33,7 +33,7 @@ impl LocalGitWorktrees {
         }
     }
 
-    pub fn remove(&self, path: impl Into<PathBuf>) -> VcsResult<()> {
+    pub fn remove(&self, path: impl Into<PathBuf>) -> CognitionResult<()> {
         run_git_arguments(
             &self.repository.path,
             &[
@@ -46,7 +46,7 @@ impl LocalGitWorktrees {
         Ok(())
     }
 
-    pub fn prune(&self) -> VcsResult<()> {
+    pub fn prune(&self) -> CognitionResult<()> {
         run_git_arguments(&self.repository.path, &["worktree".into(), "prune".into()])?;
 
         Ok(())
@@ -72,7 +72,7 @@ impl LocalGitWorktreeAdd {
         self
     }
 
-    pub fn create(self) -> VcsResult<Worktree> {
+    pub fn create(self) -> CognitionResult<Worktree> {
         run_git_arguments(&self.repository.path, &self.arguments())?;
 
         Ok(Worktree {

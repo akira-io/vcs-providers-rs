@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::process::Command;
 
-use vcs_provider_core::{VcsResult, error, git};
+use git_cognition_core::{CognitionResult, cognition, error};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LocalGitConflictFixture {
@@ -13,8 +13,8 @@ impl LocalGitConflictFixture {
         Self { path: path.into() }
     }
 
-    pub fn create(&self) -> VcsResult<(String, String, String)> {
-        let repository = git().repo(&self.path);
+    pub fn create(&self) -> CognitionResult<(String, String, String)> {
+        let repository = cognition().local().repo(&self.path);
         let base = repository.reference("HEAD").sha()?;
         self.git().branch("ours").checkout_new()?;
         self.file("README.md").write("ours\n")?;
@@ -49,7 +49,7 @@ struct LocalGitConflictFile {
 }
 
 impl LocalGitConflictFile {
-    fn write(&self, content: &str) -> VcsResult<()> {
+    fn write(&self, content: &str) -> CognitionResult<()> {
         std::fs::write(self.fixture.path.join(&self.name), content)
             .map_err(|io_error| error().invalid_input(io_error.to_string()))
     }
@@ -75,7 +75,7 @@ impl LocalGitConflictCommand {
         }
     }
 
-    fn run<const SIZE: usize>(&self, args: [&str; SIZE]) -> VcsResult<()> {
+    fn run<const SIZE: usize>(&self, args: [&str; SIZE]) -> CognitionResult<()> {
         let output = Command::new("git")
             .current_dir(&self.fixture.path)
             .args(args)
@@ -103,7 +103,7 @@ impl LocalGitConflictBranch {
         self
     }
 
-    fn checkout_new(&self) -> VcsResult<()> {
+    fn checkout_new(&self) -> CognitionResult<()> {
         if let Some(base) = &self.base {
             return self.command.run(["checkout", "-b", &self.name, base]);
         }
@@ -118,7 +118,7 @@ struct LocalGitConflictCommit {
 }
 
 impl LocalGitConflictCommit {
-    fn all(&self, message: &str) -> VcsResult<()> {
+    fn all(&self, message: &str) -> CognitionResult<()> {
         self.command.run(["commit", "-am", message])
     }
 }

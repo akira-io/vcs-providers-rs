@@ -1,6 +1,6 @@
 use crate::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, ProviderId, VcsError, VcsResult, error,
-    provider,
+    AuthHeaderStyle, AuthKind, Capability, CognitionError, CognitionResult, Provider, ProviderId,
+    error, provider,
 };
 
 #[path = "conformance/contracts.rs"]
@@ -69,7 +69,7 @@ where
         self
     }
 
-    pub fn check(self) -> VcsResult<()> {
+    pub fn check(self) -> CognitionResult<()> {
         self.check_descriptor()?;
         self.check_capabilities()?;
         self.check_auth()?;
@@ -79,7 +79,7 @@ where
         Ok(())
     }
 
-    fn check_descriptor(&self) -> VcsResult<()> {
+    fn check_descriptor(&self) -> CognitionResult<()> {
         let descriptor = self.provider.descriptor();
 
         if let Some(expected_id) = self.expected_id.as_deref() {
@@ -97,7 +97,7 @@ where
         Ok(())
     }
 
-    fn check_capabilities(&self) -> VcsResult<()> {
+    fn check_capabilities(&self) -> CognitionResult<()> {
         let capabilities = self.provider.capabilities();
 
         for capability in Capability::all() {
@@ -128,7 +128,7 @@ where
         Ok(())
     }
 
-    fn check_auth(&self) -> VcsResult<()> {
+    fn check_auth(&self) -> CognitionResult<()> {
         for (auth_kind, expected_auth_header_style) in &self.auth_expectations {
             let actual_auth_header_style = self.provider.auth_header_style(*auth_kind);
 
@@ -140,11 +140,11 @@ where
         Ok(())
     }
 
-    fn check_contracts(&self) -> VcsResult<()> {
+    fn check_contracts(&self) -> CognitionResult<()> {
         check_provider_contracts(&self.provider)
     }
 
-    fn check_registry(&self) -> VcsResult<()> {
+    fn check_registry(&self) -> CognitionResult<()> {
         let descriptor = self.provider.descriptor();
         let id = self
             .expected_id
@@ -171,7 +171,9 @@ where
             .register(self.provider.clone());
 
         match duplicate_result {
-            Err(VcsError::ProviderAlreadyRegistered(duplicate_id)) if duplicate_id == id => Ok(()),
+            Err(CognitionError::ProviderAlreadyRegistered(duplicate_id)) if duplicate_id == id => {
+                Ok(())
+            }
             Err(_) => {
                 Err(error().invalid_input("provider registry returned wrong duplicate error"))
             }
@@ -180,7 +182,7 @@ where
     }
 }
 
-fn assert_same(label: &str, expected: &str, actual: &str) -> VcsResult<()> {
+fn assert_same(label: &str, expected: &str, actual: &str) -> CognitionResult<()> {
     if expected == actual {
         return Ok(());
     }

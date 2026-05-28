@@ -1,4 +1,4 @@
-use vcs_provider_core::{
+use git_cognition_core::{
     AuthHeaderStyle, AuthKind, CodeReviews, Issues, ManagedAuthProvider,
     ManagedOrganizationProvider, ManagedProvider, MissingCodeReviewId, MissingCodeReviewRepo,
     MissingOwnerName, MissingReleaseId, MissingReleaseRepo, MissingRepositoryName, Organizations,
@@ -53,110 +53,121 @@ impl GitLabProvider {
 
     pub fn repo(
         &self,
-    ) -> vcs_provider_core::ManagedRepoBuilder<Self, MissingOwnerName, MissingRepositoryName> {
-        vcs_provider_core::vcs(self.clone()).repo()
+    ) -> git_cognition_core::ManagedRepoBuilder<Self, MissingOwnerName, MissingRepositoryName> {
+        git_cognition_core::cognition()
+            .provider(self.clone())
+            .repo()
     }
 
     pub fn issue(
         &self,
-    ) -> vcs_provider_core::ManagedIssueBuilder<
+    ) -> git_cognition_core::ManagedIssueBuilder<
         Self,
-        vcs_provider_core::MissingIssueRepo,
-        vcs_provider_core::MissingIssueId,
+        git_cognition_core::MissingIssueRepo,
+        git_cognition_core::MissingIssueId,
     > {
-        vcs_provider_core::vcs(self.clone()).issue()
+        git_cognition_core::cognition()
+            .provider(self.clone())
+            .issue()
     }
 
     pub fn code_review(
         &self,
-    ) -> vcs_provider_core::ManagedCodeReviewBuilder<Self, MissingCodeReviewRepo, MissingCodeReviewId>
-    {
-        vcs_provider_core::vcs(self.clone()).code_review()
+    ) -> git_cognition_core::ManagedCodeReviewBuilder<
+        Self,
+        MissingCodeReviewRepo,
+        MissingCodeReviewId,
+    > {
+        git_cognition_core::cognition()
+            .provider(self.clone())
+            .code_review()
     }
 
     pub fn release(
         &self,
-    ) -> vcs_provider_core::ManagedReleaseBuilder<Self, MissingReleaseRepo, MissingReleaseId> {
-        vcs_provider_core::vcs(self.clone()).release()
+    ) -> git_cognition_core::ManagedReleaseBuilder<Self, MissingReleaseRepo, MissingReleaseId> {
+        git_cognition_core::cognition()
+            .provider(self.clone())
+            .release()
     }
 
-    pub fn pagination(&self) -> vcs_provider_core::PaginationBuilder {
-        vcs_provider_core::pagination()
+    pub fn pagination(&self) -> git_cognition_core::PaginationBuilder {
+        git_cognition_core::pagination()
     }
 }
 
 impl ManagedProvider for GitLabProvider {
-    fn repo_url(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::RequestUrl {
+    fn repo_url(&self, repo: &git_cognition_core::Repo) -> git_cognition_core::RequestUrl {
         GitLabRepo::make(self.api_base_url(), repo.clone()).url()
     }
 
     fn repo_branches_url(
         &self,
-        repo: &vcs_provider_core::Repo,
-        page: Option<&vcs_provider_core::PageRequest>,
-    ) -> vcs_provider_core::RequestUrl {
+        repo: &git_cognition_core::Repo,
+        page: Option<&git_cognition_core::PageRequest>,
+    ) -> git_cognition_core::RequestUrl {
         GitLabRepo::make(self.api_base_url(), repo.clone()).branches(page)
     }
 
     fn repo_commits_url(
         &self,
-        repo: &vcs_provider_core::Repo,
-        page: Option<&vcs_provider_core::PageRequest>,
-    ) -> vcs_provider_core::RequestUrl {
+        repo: &git_cognition_core::Repo,
+        page: Option<&git_cognition_core::PageRequest>,
+    ) -> git_cognition_core::RequestUrl {
         GitLabRepo::make(self.api_base_url(), repo.clone()).commits(page)
     }
 
     fn repo_list_url(
         &self,
-        query: &vcs_provider_core::RepositoryListQuery,
-    ) -> vcs_provider_core::RequestUrl {
+        query: &git_cognition_core::RepositoryListQuery,
+    ) -> git_cognition_core::RequestUrl {
         GitLabRepoCollection::make(self.api_base_url()).list(query)
     }
 
     fn repo_search_url(
         &self,
-        query: &vcs_provider_core::RepositorySearchQuery,
-    ) -> vcs_provider_core::RequestUrl {
+        query: &git_cognition_core::RepositorySearchQuery,
+    ) -> git_cognition_core::RequestUrl {
         GitLabRepoCollection::make(self.api_base_url()).search(query)
     }
 
     fn repo_create_request(
         &self,
-        draft: &vcs_provider_core::RepositoryDraft,
-    ) -> vcs_provider_core::Request {
+        draft: &git_cognition_core::RepositoryDraft,
+    ) -> git_cognition_core::Request {
         GitLabRepoCollection::make(self.api_base_url()).create(draft)
     }
 
     fn repo_update_request(
         &self,
-        patch: &vcs_provider_core::RepositoryPatch,
-    ) -> vcs_provider_core::Request {
+        patch: &git_cognition_core::RepositoryPatch,
+    ) -> git_cognition_core::Request {
         GitLabRepo::make(self.api_base_url(), patch.repo().clone()).update(patch)
     }
 
-    fn repo_delete_request(&self, repo: &vcs_provider_core::Repo) -> vcs_provider_core::Request {
+    fn repo_delete_request(&self, repo: &git_cognition_core::Repo) -> git_cognition_core::Request {
         GitLabRepo::make(self.api_base_url(), repo.clone()).delete()
     }
 
     fn repo_branch_create_request(
         &self,
-        draft: &vcs_provider_core::BranchDraft,
-    ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
+        draft: &git_cognition_core::BranchDraft,
+    ) -> git_cognition_core::CognitionResult<git_cognition_core::Request> {
         Ok(GitLabRepo::make(self.api_base_url(), draft.repo().clone()).create_branch(draft))
     }
 
     fn repo_branch_delete_request(
         &self,
-        repo: &vcs_provider_core::Repo,
+        repo: &git_cognition_core::Repo,
         branch_name: &str,
-    ) -> vcs_provider_core::VcsResult<vcs_provider_core::Request> {
+    ) -> git_cognition_core::CognitionResult<git_cognition_core::Request> {
         Ok(GitLabRepo::make(self.api_base_url(), repo.clone()).delete_branch(branch_name))
     }
 }
 
 impl ManagedAuthProvider for GitLabProvider {
-    fn auth_validate_url(&self) -> vcs_provider_core::RequestUrl {
-        vcs_provider_core::url(self.api_base_url())
+    fn auth_validate_url(&self) -> git_cognition_core::RequestUrl {
+        git_cognition_core::url(self.api_base_url())
             .path_segments(["api", "v4", "user"])
             .build()
     }
@@ -165,12 +176,12 @@ impl ManagedAuthProvider for GitLabProvider {
 impl ManagedOrganizationProvider for GitLabProvider {
     fn organization_list_url(
         &self,
-        query: Option<&vcs_provider_core::OrganizationListQuery>,
-    ) -> vcs_provider_core::RequestUrl {
+        query: Option<&git_cognition_core::OrganizationListQuery>,
+    ) -> git_cognition_core::RequestUrl {
         let url =
-            vcs_provider_core::url(self.api_base_url()).path_segments(["api", "v4", "groups"]);
+            git_cognition_core::url(self.api_base_url()).path_segments(["api", "v4", "groups"]);
 
-        match query.and_then(vcs_provider_core::OrganizationListQuery::page) {
+        match query.and_then(git_cognition_core::OrganizationListQuery::page) {
             Some(page) => crate::request_pagination::apply_page(url, Some(page)).build(),
             None => url.build(),
         }
@@ -190,7 +201,7 @@ impl Provider for GitLabProvider {
         Box::<TransportNotConfiguredRepos>::default()
     }
 
-    fn authentication(&self) -> Box<dyn vcs_provider_core::Authentication> {
+    fn authentication(&self) -> Box<dyn git_cognition_core::Authentication> {
         Box::<TransportNotConfiguredAuthentication>::default()
     }
 

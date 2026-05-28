@@ -1,7 +1,7 @@
-use vcs_provider_bitbucket::{DISPLAY_NAME, PROVIDER_ID, bitbucket};
-use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, ReleasesFluent, VcsError, VcsResult,
-    Visibility, auth, provider, provider_id, repo, run_async_test, vcs,
+use git_cognition_bitbucket::{DISPLAY_NAME, PROVIDER_ID, bitbucket};
+use git_cognition_core::{
+    AuthHeaderStyle, AuthKind, Capability, CognitionError, CognitionResult, Provider,
+    ReleasesFluent, Visibility, auth, cognition, provider, provider_id, repo, run_async_test,
 };
 
 #[test]
@@ -67,17 +67,18 @@ fn bitbucket_provider_maps_oauth_header() {
 }
 
 #[test]
-fn bitbucket_client_routes_auth_and_middleware_through_transport() -> VcsResult<()> {
+fn bitbucket_client_routes_auth_and_middleware_through_transport() -> CognitionResult<()> {
     let transport = bitbucket()
-        .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":true}"#)
+        .body(r#"{"full_name":"akira-io/git-cognition-rs","is_private":true}"#)
         .record();
     run_async_test(async {
-        let repository = vcs(bitbucket())
+        let repository = cognition()
+            .provider(bitbucket())
             .middleware(transport.clone())
-            .header("x-vcs-trace", "trace-1")
+            .header("x-cognition-trace", "trace-1")
             .auth(auth().oauth("test-token"))
             .repos()
-            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .get(repo().owner("akira-io").name("git-cognition-rs").get())
             .await?;
 
         let requests = transport.requests();
@@ -107,7 +108,7 @@ fn bitbucket_client_routes_auth_and_middleware_through_transport() -> VcsResult<
                 .first()
                 .and_then(|request| request.headers().get(2))
                 .map(|header| header.name().as_str()),
-            Some("x-vcs-trace")
+            Some("x-cognition-trace")
         );
 
         Ok(())
@@ -116,7 +117,7 @@ fn bitbucket_client_routes_auth_and_middleware_through_transport() -> VcsResult<
 
 #[test]
 fn bitbucket_releases_report_unsupported_operation() {
-    let repo = repo().owner("akira-io").name("vcs-providers-rs").get();
+    let repo = repo().owner("akira-io").name("git-cognition-rs").get();
     let result = run_async_test(async {
         bitbucket()
             .releases()
@@ -129,12 +130,12 @@ fn bitbucket_releases_report_unsupported_operation() {
 
     assert!(matches!(
         result,
-        Err(VcsError::UnsupportedOperation(operation)) if operation == "release delete"
+        Err(CognitionError::UnsupportedOperation(operation)) if operation == "release delete"
     ));
 }
 
 #[test]
-fn bitbucket_provider_registers_through_core_registry() -> VcsResult<()> {
+fn bitbucket_provider_registers_through_core_registry() -> CognitionResult<()> {
     let registry = provider().register(bitbucket())?.build();
 
     assert!(registry.contains_provider(&provider_id(PROVIDER_ID)));
@@ -143,19 +144,21 @@ fn bitbucket_provider_registers_through_core_registry() -> VcsResult<()> {
 }
 
 #[test]
-fn bitbucket_provider_registry_rejects_duplicate_provider_ids() -> VcsResult<()> {
+fn bitbucket_provider_registry_rejects_duplicate_provider_ids() -> CognitionResult<()> {
     let result = provider().register(bitbucket())?.register(bitbucket());
 
     assert_eq!(
         result.err(),
-        Some(VcsError::ProviderAlreadyRegistered(PROVIDER_ID.into()))
+        Some(CognitionError::ProviderAlreadyRegistered(
+            PROVIDER_ID.into()
+        ))
     );
 
     Ok(())
 }
 
 #[test]
-fn bitbucket_provider_registry_filters_by_capability() -> VcsResult<()> {
+fn bitbucket_provider_registry_filters_by_capability() -> CognitionResult<()> {
     let registry = provider().register(bitbucket())?.build();
     let providers = registry
         .providers_supporting(Capability::Repos)

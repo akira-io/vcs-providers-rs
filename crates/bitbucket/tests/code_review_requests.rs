@@ -1,11 +1,11 @@
-use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::RequestMethod;
+use git_cognition_bitbucket::bitbucket;
+use git_cognition_core::RequestMethod;
 
 #[test]
 fn bitbucket_code_review_get_targets_repository_endpoint() {
     assert_eq!(
         code_review_resource().url().value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/pullrequests/42"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/pullrequests/42"
     );
 }
 
@@ -14,7 +14,7 @@ fn bitbucket_code_review_list_targets_repository_endpoint() {
     let code_reviews = bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .code_reviews()
         .pagination()
         .limit(50)
@@ -23,7 +23,7 @@ fn bitbucket_code_review_list_targets_repository_endpoint() {
 
     assert_eq!(
         code_reviews.url().value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/pullrequests?pagelen=50&page=2"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/pullrequests?pagelen=50&page=2"
     );
 }
 
@@ -37,7 +37,7 @@ fn bitbucket_code_review_builder_accepts_existing_repo() {
             .get()
             .url()
             .value(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/pullrequests/42"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/pullrequests/42"
     );
 }
 
@@ -86,7 +86,7 @@ fn bitbucket_code_review_merge_builds_post_request() {
     assert_eq!(merge_request.method(), &RequestMethod::Post);
     assert_eq!(
         merge_request.url().as_str(),
-        "https://api.bitbucket.org/2.0/repositories/akira-io/vcs-providers-rs/pullrequests/42/merge"
+        "https://api.bitbucket.org/2.0/repositories/akira-io/git-cognition-rs/pullrequests/42/merge"
     );
 }
 
@@ -98,19 +98,19 @@ fn bitbucket_code_review_close_builds_decline_request() {
     );
 }
 
-fn repository() -> vcs_provider_core::ManagedRepo<vcs_provider_bitbucket::BitbucketProvider> {
+fn repository() -> git_cognition_core::ManagedRepo<git_cognition_bitbucket::BitbucketProvider> {
     bitbucket()
         .repo()
         .owner("akira-io")
-        .name("vcs-providers-rs")
+        .name("git-cognition-rs")
         .get()
 }
 
 fn code_review_resource()
--> vcs_provider_core::ManagedCodeReview<vcs_provider_bitbucket::BitbucketProvider> {
+-> git_cognition_core::ManagedCodeReview<git_cognition_bitbucket::BitbucketProvider> {
     bitbucket().code_review().repo(repository()).id("42").get()
 }
 
-fn request_body(request: &vcs_provider_core::Request) -> Option<&str> {
-    request.body().map(vcs_provider_core::RequestBody::as_str)
+fn request_body(request: &git_cognition_core::Request) -> Option<&str> {
+    request.body().map(git_cognition_core::RequestBody::as_str)
 }

@@ -1,8 +1,8 @@
-use vcs_provider_core::{PipelinesFluent, Repo, repo, run_async_test};
-use vcs_provider_github::github;
+use git_cognition_core::{PipelinesFluent, Repo, repo, run_async_test};
+use git_cognition_github::github;
 
 #[test]
-fn github_client_hydrates_pipeline_get_and_list() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_pipeline_get_and_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let pipeline_resource = github()
             .body(r#"{"id":42}"#)
@@ -26,7 +26,7 @@ fn github_client_hydrates_pipeline_get_and_list() -> vcs_provider_core::VcsResul
 }
 
 #[test]
-fn github_client_hydrates_pipeline_commands() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_pipeline_commands() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let rerun_pipeline = github()
             .body(r#"{"id":42}"#)
@@ -51,5 +51,5 @@ fn github_client_hydrates_pipeline_commands() -> vcs_provider_core::VcsResult<()
 }
 
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }

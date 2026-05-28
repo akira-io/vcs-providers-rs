@@ -1,13 +1,14 @@
-use vcs_provider_core::{OrganizationKind, auth, run_async_test, vcs};
-use vcs_provider_github::github;
+use git_cognition_core::{OrganizationKind, auth, cognition, run_async_test};
+use git_cognition_github::github;
 
 #[test]
 fn github_authentication_validate_targets_authenticated_user_endpoint()
--> vcs_provider_core::VcsResult<()> {
+-> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let transport = github().body(r#"{"login":"octocat"}"#).record();
 
-        vcs(github())
+        cognition()
+            .provider(github())
             .transport(transport.clone())
             .auth(auth().personal_access_token("github-token"))
             .authentication()
@@ -31,7 +32,8 @@ fn github_authentication_validate_targets_authenticated_user_endpoint()
 }
 
 #[test]
-fn github_client_hydrates_authenticated_user_organizations() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_authenticated_user_organizations()
+-> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let organizations = github()
             .body(r#"[{"id":1,"login":"akira-io"}]"#)

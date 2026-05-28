@@ -1,4 +1,4 @@
-use vcs_provider_core::url;
+use git_cognition_core::url;
 
 #[test]
 fn url_builder_appends_query_parameters() {
@@ -28,12 +28,12 @@ fn url_builder_joins_base_url_and_path() {
 #[test]
 fn url_builder_encodes_path_segments() {
     let request_url = url("https://api.example.test")
-        .path_segments(["api", "v4", "projects", "akira-io/vcs providers"])
+        .path_segments(["api", "v4", "projects", "akira-io/cognition providers"])
         .build();
 
     assert_eq!(
         request_url.value(),
-        "https://api.example.test/api/v4/projects/akira-io%2Fvcs%20providers"
+        "https://api.example.test/api/v4/projects/akira-io%2Fcognition%20providers"
     );
 }
 

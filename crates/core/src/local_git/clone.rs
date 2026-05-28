@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::VcsResult;
+use crate::CognitionResult;
 
 use super::commands::run_git_without_repository;
 
@@ -33,7 +33,7 @@ impl LocalGitCloneBuilder<MissingCloneDestination> {
 }
 
 impl LocalGitCloneBuilder<ProvidedCloneDestination> {
-    pub fn clone(self) -> VcsResult<()> {
+    pub fn clone(self) -> CognitionResult<()> {
         run_git_without_repository(["clone"], [self.source, self.destination.destination])
             .map(|_| ())
     }

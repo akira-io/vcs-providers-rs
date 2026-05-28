@@ -1,7 +1,8 @@
 use std::time::Duration;
 
 use crate::{
-    BoxFuture, Request, RequestMethod, Response, ResponseBuilder, Transport, VcsError, VcsResult,
+    BoxFuture, CognitionError, CognitionResult, Request, RequestMethod, Response, ResponseBuilder,
+    Transport,
 };
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -30,7 +31,7 @@ impl HttpTransportBuilder {
         self
     }
 
-    pub fn get(self) -> VcsResult<HttpTransport> {
+    pub fn get(self) -> CognitionResult<HttpTransport> {
         HttpTransport::make(self)
     }
 }
@@ -39,7 +40,7 @@ impl Default for HttpTransportBuilder {
     fn default() -> Self {
         Self {
             timeout: Duration::from_secs(30),
-            user_agent: "vcs-provider-rs".into(),
+            user_agent: "git-cognition-rs".into(),
         }
     }
 }
@@ -50,19 +51,19 @@ pub struct HttpTransport {
 }
 
 impl HttpTransport {
-    fn make(builder: HttpTransportBuilder) -> VcsResult<Self> {
+    fn make(builder: HttpTransportBuilder) -> CognitionResult<Self> {
         let client = reqwest::Client::builder()
             .timeout(builder.timeout)
             .user_agent(builder.user_agent)
             .build()
-            .map_err(|error| VcsError::InvalidInput(error.to_string()))?;
+            .map_err(|error| CognitionError::InvalidInput(error.to_string()))?;
 
         Ok(Self { client })
     }
 }
 
 impl Transport for HttpTransport {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         Box::pin(async move {
             let response = self
                 .client
@@ -88,14 +89,14 @@ fn method(method: &RequestMethod) -> reqwest::Method {
     }
 }
 
-fn headers(request: &Request) -> VcsResult<reqwest::header::HeaderMap> {
+fn headers(request: &Request) -> CognitionResult<reqwest::header::HeaderMap> {
     let mut headers = reqwest::header::HeaderMap::new();
 
     for header in request.headers() {
         let name = reqwest::header::HeaderName::from_bytes(header.name().as_str().as_bytes())
-            .map_err(|error| VcsError::InvalidInput(error.to_string()))?;
+            .map_err(|error| CognitionError::InvalidInput(error.to_string()))?;
         let value = reqwest::header::HeaderValue::from_str(header.value().as_str())
-            .map_err(|error| VcsError::InvalidInput(error.to_string()))?;
+            .map_err(|error| CognitionError::InvalidInput(error.to_string()))?;
 
         headers.insert(name, value);
     }
@@ -110,7 +111,7 @@ fn body(request: &Request) -> String {
     }
 }
 
-async fn from_response(http_response: reqwest::Response) -> VcsResult<Response> {
+async fn from_response(http_response: reqwest::Response) -> CognitionResult<Response> {
     let status = http_response.status().as_u16();
     let mut builder = headers_from_response(
         http_response.headers(),
@@ -127,16 +128,16 @@ async fn from_response(http_response: reqwest::Response) -> VcsResult<Response> 
     Ok(builder.build())
 }
 
-fn transport_error(error: reqwest::Error) -> VcsError {
+fn transport_error(error: reqwest::Error) -> CognitionError {
     if error.is_builder() {
-        return VcsError::InvalidInput(error.to_string());
+        return CognitionError::InvalidInput(error.to_string());
     }
 
     if error.is_request() {
-        return VcsError::InvalidInput(error.to_string());
+        return CognitionError::InvalidInput(error.to_string());
     }
 
-    VcsError::ProviderUnavailable
+    CognitionError::ProviderUnavailable
 }
 
 fn headers_from_response(

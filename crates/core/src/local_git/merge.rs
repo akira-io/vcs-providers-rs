@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use std::path::PathBuf;
 
-use crate::{VcsResult, error};
+use crate::{CognitionResult, error};
 
 use super::LocalGitRepository;
 use super::commands::git_stdout_arguments;
@@ -80,7 +80,7 @@ impl<Base, Ours> LocalGitMergeBuilder<Base, Ours, MissingTheirs> {
 }
 
 impl LocalGitMergeBuilder<ProvidedBase, ProvidedOurs, ProvidedTheirs> {
-    pub fn preview(self) -> VcsResult<MergePreview> {
+    pub fn preview(self) -> CognitionResult<MergePreview> {
         let output = git_stdout_arguments(&self.repository.path, &self.arguments()?)?;
 
         Ok(MergePreview {
@@ -90,14 +90,14 @@ impl LocalGitMergeBuilder<ProvidedBase, ProvidedOurs, ProvidedTheirs> {
         })
     }
 
-    pub fn apply(self, plan: MergePlan) -> VcsResult<MergeOutcome> {
+    pub fn apply(self, plan: MergePlan) -> CognitionResult<MergeOutcome> {
         let _ = self;
         let _ = plan;
 
         Err(error().unsupported_operation("local git merge apply"))
     }
 
-    fn arguments(&self) -> VcsResult<Vec<String>> {
+    fn arguments(&self) -> CognitionResult<Vec<String>> {
         Ok(vec![
             "merge-tree".into(),
             self.base

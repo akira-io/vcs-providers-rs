@@ -1,4 +1,4 @@
-use vcs_provider_core::{PageRequest, RequestUrlBuilder};
+use git_cognition_core::{PageRequest, RequestUrlBuilder};
 
 pub fn apply_page(request_url: RequestUrlBuilder, page: Option<&PageRequest>) -> RequestUrlBuilder {
     let Some(page) = page else {

@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{BoxFuture, Page, Repo, VcsResult, transport_not_configured};
+use crate::{BoxFuture, CognitionResult, Page, Repo, transport_not_configured};
 
 #[path = "code_reviews/delete.rs"]
 mod delete;
@@ -231,50 +231,53 @@ impl CodeReviewPatch {
 }
 
 pub trait CodeReviews: Send + Sync {
-    fn get(&self, repo: Repo, id: CodeReviewId) -> BoxFuture<'_, VcsResult<CodeReview>>;
+    fn get(&self, repo: Repo, id: CodeReviewId) -> BoxFuture<'_, CognitionResult<CodeReview>>;
 
-    fn list(&self, query: CodeReviewListQuery) -> BoxFuture<'_, VcsResult<Page<CodeReview>>>;
+    fn list(&self, query: CodeReviewListQuery) -> BoxFuture<'_, CognitionResult<Page<CodeReview>>>;
 
-    fn create(&self, draft: CodeReviewDraft) -> BoxFuture<'_, VcsResult<CodeReview>>;
+    fn create(&self, draft: CodeReviewDraft) -> BoxFuture<'_, CognitionResult<CodeReview>>;
 
-    fn update(&self, patch: CodeReviewPatch) -> BoxFuture<'_, VcsResult<CodeReview>>;
+    fn update(&self, patch: CodeReviewPatch) -> BoxFuture<'_, CognitionResult<CodeReview>>;
 
-    fn merge(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>>;
+    fn merge(&self, code_review: CodeReview) -> BoxFuture<'_, CognitionResult<CodeReview>>;
 
-    fn close(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>>;
+    fn close(&self, code_review: CodeReview) -> BoxFuture<'_, CognitionResult<CodeReview>>;
 
-    fn delete(&self, code_review: CodeReview) -> BoxFuture<'_, VcsResult<()>>;
+    fn delete(&self, code_review: CodeReview) -> BoxFuture<'_, CognitionResult<()>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TransportNotConfiguredCodeReviews;
 
 impl CodeReviews for TransportNotConfiguredCodeReviews {
-    fn get(&self, _repo: Repo, _id: CodeReviewId) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn get(&self, _repo: Repo, _id: CodeReviewId) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         transport_not_configured()
     }
 
-    fn list(&self, _query: CodeReviewListQuery) -> BoxFuture<'_, VcsResult<Page<CodeReview>>> {
+    fn list(
+        &self,
+        _query: CodeReviewListQuery,
+    ) -> BoxFuture<'_, CognitionResult<Page<CodeReview>>> {
         transport_not_configured()
     }
 
-    fn create(&self, _draft: CodeReviewDraft) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn create(&self, _draft: CodeReviewDraft) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         transport_not_configured()
     }
 
-    fn update(&self, _patch: CodeReviewPatch) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn update(&self, _patch: CodeReviewPatch) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         transport_not_configured()
     }
 
-    fn merge(&self, _code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn merge(&self, _code_review: CodeReview) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         transport_not_configured()
     }
 
-    fn close(&self, _code_review: CodeReview) -> BoxFuture<'_, VcsResult<CodeReview>> {
+    fn close(&self, _code_review: CodeReview) -> BoxFuture<'_, CognitionResult<CodeReview>> {
         transport_not_configured()
     }
 
-    fn delete(&self, _code_review: CodeReview) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete(&self, _code_review: CodeReview) -> BoxFuture<'_, CognitionResult<()>> {
         transport_not_configured()
     }
 }

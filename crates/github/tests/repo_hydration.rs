@@ -1,12 +1,12 @@
-use vcs_provider_core::{LifecycleState, Repo, ReposFluent, Visibility, repo, run_async_test};
-use vcs_provider_github::github;
+use git_cognition_core::{LifecycleState, Repo, ReposFluent, Visibility, repo, run_async_test};
+use git_cognition_github::github;
 
 #[test]
-fn github_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_repository() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repository = github()
             .body(
-                r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
+                r#"{"full_name":"akira-io/git-cognition-rs","private":false,"archived":false,"disabled":false}"#,
             )
             .repos()
             .get(repository_location())
@@ -14,7 +14,7 @@ fn github_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
 
         assert_eq!(repository.provider().as_str(), "github");
         assert_eq!(repository.repo().owner().as_str(), "akira-io");
-        assert_eq!(repository.repo().name().as_str(), "vcs-providers-rs");
+        assert_eq!(repository.repo().name().as_str(), "git-cognition-rs");
         assert_eq!(repository.visibility(), &Visibility::Public);
         assert_eq!(repository.lifecycle_state(), &LifecycleState::Active);
 
@@ -23,11 +23,11 @@ fn github_client_hydrates_repository() -> vcs_provider_core::VcsResult<()> {
 }
 
 #[test]
-fn github_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_repository_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repositories = github()
             .body(
-                r#"[{"full_name":"akira-io/vcs-providers-rs","private":true,"archived":true,"disabled":false}]"#,
+                r#"[{"full_name":"akira-io/git-cognition-rs","private":true,"archived":true,"disabled":false}]"#,
             )
             .repos()
             .list(github().repo().query().optional_pagination(None).list())
@@ -45,11 +45,11 @@ fn github_client_hydrates_repository_list() -> vcs_provider_core::VcsResult<()> 
 }
 
 #[test]
-fn github_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_repository_create() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repository = github()
             .body(
-                r#"{"full_name":"akira-io/vcs-providers-rs","private":true,"archived":false,"disabled":false}"#,
+                r#"{"full_name":"akira-io/git-cognition-rs","private":true,"archived":false,"disabled":false}"#,
             )
             .repos()
             .create()
@@ -66,11 +66,11 @@ fn github_client_hydrates_repository_create() -> vcs_provider_core::VcsResult<()
 }
 
 #[test]
-fn github_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_repository_update() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let repository = github()
             .body(
-                r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
+                r#"{"full_name":"akira-io/git-cognition-rs","private":false,"archived":false,"disabled":false}"#,
             )
             .repos()
             .update()
@@ -87,7 +87,7 @@ fn github_client_hydrates_repository_update() -> vcs_provider_core::VcsResult<()
 }
 
 #[test]
-fn github_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
+fn github_client_deletes_repository() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         github()
             .status(204)
@@ -98,7 +98,7 @@ fn github_client_deletes_repository() -> vcs_provider_core::VcsResult<()> {
 }
 
 #[test]
-fn github_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_branches_and_commits() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let branch_page = github()
             .body(r#"[{"name":"main"}]"#)
@@ -119,7 +119,7 @@ fn github_client_hydrates_branches_and_commits() -> vcs_provider_core::VcsResult
 }
 
 #[test]
-fn github_client_hydrates_branch_create() -> vcs_provider_core::VcsResult<()> {
+fn github_client_hydrates_branch_create() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let branch = github()
             .body(r#"{"ref":"refs/heads/feature"}"#)
@@ -138,7 +138,7 @@ fn github_client_hydrates_branch_create() -> vcs_provider_core::VcsResult<()> {
 }
 
 #[test]
-fn github_client_deletes_branch() -> vcs_provider_core::VcsResult<()> {
+fn github_client_deletes_branch() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         github()
             .status(204)
@@ -152,5 +152,5 @@ fn github_client_deletes_branch() -> vcs_provider_core::VcsResult<()> {
 }
 
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }

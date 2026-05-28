@@ -1,8 +1,8 @@
-use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::{VcsResult, run_async_test};
+use git_cognition_bitbucket::bitbucket;
+use git_cognition_core::{CognitionResult, run_async_test};
 
 #[test]
-fn bitbucket_authentication_validate_targets_authenticated_user_endpoint() -> VcsResult<()> {
+fn bitbucket_authentication_validate_targets_authenticated_user_endpoint() -> CognitionResult<()> {
     run_async_test(async {
         bitbucket().status(200).authentication().validate().await?;
 
@@ -11,7 +11,7 @@ fn bitbucket_authentication_validate_targets_authenticated_user_endpoint() -> Vc
 }
 
 #[test]
-fn bitbucket_client_hydrates_authenticated_user_workspaces() -> VcsResult<()> {
+fn bitbucket_client_hydrates_authenticated_user_workspaces() -> CognitionResult<()> {
     run_async_test(async {
         let organizations = bitbucket()
             .body(r#"{"values":[{"uuid":"{workspace-uuid}","slug":"akira-io"}]}"#)

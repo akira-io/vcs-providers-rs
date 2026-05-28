@@ -1,8 +1,8 @@
-use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::{PipelinesFluent, Repo, VcsError, repo, run_async_test};
+use git_cognition_bitbucket::bitbucket;
+use git_cognition_core::{CognitionError, PipelinesFluent, Repo, repo, run_async_test};
 
 #[test]
-fn bitbucket_client_hydrates_pipeline_get_and_list() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_pipeline_get_and_list() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let pipeline_resource = bitbucket()
             .body(r#"{"uuid":"{pipeline-uuid}"}"#)
@@ -26,7 +26,7 @@ fn bitbucket_client_hydrates_pipeline_get_and_list() -> vcs_provider_core::VcsRe
 }
 
 #[test]
-fn bitbucket_client_hydrates_pipeline_cancel() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_hydrates_pipeline_cancel() -> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let canceled_pipeline = bitbucket()
             .body(r#"{"uuid":"{pipeline-uuid}"}"#)
@@ -43,7 +43,8 @@ fn bitbucket_client_hydrates_pipeline_cancel() -> vcs_provider_core::VcsResult<(
 }
 
 #[test]
-fn bitbucket_client_reports_unvalidated_pipeline_rerun() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_client_reports_unvalidated_pipeline_rerun() -> git_cognition_core::CognitionResult<()>
+{
     run_async_test(async {
         let result = bitbucket()
             .body(r#"{"uuid":"{pipeline-uuid}"}"#)
@@ -55,7 +56,7 @@ fn bitbucket_client_reports_unvalidated_pipeline_rerun() -> vcs_provider_core::V
 
         assert_eq!(
             result,
-            Err(VcsError::InvalidInput(
+            Err(CognitionError::InvalidInput(
                 "bitbucket pipeline rerun is not exposed by a validated pipeline endpoint".into()
             ))
         );
@@ -65,5 +66,5 @@ fn bitbucket_client_reports_unvalidated_pipeline_rerun() -> vcs_provider_core::V
 }
 
 fn repository_location() -> Repo {
-    repo().owner("akira-io").name("vcs-providers-rs").get()
+    repo().owner("akira-io").name("git-cognition-rs").get()
 }

@@ -1,8 +1,8 @@
-use vcs_provider_core::{VcsResult, run_async_test};
-use vcs_provider_gitlab::gitlab;
+use git_cognition_core::{CognitionResult, run_async_test};
+use git_cognition_gitlab::gitlab;
 
 #[test]
-fn gitlab_authentication_validate_targets_authenticated_user_endpoint() -> VcsResult<()> {
+fn gitlab_authentication_validate_targets_authenticated_user_endpoint() -> CognitionResult<()> {
     run_async_test(async {
         gitlab().status(200).authentication().validate().await?;
 
@@ -11,7 +11,7 @@ fn gitlab_authentication_validate_targets_authenticated_user_endpoint() -> VcsRe
 }
 
 #[test]
-fn gitlab_client_hydrates_authenticated_user_groups() -> VcsResult<()> {
+fn gitlab_client_hydrates_authenticated_user_groups() -> CognitionResult<()> {
     run_async_test(async {
         let organizations = gitlab()
             .body(r#"[{"id":42,"full_path":"akira-io"}]"#)

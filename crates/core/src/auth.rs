@@ -4,8 +4,8 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    BoxFuture, ManagedAuthProvider, Request, RequestHeader, Transport, VcsResult, error, request,
-    transport_not_configured,
+    BoxFuture, CognitionResult, ManagedAuthProvider, Request, RequestHeader, Transport, error,
+    request, transport_not_configured,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -183,14 +183,14 @@ impl fmt::Debug for AuthHeaderValue {
 }
 
 pub trait Authentication: Send + Sync {
-    fn validate(&self) -> BoxFuture<'_, VcsResult<()>>;
+    fn validate(&self) -> BoxFuture<'_, CognitionResult<()>>;
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TransportNotConfiguredAuthentication;
 
 impl Authentication for TransportNotConfiguredAuthentication {
-    fn validate(&self) -> BoxFuture<'_, VcsResult<()>> {
+    fn validate(&self) -> BoxFuture<'_, CognitionResult<()>> {
         transport_not_configured()
     }
 }
@@ -231,7 +231,7 @@ impl<Driver> Authentication for TransportBackedAuthentication<Driver>
 where
     Driver: ManagedAuthProvider + Send + Sync,
 {
-    fn validate(&self) -> BoxFuture<'_, VcsResult<()>> {
+    fn validate(&self) -> BoxFuture<'_, CognitionResult<()>> {
         Box::pin(async move {
             let request = request()
                 .get(self.driver.auth_validate_url().value())

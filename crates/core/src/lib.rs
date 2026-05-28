@@ -43,13 +43,13 @@ pub use code_reviews::{
     TransportBackedCodeReviews, TransportNotConfiguredCodeReviews,
 };
 pub(crate) use errors::transport_not_configured;
-pub use errors::{ErrorBuilder, ErrorKind, VcsError, VcsResult};
+pub use errors::{CognitionError, CognitionResult, ErrorBuilder, ErrorKind};
 #[cfg(feature = "testing")]
 pub use helpers::conformance;
 pub use helpers::{
-    CapabilitySetBuilder, auth, branch, capabilities, code_review, commit, error, git, http, issue,
-    issue_id, middleware, pagination, pipeline, provider, provider_id, rate_limit, release,
-    release_id, repo, request, request_body, response, retry, runtime, telemetry, url, vcs,
+    CapabilitySetBuilder, auth, branch, capabilities, code_review, cognition, commit, error, git,
+    http, issue, issue_id, middleware, pagination, pipeline, provider, provider_id, rate_limit,
+    release, release_id, repo, request, request_body, response, retry, runtime, telemetry, url,
 };
 pub use http::{HttpBuilder, HttpTransport, HttpTransportBuilder};
 pub use issues::{
@@ -72,6 +72,7 @@ pub use local_git::{
     ProvidedTheirs, StatusEntry, Worktree,
 };
 pub use manager::{
+    CognitionManager, CognitionManagerBuilder, CognitionManagerWithDriverBuilder,
     ManagedAuthProvider, ManagedClientProvider, ManagedCodeReview, ManagedCodeReviewBuilder,
     ManagedCodeReviewCollection, ManagedCodeReviewDraftBuilder, ManagedCodeReviewProvider,
     ManagedIssue, ManagedIssueBuilder, ManagedIssueCollection, ManagedIssueDraftBuilder,
@@ -84,7 +85,7 @@ pub use manager::{
     ManagedRepoCollection, ManagedRepoIssues, ManagedRepoIssuesPagination, ManagedRepoPipelines,
     ManagedRepoPipelinesPagination, ManagedRepoReleases, ManagedRepoReleasesPagination,
     ManagedRepositoryDraftBuilder, ManagedRepositoryUpdateBuilder, ManagedRetryTransportBuilder,
-    ProviderClient, VcsManager, VcsManagerBuilder, VcsManagerWithDriverBuilder,
+    ProviderClient,
 };
 pub use middleware::{
     HeaderMiddleware, Middleware, MissingTransport, ProvidedTransport, TransportPipeline,

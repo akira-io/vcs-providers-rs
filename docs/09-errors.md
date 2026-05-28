@@ -1,8 +1,8 @@
 # Errors
 
-Errors are provider-neutral contracts owned by `vcs-provider-core`.
+Errors are provider-neutral contracts owned by `git-cognition-core`.
 
-Provider crates must map native provider failures into `VcsError` before returning results to applications. They must not expose raw HTTP client errors, provider payloads, or provider-specific error names through public contracts.
+Provider crates must map native provider failures into `CognitionError` before returning results to applications. They must not expose raw HTTP client errors, provider payloads, or provider-specific error names through public contracts.
 
 ```rust
 let result = error().from_status(&response_status);
@@ -10,7 +10,7 @@ let result = error().from_status(&response_status);
 
 ## Error Kinds
 
-`VcsError::kind()` exposes stable classification for callers that need branching without parsing messages.
+`CognitionError::kind()` exposes stable classification for callers that need branching without parsing messages.
 
 ```rust
 let kind = error().provider_not_registered("github").kind();

@@ -1,15 +1,15 @@
 # Provider Manager Facade
 
-`vcs(driver)` is the provider manager facade for request construction. It keeps core provider-neutral while allowing application code to choose GitHub, GitLab, Bitbucket, or a future provider at the edge.
+`cognition().provider(driver)` is the provider manager facade for request construction. It keeps core provider-neutral while allowing application code to choose GitHub, GitLab, Bitbucket, or a future provider at the edge.
 
 ```rust
-use vcs_provider_core::vcs;
-use vcs_provider_gitlab::gitlab;
+use git_cognition_core::cognition;
+use git_cognition_gitlab::gitlab;
 
-let repo = vcs(gitlab())
+let repo = cognition().provider(gitlab())
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 ```
 
@@ -18,10 +18,10 @@ The facade owns the selected driver once and every chained resource operation us
 ## Repository Requests
 
 ```rust
-let repository = vcs(gitlab())
+let repository = cognition().provider(gitlab())
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
 let url = repository.url();
@@ -40,22 +40,22 @@ Provider-specific path rules stay inside the provider crate:
 Providers keep their public defaults, but applications can pass an explicit API base URL when they target an enterprise, self-managed, or compatible deployment.
 
 ```rust
-let github_repository = vcs(vcs_provider_github::github().base_url("https://github.enterprise.test/api/v3"))
+let github_repository = cognition().provider(git_cognition_github::github().base_url("https://github.enterprise.test/api/v3"))
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
-let gitlab_repository = vcs(vcs_provider_gitlab::gitlab().base_url("https://gitlab.internal.example"))
+let gitlab_repository = cognition().provider(git_cognition_gitlab::gitlab().base_url("https://gitlab.internal.example"))
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 
-let bitbucket_repository = vcs(vcs_provider_bitbucket::bitbucket().base_url("https://bitbucket.internal.example/rest"))
+let bitbucket_repository = cognition().provider(git_cognition_bitbucket::bitbucket().base_url("https://bitbucket.internal.example/rest"))
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .get();
 ```
 
@@ -66,17 +66,17 @@ GitHub Enterprise Server REST endpoints use the instance host plus `/api/v3`. Gi
 Nested resource builders inherit the facade driver from the repository chain.
 
 ```rust
-let issue = vcs(gitlab())
+let issue = cognition().provider(gitlab())
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .issue("42")
     .get();
 
-let code_review = vcs(gitlab())
+let code_review = cognition().provider(gitlab())
     .repo()
     .owner("akira-io")
-    .name("vcs-providers-rs")
+    .name("git-cognition-rs")
     .code_review("42")
     .get();
 ```
@@ -88,10 +88,10 @@ GitHub and GitLab expose issues, code reviews and releases through this facade. 
 Mutation builders are also reached from the selected facade.
 
 ```rust
-let request = vcs(gitlab())
+let request = cognition().provider(gitlab())
     .repo()
     .draft(repo)
-    .visibility(vcs_provider_core::Visibility::Private)
+    .visibility(git_cognition_core::Visibility::Private)
     .create();
 ```
 
@@ -102,14 +102,14 @@ The terminal method describes the command being built: `create`, `update`, `dele
 The same facade can configure a provider client and execute hydrated contracts through the shared transport abstraction:
 
 ```rust
-use vcs_provider_core::{auth, http, repo, vcs};
-use vcs_provider_github::github;
+use git_cognition_core::{auth, cognition, http, repo};
+use git_cognition_github::github;
 
-let repository = vcs(github())
+let repository = cognition().provider(github())
     .transport(http().transport().get()?)
     .auth(auth().personal_access_token("token"))
     .repos()
-    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .get(repo().owner("akira-io").name("git-cognition-rs").get())
     .await?;
 ```
 
@@ -118,7 +118,7 @@ Middleware can be configured from the same provider facade:
 ```rust
 let telemetry_recorder = telemetry().recorder();
 
-let repository = vcs(github())
+let repository = cognition().provider(github())
     .middleware(http().transport().get()?)
     .header("x-request-id", "request-1")
     .retry()
@@ -129,7 +129,7 @@ let repository = vcs(github())
     .telemetry(telemetry_recorder.clone())
     .auth(auth().personal_access_token("token"))
     .repos()
-    .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+    .get(repo().owner("akira-io").name("git-cognition-rs").get())
     .await?;
 ```
 
@@ -137,12 +137,12 @@ The driver is still selected once at the edge. The provider crate owns the concr
 
 ## Dependency Boundary
 
-`vcs(driver)` lives in `vcs-provider-core`, but it receives the driver from the application. Core does not import provider crates and providers do not register themselves globally.
+`cognition().provider(driver)` lives in `git-cognition-core`, but it receives the driver from the application. Core does not import provider crates and providers do not register themselves globally.
 
 This keeps provider addition open-ended:
 
 ```rust
-let repo = vcs(custom_provider)
+let repo = cognition().provider(custom_provider)
     .repo()
     .owner("team")
     .name("project")

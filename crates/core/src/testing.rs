@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 #[path = "testing/conformance.rs"]
 mod conformance;
 
-use crate::{BoxFuture, Request, Response, ResponseBuilder, Transport, VcsResult, response};
+use crate::{BoxFuture, CognitionResult, Request, Response, ResponseBuilder, Transport, response};
 
 #[cfg(feature = "testing")]
 pub use conformance::{ProviderConformance, ProviderConformanceBuilder};
@@ -14,7 +14,7 @@ pub use conformance::{ProviderConformance, ProviderConformanceBuilder};
 pub struct EchoTransport;
 
 impl Transport for EchoTransport {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         Box::pin(async move {
             let mut response = response().status(200);
 
@@ -39,7 +39,7 @@ impl SingleResponseTransport {
 }
 
 impl Transport for SingleResponseTransport {
-    fn send(&self, _request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, _request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         let response = self.response.clone();
 
         Box::pin(async move { Ok(response) })
@@ -169,7 +169,7 @@ impl TestTransportSequenceResponseBuilder {
     }
 }
 
-pub fn run_async_test<T>(future: impl Future<Output = VcsResult<T>>) -> VcsResult<T> {
+pub fn run_async_test<T>(future: impl Future<Output = CognitionResult<T>>) -> CognitionResult<T> {
     futures::executor::block_on(future)
 }
 
@@ -201,7 +201,7 @@ pub fn conformance() -> ProviderConformanceBuilder {
 }
 
 impl Transport for RecordingTransport {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         let response = self.response.clone();
         let requests = Arc::clone(&self.requests);
 
@@ -251,7 +251,7 @@ impl ResponseSequenceTransport {
 }
 
 impl Transport for ResponseSequenceTransport {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         let requests = Arc::clone(&self.requests);
         let response = self.response_for_request(self.requests().len());
 

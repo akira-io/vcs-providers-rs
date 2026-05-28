@@ -6,7 +6,7 @@ The Rust implementation is centered on one provider-neutral `core` crate and one
 Application
     |
     v
-vcs-provider-core contracts
+git-cognition-core contracts
     |
     v
 provider crates
@@ -14,7 +14,7 @@ provider crates
 
 ## Core
 
-`vcs-provider-core` owns shared contracts and domain primitives:
+`git-cognition-core` owns shared contracts and domain primitives:
 
 - Provider contracts.
 - Capability negotiation.
@@ -32,13 +32,13 @@ Core never depends on provider crates.
 
 Provider crates implement core contracts:
 
-- `vcs-provider-github`
-- `vcs-provider-gitlab`
-- `vcs-provider-bitbucket`
+- `git-cognition-github`
+- `git-cognition-gitlab`
+- `git-cognition-bitbucket`
 
-Providers depend on `vcs-provider-core`. Provider crates own provider-specific defaults, terminology mapping, endpoint behavior, payload mapping, and extensions.
+Providers depend on `git-cognition-core`. Provider crates own provider-specific defaults, terminology mapping, endpoint behavior, payload mapping, and extensions.
 
-Adding a new provider must not require editing `vcs-provider-core`.
+Adding a new provider must not require editing `git-cognition-core`.
 
 ## Provider Contract
 
@@ -69,7 +69,7 @@ It exposes:
 
 The contract is async-first and object-safe. Provider crates return futures through the shared `BoxFuture` type, so applications can consume repository operations through trait objects without depending on provider-specific types.
 
-Provider crates own the mapping from provider endpoints to universal `Repository`, `Branch`, and `Commit` resources. Until transport is configured, repos return `VcsError::TransportNotConfigured` instead of generating placeholder data.
+Provider crates own the mapping from provider endpoints to universal `Repository`, `Branch`, and `Commit` resources. Until transport is configured, repos return `CognitionError::TransportNotConfigured` instead of generating placeholder data.
 
 ## Registry Contract
 
@@ -79,9 +79,9 @@ Applications compose the registry explicitly:
 
 ```rust
 let registry = provider()
-    .register(vcs_provider_github::github())?
-    .register(vcs_provider_gitlab::gitlab())?
-    .register(vcs_provider_bitbucket::bitbucket())?
+    .register(git_cognition_github::github())?
+    .register(git_cognition_gitlab::gitlab())?
+    .register(git_cognition_bitbucket::bitbucket())?
     .build();
 ```
 

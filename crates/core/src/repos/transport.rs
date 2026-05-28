@@ -5,20 +5,21 @@ use crate::repos::{
     RepositoryPatch, RepositorySearchQuery,
 };
 use crate::{
-    ManagedProvider, Page, Repository, Request, RequestHeader, Response, Transport, VcsResult,
-    error, request,
+    CognitionResult, ManagedProvider, Page, Repository, Request, RequestHeader, Response,
+    Transport, error, request,
 };
 
 pub trait RepositoryResponseMapper: Send + Sync {
-    fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository>;
+    fn repository(&self, requested_repo: &Repo, response: &Response)
+    -> CognitionResult<Repository>;
 
-    fn repositories(&self, response: &Response) -> VcsResult<Page<Repository>>;
+    fn repositories(&self, response: &Response) -> CognitionResult<Page<Repository>>;
 
-    fn branches(&self, response: &Response) -> VcsResult<Page<Branch>>;
+    fn branches(&self, response: &Response) -> CognitionResult<Page<Branch>>;
 
-    fn branch(&self, response: &Response) -> VcsResult<Branch>;
+    fn branch(&self, response: &Response) -> CognitionResult<Branch>;
 
-    fn commits(&self, response: &Response) -> VcsResult<Page<Commit>>;
+    fn commits(&self, response: &Response) -> CognitionResult<Page<Commit>>;
 }
 
 #[derive(Clone)]
@@ -48,7 +49,7 @@ where
         self
     }
 
-    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, VcsResult<Response>> {
+    fn send_request<'a>(&'a self, request: Request) -> BoxFuture<'a, CognitionResult<Response>> {
         Box::pin(async move {
             let response = self.transport.send(self.apply_headers(request)).await?;
 
@@ -73,7 +74,7 @@ where
     Driver: ManagedProvider + Send + Sync,
     Mapper: RepositoryResponseMapper,
 {
-    fn get(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Repository>> {
+    fn get(&self, repo: Repo) -> BoxFuture<'_, CognitionResult<Repository>> {
         Box::pin(async move {
             let request = request().get(self.driver.repo_url(&repo).value()).build();
             let response = self.send_request(request).await?;
@@ -82,7 +83,7 @@ where
         })
     }
 
-    fn list(&self, query: RepositoryListQuery) -> BoxFuture<'_, VcsResult<Page<Repository>>> {
+    fn list(&self, query: RepositoryListQuery) -> BoxFuture<'_, CognitionResult<Page<Repository>>> {
         Box::pin(async move {
             let request = request()
                 .get(self.driver.repo_list_url(&query).value())
@@ -93,7 +94,10 @@ where
         })
     }
 
-    fn search(&self, query: RepositorySearchQuery) -> BoxFuture<'_, VcsResult<Page<Repository>>> {
+    fn search(
+        &self,
+        query: RepositorySearchQuery,
+    ) -> BoxFuture<'_, CognitionResult<Page<Repository>>> {
         Box::pin(async move {
             let request = request()
                 .get(self.driver.repo_search_url(&query).value())
@@ -104,7 +108,7 @@ where
         })
     }
 
-    fn create(&self, draft: RepositoryDraft) -> BoxFuture<'_, VcsResult<Repository>> {
+    fn create(&self, draft: RepositoryDraft) -> BoxFuture<'_, CognitionResult<Repository>> {
         Box::pin(async move {
             let request = self.driver.repo_create_request(&draft);
             let response = self.send_request(request).await?;
@@ -113,7 +117,7 @@ where
         })
     }
 
-    fn update(&self, patch: RepositoryPatch) -> BoxFuture<'_, VcsResult<Repository>> {
+    fn update(&self, patch: RepositoryPatch) -> BoxFuture<'_, CognitionResult<Repository>> {
         Box::pin(async move {
             let request = self.driver.repo_update_request(&patch);
             let response = self.send_request(request).await?;
@@ -122,7 +126,7 @@ where
         })
     }
 
-    fn delete(&self, repo: Repo) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete(&self, repo: Repo) -> BoxFuture<'_, CognitionResult<()>> {
         Box::pin(async move {
             let request = self.driver.repo_delete_request(&repo);
             self.send_request(request).await?;
@@ -131,7 +135,7 @@ where
         })
     }
 
-    fn branches(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Page<Branch>>> {
+    fn branches(&self, repo: Repo) -> BoxFuture<'_, CognitionResult<Page<Branch>>> {
         Box::pin(async move {
             let request = request()
                 .get(self.driver.repo_branches_url(&repo, None).value())
@@ -142,7 +146,7 @@ where
         })
     }
 
-    fn create_branch(&self, draft: BranchDraft) -> BoxFuture<'_, VcsResult<Branch>> {
+    fn create_branch(&self, draft: BranchDraft) -> BoxFuture<'_, CognitionResult<Branch>> {
         Box::pin(async move {
             let request = self.driver.repo_branch_create_request(&draft)?;
             let response = self.send_request(request).await?;
@@ -151,7 +155,7 @@ where
         })
     }
 
-    fn delete_branch(&self, repo: Repo, branch_name: String) -> BoxFuture<'_, VcsResult<()>> {
+    fn delete_branch(&self, repo: Repo, branch_name: String) -> BoxFuture<'_, CognitionResult<()>> {
         Box::pin(async move {
             let request = self
                 .driver
@@ -162,7 +166,7 @@ where
         })
     }
 
-    fn commits(&self, repo: Repo) -> BoxFuture<'_, VcsResult<Page<Commit>>> {
+    fn commits(&self, repo: Repo) -> BoxFuture<'_, CognitionResult<Page<Commit>>> {
         Box::pin(async move {
             let request = request()
                 .get(self.driver.repo_commits_url(&repo, None).value())

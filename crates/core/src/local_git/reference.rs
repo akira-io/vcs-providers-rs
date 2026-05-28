@@ -1,4 +1,4 @@
-use crate::{Commit, VcsResult};
+use crate::{CognitionResult, Commit};
 
 use super::LocalGitRepository;
 use super::commands::git_stdout_arguments;
@@ -17,14 +17,14 @@ impl LocalGitReference {
         }
     }
 
-    pub fn sha(&self) -> VcsResult<String> {
+    pub fn sha(&self) -> CognitionResult<String> {
         git_stdout_arguments(
             &self.repository.path,
             &["rev-parse".into(), self.reference.clone()],
         )
     }
 
-    pub fn commit(&self) -> VcsResult<Commit> {
+    pub fn commit(&self) -> CognitionResult<Commit> {
         Ok(Commit::make(self.sha()?))
     }
 }

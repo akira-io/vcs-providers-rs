@@ -2,8 +2,8 @@ mod support;
 
 use std::sync::{Arc, Mutex};
 
-use vcs_provider_core::{
-    BoxFuture, Middleware, Request, Transport, VcsResult, middleware, request, run_async_test,
+use git_cognition_core::{
+    BoxFuture, CognitionResult, Middleware, Request, Transport, middleware, request, run_async_test,
 };
 
 use support::EchoTransport;
@@ -15,7 +15,7 @@ struct RecordingMiddleware {
 }
 
 impl Middleware for RecordingMiddleware {
-    fn handle(&self, request: Request) -> BoxFuture<'_, VcsResult<Request>> {
+    fn handle(&self, request: Request) -> BoxFuture<'_, CognitionResult<Request>> {
         let calls = Arc::clone(&self.calls);
         let name = self.name;
 
@@ -34,7 +34,7 @@ fn recording_middleware(
 }
 
 #[test]
-fn middleware_pipeline_runs_middleware_before_transport() -> VcsResult<()> {
+fn middleware_pipeline_runs_middleware_before_transport() -> CognitionResult<()> {
     let calls = Arc::new(Mutex::new(Vec::new()));
     let pipeline = middleware()
         .with(recording_middleware("first", Arc::clone(&calls)))
@@ -55,7 +55,7 @@ fn middleware_pipeline_runs_middleware_before_transport() -> VcsResult<()> {
 }
 
 #[test]
-fn header_middleware_adds_request_header() -> VcsResult<()> {
+fn header_middleware_adds_request_header() -> CognitionResult<()> {
     let pipeline = middleware()
         .header("accept", "application/json")
         .transport(EchoTransport)

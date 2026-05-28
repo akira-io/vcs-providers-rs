@@ -4,7 +4,7 @@ use std::process::Command;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use vcs_provider_core::{VcsResult, error};
+use git_cognition_core::{CognitionResult, error};
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct LocalGitFixtureBuilder;
@@ -51,7 +51,7 @@ pub struct LocalGitFixtureRepository {
 }
 
 impl LocalGitFixtureRepository {
-    pub fn create(&self) -> VcsResult<Self> {
+    pub fn create(&self) -> CognitionResult<Self> {
         fs::create_dir_all(&self.path)
             .map_err(|io_error| error().invalid_input(io_error.to_string()))?;
         self.git().init()?;
@@ -110,7 +110,7 @@ pub struct LocalGitFixtureBranch {
 }
 
 impl LocalGitFixtureBranch {
-    pub fn commit(&self) -> VcsResult<()> {
+    pub fn commit(&self) -> CognitionResult<()> {
         self.repository.git().branch(&self.name).checkout_new()?;
         self.repository.file("feature.txt").write("feature\n")?;
         self.repository.git().add("feature.txt")?;
@@ -131,7 +131,7 @@ pub struct LocalGitFixtureFile {
 }
 
 impl LocalGitFixtureFile {
-    pub fn write(&self, content: &str) -> VcsResult<()> {
+    pub fn write(&self, content: &str) -> CognitionResult<()> {
         fs::write(self.repository.path.join(&self.name), content)
             .map_err(|io_error| error().invalid_input(io_error.to_string()))
     }
@@ -143,7 +143,7 @@ struct LocalGitFixtureCommand {
 }
 
 impl LocalGitFixtureCommand {
-    fn init(&self) -> VcsResult<()> {
+    fn init(&self) -> CognitionResult<()> {
         self.run(["init"])
     }
 
@@ -160,7 +160,7 @@ impl LocalGitFixtureCommand {
         }
     }
 
-    fn add(&self, path: &str) -> VcsResult<()> {
+    fn add(&self, path: &str) -> CognitionResult<()> {
         self.run(["add", path])
     }
 
@@ -170,7 +170,7 @@ impl LocalGitFixtureCommand {
         }
     }
 
-    fn run<const SIZE: usize>(&self, args: [&str; SIZE]) -> VcsResult<()> {
+    fn run<const SIZE: usize>(&self, args: [&str; SIZE]) -> CognitionResult<()> {
         let output = Command::new("git")
             .current_dir(&self.repository.path)
             .args(args)
@@ -191,15 +191,15 @@ struct LocalGitFixtureConfig {
 }
 
 impl LocalGitFixtureConfig {
-    fn hooks_path(&self, path: &str) -> VcsResult<()> {
+    fn hooks_path(&self, path: &str) -> CognitionResult<()> {
         self.command.run(["config", "core.hooksPath", path])
     }
 
-    fn email(&self, email: &str) -> VcsResult<()> {
+    fn email(&self, email: &str) -> CognitionResult<()> {
         self.command.run(["config", "user.email", email])
     }
 
-    fn user_name(&self, name: &str) -> VcsResult<()> {
+    fn user_name(&self, name: &str) -> CognitionResult<()> {
         self.command.run(["config", "user.name", name])
     }
 }
@@ -211,11 +211,11 @@ struct LocalGitFixtureGitBranch {
 }
 
 impl LocalGitFixtureGitBranch {
-    fn checkout(&self) -> VcsResult<()> {
+    fn checkout(&self) -> CognitionResult<()> {
         self.command.run(["checkout", &self.name])
     }
 
-    fn checkout_new(&self) -> VcsResult<()> {
+    fn checkout_new(&self) -> CognitionResult<()> {
         self.command.run(["checkout", "-b", &self.name])
     }
 }
@@ -226,7 +226,7 @@ struct LocalGitFixtureCommit {
 }
 
 impl LocalGitFixtureCommit {
-    fn message(&self, message: &str) -> VcsResult<()> {
+    fn message(&self, message: &str) -> CognitionResult<()> {
         self.command.run(["commit", "-m", message])
     }
 }
@@ -237,7 +237,7 @@ pub fn local_git_fixture() -> LocalGitFixtureBuilder {
 
 fn fixture_root(name: impl Into<String>) -> PathBuf {
     std::env::temp_dir().join(format!(
-        "vcs-provider-local-git-{}-{}-{}",
+        "git-cognition-local-git-{}-{}-{}",
         name.into(),
         std::process::id(),
         unique_suffix()

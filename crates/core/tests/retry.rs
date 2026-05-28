@@ -1,7 +1,9 @@
-use vcs_provider_core::{Transport, VcsResult, request, retry, run_async_test, test_transport};
+use git_cognition_core::{
+    CognitionResult, Transport, request, retry, run_async_test, test_transport,
+};
 
 #[test]
-fn retry_transport_retries_configured_response_statuses() -> VcsResult<()> {
+fn retry_transport_retries_configured_response_statuses() -> CognitionResult<()> {
     let recording_transport = test_transport()
         .responses()
         .status(500)
@@ -23,7 +25,7 @@ fn retry_transport_retries_configured_response_statuses() -> VcsResult<()> {
 }
 
 #[test]
-fn retry_transport_stops_after_max_attempts() -> VcsResult<()> {
+fn retry_transport_stops_after_max_attempts() -> CognitionResult<()> {
     let recording_transport = test_transport()
         .responses()
         .status(503)
@@ -46,7 +48,7 @@ fn retry_transport_stops_after_max_attempts() -> VcsResult<()> {
 }
 
 #[test]
-fn retry_transport_keeps_successful_responses_single_attempt() -> VcsResult<()> {
+fn retry_transport_keeps_successful_responses_single_attempt() -> CognitionResult<()> {
     let recording_transport = test_transport().responses().status(200).record();
     let transport = retry().transport(recording_transport.clone()).build();
     let request = request().get("https://api.example.test/repos").build();

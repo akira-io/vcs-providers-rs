@@ -1,13 +1,19 @@
-use serde::Deserialize;
-use vcs_provider_core::{
-    Branch, CodeReview, CodeReviewResponseMapper, Commit, Issue, IssueResponseMapper,
-    LifecycleState, Organization, OrganizationKind, OrganizationResponseMapper, Page, Release,
-    ReleaseResponseMapper, Repo, Repository, RepositoryResponseMapper, Response, VcsError,
-    VcsResult, Visibility, error, pipeline, repo,
+use git_cognition_core::{
+    Branch, CodeReview, CodeReviewResponseMapper, CognitionError, CognitionResult, Commit, Issue,
+    IssueResponseMapper, LifecycleState, Organization, OrganizationKind,
+    OrganizationResponseMapper, Page, Release, ReleaseResponseMapper, Repo, Repository,
+    RepositoryResponseMapper, Response, Visibility, error, pipeline, repo,
 };
-use vcs_provider_core::{Pipeline, PipelineResponseMapper};
+use git_cognition_core::{Pipeline, PipelineResponseMapper};
+use serde::Deserialize;
 
 use crate::PROVIDER_ID;
+use response_types::{
+    GitHubBranch, GitHubCodeReview, GitHubCommit, GitHubIssue, GitHubOrganization, GitHubPipeline,
+    GitHubPipelinePage, GitHubReference, GitHubRelease, GitHubRepository,
+};
+
+mod response_types;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct GitHubRepositoryMapper;
@@ -28,7 +34,11 @@ pub struct GitHubReleaseMapper;
 pub struct GitHubPipelineMapper;
 
 impl RepositoryResponseMapper for GitHubRepositoryMapper {
-    fn repository(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Repository> {
+    fn repository(
+        &self,
+        requested_repo: &Repo,
+        response: &Response,
+    ) -> CognitionResult<Repository> {
         let repository_response = github_repository(response)?;
         let repository_repo = repository_response
             .repo()
@@ -37,7 +47,7 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
         Ok(repository(repository_repo, repository_response))
     }
 
-    fn repositories(&self, response: &Response) -> VcsResult<Page<Repository>> {
+    fn repositories(&self, response: &Response) -> CognitionResult<Page<Repository>> {
         let repositories = github_repositories(response)?
             .into_iter()
             .filter_map(|repository_response| {
@@ -50,7 +60,7 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
         Ok(page(repositories, response))
     }
 
-    fn branches(&self, response: &Response) -> VcsResult<Page<Branch>> {
+    fn branches(&self, response: &Response) -> CognitionResult<Page<Branch>> {
         let branches = parse_body::<Vec<GitHubBranch>>(response, "invalid github branch response")?
             .into_iter()
             .map(|branch| Branch::make(branch.name))
@@ -59,13 +69,13 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
         Ok(page(branches, response))
     }
 
-    fn branch(&self, response: &Response) -> VcsResult<Branch> {
+    fn branch(&self, response: &Response) -> CognitionResult<Branch> {
         let branch = parse_body::<GitHubReference>(response, "invalid github branch response")?;
 
         Ok(Branch::make(branch.name()))
     }
 
-    fn commits(&self, response: &Response) -> VcsResult<Page<Commit>> {
+    fn commits(&self, response: &Response) -> CognitionResult<Page<Commit>> {
         let commits = parse_body::<Vec<GitHubCommit>>(response, "invalid github commit response")?
             .into_iter()
             .map(|commit| Commit::make(commit.sha))
@@ -76,7 +86,7 @@ impl RepositoryResponseMapper for GitHubRepositoryMapper {
 }
 
 impl OrganizationResponseMapper for GitHubOrganizationMapper {
-    fn organizations(&self, response: &Response) -> VcsResult<Page<Organization>> {
+    fn organizations(&self, response: &Response) -> CognitionResult<Page<Organization>> {
         let organizations = parse_body::<Vec<GitHubOrganization>>(
             response,
             "invalid github organization response",
@@ -97,21 +107,21 @@ impl OrganizationResponseMapper for GitHubOrganizationMapper {
 }
 
 impl IssueResponseMapper for GitHubIssueMapper {
-    fn issue(&self, requested_issue: &Issue, response: &Response) -> VcsResult<Issue> {
+    fn issue(&self, requested_issue: &Issue, response: &Response) -> CognitionResult<Issue> {
         let issue = parse_body::<GitHubIssue>(response, "invalid github issue response")?;
 
-        Ok(vcs_provider_core::issue()
+        Ok(git_cognition_core::issue()
             .repo(requested_issue.repo().clone())
             .id(issue.number.to_string())
             .get())
     }
 
-    fn issues(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Issue>> {
+    fn issues(&self, requested_repo: &Repo, response: &Response) -> CognitionResult<Page<Issue>> {
         let issues =
             parse_body::<Vec<GitHubIssue>>(response, "invalid github issue list response")?
                 .into_iter()
                 .map(|issue| {
-                    vcs_provider_core::issue()
+                    git_cognition_core::issue()
                         .repo(requested_repo.clone())
                         .id(issue.number.to_string())
                         .get()
@@ -127,11 +137,11 @@ impl CodeReviewResponseMapper for GitHubCodeReviewMapper {
         &self,
         requested_code_review: &CodeReview,
         response: &Response,
-    ) -> VcsResult<CodeReview> {
+    ) -> CognitionResult<CodeReview> {
         let code_review =
             parse_body::<GitHubCodeReview>(response, "invalid github code review response")?;
 
-        Ok(vcs_provider_core::code_review()
+        Ok(git_cognition_core::code_review()
             .repo(requested_code_review.repo().clone())
             .id(code_review.number.to_string())
             .get())
@@ -141,14 +151,14 @@ impl CodeReviewResponseMapper for GitHubCodeReviewMapper {
         &self,
         requested_repo: &Repo,
         response: &Response,
-    ) -> VcsResult<Page<CodeReview>> {
+    ) -> CognitionResult<Page<CodeReview>> {
         let code_reviews = parse_body::<Vec<GitHubCodeReview>>(
             response,
             "invalid github code review list response",
         )?
         .into_iter()
         .map(|code_review| {
-            vcs_provider_core::code_review()
+            git_cognition_core::code_review()
                 .repo(requested_repo.clone())
                 .id(code_review.number.to_string())
                 .get()
@@ -160,21 +170,29 @@ impl CodeReviewResponseMapper for GitHubCodeReviewMapper {
 }
 
 impl ReleaseResponseMapper for GitHubReleaseMapper {
-    fn release(&self, requested_release: &Release, response: &Response) -> VcsResult<Release> {
+    fn release(
+        &self,
+        requested_release: &Release,
+        response: &Response,
+    ) -> CognitionResult<Release> {
         let release = parse_body::<GitHubRelease>(response, "invalid github release response")?;
 
-        Ok(vcs_provider_core::release()
+        Ok(git_cognition_core::release()
             .repo(requested_release.repo().clone())
             .id(release.id.to_string())
             .get())
     }
 
-    fn releases(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Release>> {
+    fn releases(
+        &self,
+        requested_repo: &Repo,
+        response: &Response,
+    ) -> CognitionResult<Page<Release>> {
         let releases =
             parse_body::<Vec<GitHubRelease>>(response, "invalid github release list response")?
                 .into_iter()
                 .map(|release| {
-                    vcs_provider_core::release()
+                    git_cognition_core::release()
                         .repo(requested_repo.clone())
                         .id(release.id.to_string())
                         .get()
@@ -186,16 +204,24 @@ impl ReleaseResponseMapper for GitHubReleaseMapper {
 }
 
 impl PipelineResponseMapper for GitHubPipelineMapper {
-    fn pipeline(&self, requested_pipeline: &Pipeline, response: &Response) -> VcsResult<Pipeline> {
+    fn pipeline(
+        &self,
+        requested_pipeline: &Pipeline,
+        response: &Response,
+    ) -> CognitionResult<Pipeline> {
         let pipeline = parse_body::<GitHubPipeline>(response, "invalid github pipeline response")?;
 
-        Ok(vcs_provider_core::pipeline()
+        Ok(git_cognition_core::pipeline()
             .repo(requested_pipeline.repo().clone())
             .id(pipeline.id.to_string())
             .get())
     }
 
-    fn pipelines(&self, requested_repo: &Repo, response: &Response) -> VcsResult<Page<Pipeline>> {
+    fn pipelines(
+        &self,
+        requested_repo: &Repo,
+        response: &Response,
+    ) -> CognitionResult<Page<Pipeline>> {
         let pipelines =
             parse_body::<GitHubPipelinePage>(response, "invalid github pipeline list response")?
                 .workflow_runs
@@ -212,80 +238,11 @@ impl PipelineResponseMapper for GitHubPipelineMapper {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubRepository {
-    full_name: Option<String>,
-    private: Option<bool>,
-    archived: Option<bool>,
-    disabled: Option<bool>,
-}
-
-impl GitHubRepository {
-    fn repo(&self) -> Option<Repo> {
-        parse_repository_path(self.full_name.as_deref())
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubBranch {
-    name: String,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubReference {
-    #[serde(rename = "ref")]
-    reference: String,
-}
-
-impl GitHubReference {
-    fn name(&self) -> &str {
-        self.reference
-            .strip_prefix("refs/heads/")
-            .unwrap_or(self.reference.as_str())
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubOrganization {
-    id: u64,
-    login: String,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubCommit {
-    sha: String,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubIssue {
-    number: u64,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubCodeReview {
-    number: u64,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubRelease {
-    id: u64,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubPipelinePage {
-    workflow_runs: Vec<GitHubPipeline>,
-}
-
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
-struct GitHubPipeline {
-    id: u64,
-}
-
-fn github_repository(response: &Response) -> VcsResult<GitHubRepository> {
+fn github_repository(response: &Response) -> CognitionResult<GitHubRepository> {
     parse_body(response, "invalid github repository response")
 }
 
-fn github_repositories(response: &Response) -> VcsResult<Vec<GitHubRepository>> {
+fn github_repositories(response: &Response) -> CognitionResult<Vec<GitHubRepository>> {
     parse_body(response, "invalid github repository list response")
 }
 
@@ -322,13 +279,7 @@ fn lifecycle_state(is_archived: bool, is_disabled: bool) -> LifecycleState {
     LifecycleState::Active
 }
 
-fn parse_repository_path(repository_path: Option<&str>) -> Option<Repo> {
-    let (owner_name, repository_name) = repository_path?.split_once('/')?;
-
-    Some(repo().owner(owner_name).name(repository_name).get())
-}
-
-fn parse_body<'a, T>(response: &'a Response, message: &str) -> VcsResult<T>
+fn parse_body<'a, T>(response: &'a Response, message: &str) -> CognitionResult<T>
 where
     T: Deserialize<'a>,
 {
@@ -337,12 +288,12 @@ where
     serde_json::from_str(response_body.as_str()).map_err(|_parse_error| invalid_response(message))
 }
 
-fn invalid_response(message: &str) -> VcsError {
+fn invalid_response(message: &str) -> CognitionError {
     error().invalid_input(message)
 }
 
 fn page<T>(items: Vec<T>, response: &Response) -> Page<T> {
-    vcs_provider_core::pagination()
+    git_cognition_core::pagination()
         .page(items)
         .optional_next(crate::pagination::next_cursor(response))
         .build()

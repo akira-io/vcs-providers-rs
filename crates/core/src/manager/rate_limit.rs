@@ -1,19 +1,19 @@
 use crate::{
-    AuthCredential, Authentication, CodeReviews, Issues, ManagedClientProvider, Organizations,
-    Pipelines, Provider, ProviderClient, RateLimitHeaderProfileBuilder, RateLimitRecorder,
-    RateLimitTransport, Releases, Repos, Transport, VcsManager,
+    AuthCredential, Authentication, CodeReviews, CognitionManager, Issues, ManagedClientProvider,
+    Organizations, Pipelines, Provider, ProviderClient, RateLimitHeaderProfileBuilder,
+    RateLimitRecorder, RateLimitTransport, Releases, Repos, Transport,
 };
 
 #[derive(Clone)]
 pub struct ManagedRateLimitTransportBuilder<Driver, TransportKind> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     transport: TransportKind,
     headers: RateLimitHeaderProfileBuilder,
     recorder: RateLimitRecorder,
 }
 
 impl<Driver, TransportKind> ManagedRateLimitTransportBuilder<Driver, TransportKind> {
-    pub fn make(manager: VcsManager<Driver>, transport: TransportKind) -> Self {
+    pub fn make(manager: CognitionManager<Driver>, transport: TransportKind) -> Self {
         Self {
             manager,
             transport,

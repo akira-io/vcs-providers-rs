@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::VcsResult;
+use crate::CognitionResult;
 
 use super::LocalGitRepository;
 use super::commands::git_stdout_arguments;
@@ -25,7 +25,7 @@ pub enum FileState {
     Ignored,
 }
 
-pub(super) fn status(repository: &LocalGitRepository) -> VcsResult<Vec<StatusEntry>> {
+pub(super) fn status(repository: &LocalGitRepository) -> CognitionResult<Vec<StatusEntry>> {
     let output = git_stdout_arguments(
         &repository.path,
         &["status".into(), "--porcelain=v2".into()],

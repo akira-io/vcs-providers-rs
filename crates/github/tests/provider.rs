@@ -1,8 +1,8 @@
-use vcs_provider_core::{
-    AuthHeaderStyle, AuthKind, Capability, Provider, VcsError, VcsResult, Visibility, auth,
-    provider, provider_id, repo, run_async_test, vcs,
+use git_cognition_core::{
+    AuthHeaderStyle, AuthKind, Capability, CognitionError, CognitionResult, Provider, Visibility,
+    auth, cognition, provider, provider_id, repo, run_async_test,
 };
-use vcs_provider_github::{DISPLAY_NAME, PROVIDER_ID, github};
+use git_cognition_github::{DISPLAY_NAME, PROVIDER_ID, github};
 
 #[test]
 fn github_provider_exposes_provider_descriptor() {
@@ -71,19 +71,20 @@ fn github_provider_maps_personal_access_token_header() {
 }
 
 #[test]
-fn github_client_routes_auth_and_middleware_through_transport() -> VcsResult<()> {
+fn github_client_routes_auth_and_middleware_through_transport() -> CognitionResult<()> {
     let transport = github()
         .body(
-            r#"{"full_name":"akira-io/vcs-providers-rs","private":false,"archived":false,"disabled":false}"#,
+            r#"{"full_name":"akira-io/git-cognition-rs","private":false,"archived":false,"disabled":false}"#,
         )
         .record();
     run_async_test(async {
-        let repository = vcs(github())
+        let repository = cognition()
+            .provider(github())
             .middleware(transport.clone())
-            .header("x-vcs-trace", "trace-1")
+            .header("x-cognition-trace", "trace-1")
             .auth(auth().personal_access_token("test-token"))
             .repos()
-            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .get(repo().owner("akira-io").name("git-cognition-rs").get())
             .await?;
 
         let requests = transport.requests();
@@ -113,7 +114,7 @@ fn github_client_routes_auth_and_middleware_through_transport() -> VcsResult<()>
                 .first()
                 .and_then(|request| request.headers().get(3))
                 .map(|header| header.name().as_str()),
-            Some("x-vcs-trace")
+            Some("x-cognition-trace")
         );
 
         Ok(())
@@ -121,7 +122,7 @@ fn github_client_routes_auth_and_middleware_through_transport() -> VcsResult<()>
 }
 
 #[test]
-fn github_provider_registers_through_core_registry() -> VcsResult<()> {
+fn github_provider_registers_through_core_registry() -> CognitionResult<()> {
     let registry = provider().register(github())?.build();
 
     assert!(registry.contains_provider(&provider_id(PROVIDER_ID)));
@@ -130,19 +131,21 @@ fn github_provider_registers_through_core_registry() -> VcsResult<()> {
 }
 
 #[test]
-fn github_provider_registry_rejects_duplicate_provider_ids() -> VcsResult<()> {
+fn github_provider_registry_rejects_duplicate_provider_ids() -> CognitionResult<()> {
     let result = provider().register(github())?.register(github());
 
     assert_eq!(
         result.err(),
-        Some(VcsError::ProviderAlreadyRegistered(PROVIDER_ID.into()))
+        Some(CognitionError::ProviderAlreadyRegistered(
+            PROVIDER_ID.into()
+        ))
     );
 
     Ok(())
 }
 
 #[test]
-fn github_provider_registry_filters_by_capability() -> VcsResult<()> {
+fn github_provider_registry_filters_by_capability() -> CognitionResult<()> {
     let registry = provider().register(github())?.build();
     let providers = registry
         .providers_supporting(Capability::Repos)

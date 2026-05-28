@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{BoxFuture, Request, Response, Transport, VcsResult};
+use crate::{BoxFuture, CognitionResult, Request, Response, Transport};
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct RetryBuilder;
@@ -107,7 +107,7 @@ impl RetryTransport {
 }
 
 impl Transport for RetryTransport {
-    fn send(&self, request: Request) -> BoxFuture<'_, VcsResult<Response>> {
+    fn send(&self, request: Request) -> BoxFuture<'_, CognitionResult<Response>> {
         Box::pin(async move {
             let mut attempts_made = 1;
 

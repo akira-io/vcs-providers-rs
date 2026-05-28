@@ -1,8 +1,11 @@
-use vcs_provider_core::{TelemetryEvent, auth, rate_limit, repo, run_async_test, telemetry, vcs};
-use vcs_provider_github::github;
+use git_cognition_core::{
+    TelemetryEvent, auth, cognition, rate_limit, repo, run_async_test, telemetry,
+};
+use git_cognition_github::github;
 
 #[test]
-fn github_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_core::VcsResult<()> {
+fn github_facade_composes_middleware_retry_and_rate_limit()
+-> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
         let telemetry_recorder = telemetry().recorder();
@@ -14,10 +17,11 @@ fn github_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_core
             .next_response()
             .response()
             .header("x-ratelimit-remaining", "42")
-            .body(r#"{"full_name":"akira-io/vcs-providers-rs","private":false}"#)
+            .body(r#"{"full_name":"akira-io/git-cognition-rs","private":false}"#)
             .next_response()
             .record();
-        let repository = vcs(github())
+        let repository = cognition()
+            .provider(github())
             .middleware(recording_transport.clone())
             .header("x-request-id", "request-1")
             .retry()
@@ -29,7 +33,7 @@ fn github_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_core
             .telemetry(telemetry_recorder.clone())
             .auth(auth().personal_access_token("github-token"))
             .repos()
-            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .get(repo().owner("akira-io").name("git-cognition-rs").get())
             .await?;
         let requests = recording_transport.requests();
         let observations = recorder.observations();

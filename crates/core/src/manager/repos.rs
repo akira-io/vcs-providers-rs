@@ -1,18 +1,18 @@
 use crate::{
-    ManagedCodeReviewBuilder, ManagedCodeReviewProvider, ManagedIssueBuilder, ManagedIssueProvider,
-    ManagedPipelineBuilder, ManagedPipelineProvider, ManagedProvider, ManagedReleaseBuilder,
-    ManagedReleaseProvider, ManagedRepoCodeReviews, ManagedRepoIssues, ManagedRepoPipelines,
-    ManagedRepoReleases, MissingOwnerName, MissingRepositoryName, PageRequest,
-    ProvidedCodeReviewId, ProvidedCodeReviewRepo, ProvidedIssueId, ProvidedIssueRepo,
+    CognitionManager, ManagedCodeReviewBuilder, ManagedCodeReviewProvider, ManagedIssueBuilder,
+    ManagedIssueProvider, ManagedPipelineBuilder, ManagedPipelineProvider, ManagedProvider,
+    ManagedReleaseBuilder, ManagedReleaseProvider, ManagedRepoCodeReviews, ManagedRepoIssues,
+    ManagedRepoPipelines, ManagedRepoReleases, MissingOwnerName, MissingRepositoryName,
+    PageRequest, ProvidedCodeReviewId, ProvidedCodeReviewRepo, ProvidedIssueId, ProvidedIssueRepo,
     ProvidedOwnerName, ProvidedPipelineId, ProvidedPipelineRepo, ProvidedReleaseId,
     ProvidedReleaseRepo, ProvidedRepositoryName, Repo, RepoBuilder, RepositoryDraftBuilder,
-    RepositoryListQuery, RepositorySearchQuery, RequestUrl, VcsManager, Visibility, code_review,
-    issue, pipeline, release,
+    RepositoryListQuery, RepositorySearchQuery, RequestUrl, Visibility, code_review, issue,
+    pipeline, release,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoBuilder<Driver, OwnerNameState, RepositoryNameState> {
-    pub(crate) manager: VcsManager<Driver>,
+    pub(crate) manager: CognitionManager<Driver>,
     pub(crate) repo: RepoBuilder<OwnerNameState, RepositoryNameState>,
 }
 
@@ -178,7 +178,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepositoryDraftBuilder<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     draft: RepositoryDraftBuilder,
 }
 
@@ -203,13 +203,13 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepo<Driver> {
-    pub(super) manager: VcsManager<Driver>,
+    pub(super) manager: CognitionManager<Driver>,
     pub(super) repo: Repo,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoBranchBuilder<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
     repo: Repo,
     name: Option<String>,
     sha: Option<String>,
@@ -259,7 +259,7 @@ where
         self
     }
 
-    pub fn create(self) -> crate::VcsResult<crate::Request> {
+    pub fn create(self) -> crate::CognitionResult<crate::Request> {
         let Some(name) = self.name else {
             return Err(crate::error().invalid_input("branch name is required"));
         };
@@ -273,7 +273,7 @@ where
         self.manager.driver.repo_branch_create_request(&draft)
     }
 
-    pub fn delete(self) -> crate::VcsResult<crate::Request> {
+    pub fn delete(self) -> crate::CognitionResult<crate::Request> {
         let Some(name) = self.name else {
             return Err(crate::error().invalid_input("branch name is required"));
         };
@@ -286,7 +286,7 @@ where
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ManagedRepoCollection<Driver> {
-    manager: VcsManager<Driver>,
+    manager: CognitionManager<Driver>,
 }
 
 impl<Driver> ManagedRepoCollection<Driver>

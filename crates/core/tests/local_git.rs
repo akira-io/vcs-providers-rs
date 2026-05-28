@@ -1,17 +1,17 @@
 mod local_git_support;
 
-use vcs_provider_core::{VcsResult, git};
+use git_cognition_core::{CognitionResult, cognition};
 
 use local_git_support::local_git_fixture;
 
 #[test]
-fn local_git_reads_repository_metadata() -> VcsResult<()> {
+fn local_git_reads_repository_metadata() -> CognitionResult<()> {
     let source = local_git_fixture()
         .workspace("metadata")
         .repo("source")
         .create()?;
 
-    let repository = git().repo(&source);
+    let repository = cognition().local().repo(&source);
 
     assert!(repository.is_repository());
     assert!(repository.is_valid_clone());
@@ -22,16 +22,20 @@ fn local_git_reads_repository_metadata() -> VcsResult<()> {
 }
 
 #[test]
-fn local_git_clones_and_operates_on_remote_refs() -> VcsResult<()> {
+fn local_git_clones_and_operates_on_remote_refs() -> CognitionResult<()> {
     let workspace = local_git_fixture().workspace("clone");
     let source = workspace.repo("source").create()?;
     let destination = workspace.repo("destination");
     source.branch("feature").commit()?;
-    let commit_sha = git().repo(&source).branch("main").sha()?;
+    let commit_sha = cognition().local().repo(&source).branch("main").sha()?;
 
-    git().clone_from(&source).to(&destination).clone()?;
+    cognition()
+        .local()
+        .clone_from(&source)
+        .to(&destination)
+        .clone()?;
 
-    let repository = git().repo(&destination);
+    let repository = cognition().local().repo(&destination);
     let origin = repository.remote("origin");
 
     assert!(repository.is_repository());
@@ -45,11 +49,11 @@ fn local_git_clones_and_operates_on_remote_refs() -> VcsResult<()> {
     origin.reference("refs/heads/main").fetch()?;
     repository.fetch_head().checkout()?;
     origin.commit(commit_sha).fetch()?;
-    origin.set_url("https://example.test/akira-io/vcs-providers-rs.git")?;
+    origin.set_url("https://example.test/akira-io/git-cognition-rs.git")?;
 
     assert_eq!(
         repository.remote("origin").url(),
-        Some("https://example.test/akira-io/vcs-providers-rs.git".into())
+        Some("https://example.test/akira-io/git-cognition-rs.git".into())
     );
 
     Ok(())
@@ -57,8 +61,10 @@ fn local_git_clones_and_operates_on_remote_refs() -> VcsResult<()> {
 
 #[test]
 fn local_git_parses_repository_urls() {
-    let repository_url = git().url("https://github.com/akira-io/vcs-providers-rs.git");
+    let repository_url = cognition()
+        .local()
+        .url("https://github.com/akira-io/git-cognition-rs.git");
 
     assert!(repository_url.is_github());
-    assert_eq!(repository_url.repo_name(), Some("vcs-providers-rs".into()));
+    assert_eq!(repository_url.repo_name(), Some("git-cognition-rs".into()));
 }

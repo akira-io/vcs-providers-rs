@@ -1,4 +1,4 @@
-use vcs_provider_core::{
+use git_cognition_core::{
     Authentication, CodeReviews, Issues, Organizations, Pipelines, RecordingTransport, Repos,
     ResponseBuilder, SingleResponseTransport, response, test_transport,
 };
@@ -87,7 +87,7 @@ impl BitbucketProvider {
         BitbucketResponseBuilder::make(self).body(body)
     }
 
-    pub fn responses(self) -> vcs_provider_core::TestTransportSequenceBuilder {
+    pub fn responses(self) -> git_cognition_core::TestTransportSequenceBuilder {
         test_transport().responses()
     }
 }

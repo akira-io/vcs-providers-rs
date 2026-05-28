@@ -1,7 +1,7 @@
 mod support;
 
-use vcs_provider_core::{
-    AuthHeaderStyle, RequestMethod, Transport, VcsResult, auth, request, run_async_test,
+use git_cognition_core::{
+    AuthHeaderStyle, CognitionResult, RequestMethod, Transport, auth, request, run_async_test,
 };
 
 use support::EchoTransport;
@@ -34,7 +34,7 @@ fn request_builder_applies_auth_header() {
 }
 
 #[test]
-fn transport_contract_sends_request_and_returns_response() -> VcsResult<()> {
+fn transport_contract_sends_request_and_returns_response() -> CognitionResult<()> {
     let request = request()
         .get("https://api.example.test/repos")
         .header("accept", "application/json")

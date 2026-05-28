@@ -1,8 +1,11 @@
-use vcs_provider_bitbucket::bitbucket;
-use vcs_provider_core::{TelemetryEvent, auth, rate_limit, repo, run_async_test, telemetry, vcs};
+use git_cognition_bitbucket::bitbucket;
+use git_cognition_core::{
+    TelemetryEvent, auth, cognition, rate_limit, repo, run_async_test, telemetry,
+};
 
 #[test]
-fn bitbucket_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_core::VcsResult<()> {
+fn bitbucket_facade_composes_middleware_retry_and_rate_limit()
+-> git_cognition_core::CognitionResult<()> {
     run_async_test(async {
         let recorder = rate_limit().recorder();
         let telemetry_recorder = telemetry().recorder();
@@ -14,10 +17,11 @@ fn bitbucket_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_c
             .next_response()
             .response()
             .header("x-ratelimit-remaining", "40")
-            .body(r#"{"full_name":"akira-io/vcs-providers-rs","is_private":false}"#)
+            .body(r#"{"full_name":"akira-io/git-cognition-rs","is_private":false}"#)
             .next_response()
             .record();
-        let repository = vcs(bitbucket())
+        let repository = cognition()
+            .provider(bitbucket())
             .middleware(recording_transport.clone())
             .header("x-request-id", "request-1")
             .retry()
@@ -29,7 +33,7 @@ fn bitbucket_facade_composes_middleware_retry_and_rate_limit() -> vcs_provider_c
             .telemetry(telemetry_recorder.clone())
             .auth(auth().oauth("bitbucket-token"))
             .repos()
-            .get(repo().owner("akira-io").name("vcs-providers-rs").get())
+            .get(repo().owner("akira-io").name("git-cognition-rs").get())
             .await?;
         let requests = recording_transport.requests();
         let observations = recorder.observations();

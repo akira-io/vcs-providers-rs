@@ -1,4 +1,4 @@
-use vcs_provider_core::Response;
+use git_cognition_core::Response;
 
 pub fn next_cursor(response: &Response) -> Option<String> {
     header(response, "x-next-cursor")

@@ -1,4 +1,4 @@
-use crate::VcsResult;
+use crate::CognitionResult;
 
 use super::LocalGitRepository;
 use super::commands::{git_stdout_arguments, git_stdout_optional, run_git};
@@ -10,14 +10,14 @@ pub struct LocalGitBranch {
 }
 
 impl LocalGitBranch {
-    pub fn sha(&self) -> VcsResult<String> {
+    pub fn sha(&self) -> CognitionResult<String> {
         git_stdout_arguments(
             &self.repository.path,
             &["rev-parse".into(), self.name.clone()],
         )
     }
 
-    pub fn create(&self) -> VcsResult<()> {
+    pub fn create(&self) -> CognitionResult<()> {
         run_git(
             &self.repository.path,
             ["checkout", "-b", self.name.as_str()],
@@ -44,7 +44,7 @@ impl LocalGitRemote {
         .filter(|url| !url.is_empty())
     }
 
-    pub fn set_url(&self, url: impl AsRef<str>) -> VcsResult<()> {
+    pub fn set_url(&self, url: impl AsRef<str>) -> CognitionResult<()> {
         run_git(
             &self.repository.path,
             ["remote", "set-url", self.name.as_str(), url.as_ref()],
@@ -81,7 +81,7 @@ pub struct LocalGitRemoteBranch {
 }
 
 impl LocalGitRemoteBranch {
-    pub fn fetch(&self) -> VcsResult<()> {
+    pub fn fetch(&self) -> CognitionResult<()> {
         run_git(
             &self.remote.repository.path,
             ["fetch", self.remote.name.as_str(), self.name.as_str()],
@@ -89,7 +89,7 @@ impl LocalGitRemoteBranch {
         .map(|_| ())
     }
 
-    pub fn checkout(&self) -> VcsResult<()> {
+    pub fn checkout(&self) -> CognitionResult<()> {
         let remote_branch = format!("{}/{}", self.remote.name, self.name);
 
         run_git(
@@ -107,7 +107,7 @@ pub struct LocalGitRemoteReference {
 }
 
 impl LocalGitRemoteReference {
-    pub fn fetch(&self) -> VcsResult<()> {
+    pub fn fetch(&self) -> CognitionResult<()> {
         run_git(
             &self.remote.repository.path,
             ["fetch", self.remote.name.as_str(), self.name.as_str()],
@@ -123,7 +123,7 @@ pub struct LocalGitRemoteCommit {
 }
 
 impl LocalGitRemoteCommit {
-    pub fn fetch(&self) -> VcsResult<()> {
+    pub fn fetch(&self) -> CognitionResult<()> {
         run_git(
             &self.remote.repository.path,
             ["fetch", self.remote.name.as_str(), self.sha.as_str()],
@@ -138,7 +138,7 @@ pub struct LocalGitFetchHead {
 }
 
 impl LocalGitFetchHead {
-    pub fn checkout(&self) -> VcsResult<()> {
+    pub fn checkout(&self) -> CognitionResult<()> {
         run_git(
             &self.repository.path,
             ["checkout", "--detach", "FETCH_HEAD"],
